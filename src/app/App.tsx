@@ -1,0 +1,474 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { AssetViewer } from './components/AssetViewer';
+import { Step2ReviewOrder } from './components/Step2ReviewOrder';
+import { Step5Success } from './components/Step5Success';
+import { DispatcherStep1 } from './components/DispatcherStep1';
+import { DispatcherStep2 } from './components/DispatcherStep2';
+import { ReactivateServices } from './components/ReactivateServices';
+import { ReactivateReviewOrder } from './components/ReactivateReviewOrder';
+import { DeactivateServices } from './components/DeactivateServices';
+import { DeactivateReviewOrder } from './components/DeactivateReviewOrder';
+import type { MACDAction } from './components/DispatcherStep1';
+
+export interface Service {
+  id: string;
+  name: string;
+  status: string;
+  address?: string;
+  children?: Service[];
+}
+
+export interface SelectedChildItem {
+  id: string;
+  name: string;
+  parentServiceId: string;
+  parentServiceName: string;
+}
+
+export interface OrderItem {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  description: string;
+  quantity: number;
+  monthlyCharge: number;
+}
+
+// Define the services structure for mapping child items
+const servicesData: Service[] = [
+  {
+    id: 'internet',
+    name: 'Residential Internet',
+    status: 'Active',
+    children: [
+      { id: 'internet-assurance', name: 'Service Assurance', status: 'Active' },
+      { id: 'internet-installation', name: 'Installation Fees', status: 'Active' },
+      { id: 'internet-support', name: 'Tech Home Support', status: 'Active' }
+    ]
+  },
+  {
+    id: 'phone',
+    name: 'Phone',
+    status: 'Active',
+    children: [
+      { id: 'phone-voice', name: 'Voice', status: 'Active' },
+      { id: 'phone-longdistance', name: 'Long Distance', status: 'Active' },
+      { id: 'phone-directory', name: 'Directory Listing', status: 'Active' },
+      { id: 'phone-callerid', name: 'Caller ID', status: 'Active' },
+      { id: 'phone-callwaiting', name: 'Call Waiting', status: 'Active' },
+      { id: 'phone-voicemail', name: 'Voice Mail', status: 'Active' }
+    ]
+  },
+  {
+    id: 'tv',
+    name: 'iTV Extra',
+    status: 'Active',
+    children: [
+      { id: 'tv-streams', name: 'Number Of Streams', status: 'Active' },
+      { id: 'tv-devices', name: 'Streaming Devices', status: 'Active' },
+      { id: 'tv-dvr', name: 'DVR Hours', status: 'Active' },
+      { id: 'tv-broadcaster', name: 'Broadcaster Fee', status: 'Active' },
+      { id: 'tv-connectivity', name: 'Connectivity Fee', status: 'Active' },
+      { id: 'tv-music', name: 'Digital Music Channel', status: 'Active' },
+      { id: 'tv-cinemax', name: 'Cinemax', status: 'Active' },
+      { id: 'tv-hbo', name: 'HBO', status: 'Active' }
+    ]
+  }
+];
+
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'step2' | 'step5';
+
+function App() {
+  const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
+  const [selectedAction, setSelectedAction] = useState<MACDAction | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedChildItems, setSelectedChildItems] = useState<SelectedChildItem[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedSA, setSelectedSA] = useState<Service | null>(null);
+  const [reactivationDate, setReactivationDate] = useState<string>('');
+  const [orderReference, setOrderReference] = useState<string>('');
+  const [disconnectionDate, setDisconnectionDate] = useState<string>('');
+  const [disconnectionReason, setDisconnectionReason] = useState<string>('');
+  const [disconnectionComments, setDisconnectionComments] = useState<string>('');
+
+  const calculateTotalActiveMonthlyCharges = () => {
+    const internetTotal = 12.99 + 0.00 + 3.50;
+    const phoneTotal = 25.00 + 0.00 + 3.00 + 8.00 + 6.00 + 7.00;
+    const tvTotal = (3 * 5.00) + 10.00 + 20.00 + 12.00 + 0.00 + 9.99 + 15.00 + 18.00;
+    return internetTotal + phoneTotal + tvTotal;
+  };
+
+  const generateOrderItemsForService = (service: Service): OrderItem[] => {
+    const items: OrderItem[] = [];
+    if (service.id === 'internet') {
+      items.push(
+        { id: '1', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Service Assurance', quantity: 1, monthlyCharge: 12.99 },
+        { id: '2', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Installation Fees', quantity: 1, monthlyCharge: 0.00 },
+        { id: '3', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Tech Home Support', quantity: 1, monthlyCharge: 3.50 }
+      );
+    } else if (service.id === 'phone') {
+      items.push(
+        { id: '4', serviceId: 'phone', serviceName: 'Phone', description: 'Voice', quantity: 1, monthlyCharge: 25.00 },
+        { id: '5', serviceId: 'phone', serviceName: 'Phone', description: 'Long Distance', quantity: 0, monthlyCharge: 0.00 },
+        { id: '6', serviceId: 'phone', serviceName: 'Phone', description: 'Directory Listing', quantity: 1, monthlyCharge: 3.00 },
+        { id: '7', serviceId: 'phone', serviceName: 'Phone', description: 'Caller ID', quantity: 1, monthlyCharge: 8.00 },
+        { id: '8', serviceId: 'phone', serviceName: 'Phone', description: 'Call Waiting', quantity: 1, monthlyCharge: 6.00 },
+        { id: '9', serviceId: 'phone', serviceName: 'Phone', description: 'Voice Mail', quantity: 1, monthlyCharge: 7.00 }
+      );
+    } else if (service.id === 'tv') {
+      items.push(
+        { id: '10', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Number Of Streams', quantity: 3, monthlyCharge: 5.00 },
+        { id: '11', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Streaming Devices', quantity: 1, monthlyCharge: 10.00 },
+        { id: '12', serviceId: 'tv', serviceName: 'iTV Extra', description: 'DVR Hours', quantity: 1, monthlyCharge: 20.00 },
+        { id: '13', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Broadcaster Fee', quantity: 1, monthlyCharge: 12.00 },
+        { id: '14', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Connectivity Fee', quantity: 1, monthlyCharge: 0.00 },
+        { id: '15', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Digital Music Channel', quantity: 1, monthlyCharge: 9.99 },
+        { id: '16', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Cinemax', quantity: 1, monthlyCharge: 15.00 },
+        { id: '17', serviceId: 'tv', serviceName: 'iTV Extra', description: 'HBO', quantity: 1, monthlyCharge: 18.00 }
+      );
+    }
+    return items;
+  };
+
+  const generateOrderItemsForChildItems = (childItemIds: string[]): OrderItem[] => {
+    const childItemToOrderItemMap: { [key: string]: OrderItem } = {
+      'internet-assurance': { id: '1', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Service Assurance', quantity: 1, monthlyCharge: 12.99 },
+      'internet-installation': { id: '2', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Installation Fees', quantity: 1, monthlyCharge: 0.00 },
+      'internet-support': { id: '3', serviceId: 'internet', serviceName: 'Residential Internet', description: 'Tech Home Support', quantity: 1, monthlyCharge: 3.50 },
+      'phone-voice': { id: '4', serviceId: 'phone', serviceName: 'Phone', description: 'Voice', quantity: 1, monthlyCharge: 25.00 },
+      'phone-longdistance': { id: '5', serviceId: 'phone', serviceName: 'Phone', description: 'Long Distance', quantity: 0, monthlyCharge: 0.00 },
+      'phone-directory': { id: '6', serviceId: 'phone', serviceName: 'Phone', description: 'Directory Listing', quantity: 1, monthlyCharge: 3.00 },
+      'phone-callerid': { id: '7', serviceId: 'phone', serviceName: 'Phone', description: 'Caller ID', quantity: 1, monthlyCharge: 8.00 },
+      'phone-callwaiting': { id: '8', serviceId: 'phone', serviceName: 'Phone', description: 'Call Waiting', quantity: 1, monthlyCharge: 6.00 },
+      'phone-voicemail': { id: '9', serviceId: 'phone', serviceName: 'Phone', description: 'Voice Mail', quantity: 1, monthlyCharge: 7.00 },
+      'tv-streams': { id: '10', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Number Of Streams', quantity: 3, monthlyCharge: 5.00 },
+      'tv-devices': { id: '11', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Streaming Devices', quantity: 1, monthlyCharge: 10.00 },
+      'tv-dvr': { id: '12', serviceId: 'tv', serviceName: 'iTV Extra', description: 'DVR Hours', quantity: 1, monthlyCharge: 20.00 },
+      'tv-broadcaster': { id: '13', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Broadcaster Fee', quantity: 1, monthlyCharge: 12.00 },
+      'tv-connectivity': { id: '14', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Connectivity Fee', quantity: 1, monthlyCharge: 0.00 },
+      'tv-music': { id: '15', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Digital Music Channel', quantity: 1, monthlyCharge: 9.99 },
+      'tv-cinemax': { id: '16', serviceId: 'tv', serviceName: 'iTV Extra', description: 'Cinemax', quantity: 1, monthlyCharge: 15.00 },
+      'tv-hbo': { id: '17', serviceId: 'tv', serviceName: 'iTV Extra', description: 'HBO', quantity: 1, monthlyCharge: 18.00 }
+    };
+
+    return childItemIds
+      .map(id => childItemToOrderItemMap[id])
+      .filter(Boolean);
+  };
+
+  // ── Dispatcher handlers ──────────────────────────────────────
+
+  const handleDispatcherAction = (action: MACDAction) => {
+    setSelectedAction(action);
+    setCurrentStep('dispatcher-step2');
+  };
+
+  const handleDispatcherAccounts = (services: Service[], childItemIds: string[]) => {
+    if (selectedAction === 'disconnect') {
+      setSelectedSA(services[0]);
+      setCurrentStep('viewer');
+    } else if (selectedAction === 'reactivate') {
+      const baLabel = childItemIds.map(id => id.toUpperCase()).join(', ');
+      const baService: Service = { id: 'billing', name: baLabel || 'Billing accounts', status: 'Active' };
+      setSelectedSA(baService);
+      setSelectedService(baService);
+      setCurrentStep('reactivate-services');
+    } else {
+      // Deactivate: go to deactivate-services step
+      const baLabel = childItemIds.map(id => id.toUpperCase().replace('BA-', 'BA-')).join(', ');
+      const baService: Service = { id: 'billing', name: baLabel || 'Billing accounts', status: 'Active' };
+      setSelectedSA(baService);
+      setSelectedService(baService);
+      const baOrderItems: OrderItem[] = childItemIds.map((baId, i) => ({
+        id: String(i + 100),
+        serviceId: baId,
+        serviceName: baId.toUpperCase(),
+        description: baId === 'ba-00391' ? 'Primary billing' : baId === 'ba-00412' ? 'Equipment lease' : 'Primary billing',
+        quantity: 1,
+        monthlyCharge: baId === 'ba-00391' ? 189.00 : baId === 'ba-00412' ? 14.99 : 79.00,
+      }));
+      setOrderItems(baOrderItems);
+      setCurrentStep('deactivate-services');
+    }
+  };
+
+  // ── Existing flow handlers (unchanged) ──────────────────────
+
+  const handleStartDisconnect = (services: Service[]) => {
+    setSelectedService(services[0]);
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    setDisconnectionDate(date.toISOString().split('T')[0]);
+    const allItems: OrderItem[] = [];
+    services.forEach(service => {
+      allItems.push(...generateOrderItemsForService(service));
+    });
+    setOrderItems(allItems);
+    setCurrentStep('step2');
+  };
+
+  const handleNext = (services: Service[], childItemIds: string[]) => {
+    setSelectedService(services[0]);
+
+    const childItems: SelectedChildItem[] = [];
+    childItemIds.forEach(childId => {
+      for (const service of servicesData) {
+        const child = service.children?.find(c => c.id === childId);
+        if (child) {
+          childItems.push({
+            id: child.id,
+            name: child.name,
+            parentServiceId: service.id,
+            parentServiceName: service.name
+          });
+          break;
+        }
+      }
+    });
+    setSelectedChildItems(childItems);
+
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    setDisconnectionDate(date.toISOString().split('T')[0]);
+
+    let allItems: OrderItem[] = [];
+    if (childItemIds.length > 0) {
+      allItems = generateOrderItemsForChildItems(childItemIds);
+    } else {
+      services.forEach(service => {
+        allItems.push(...generateOrderItemsForService(service));
+      });
+    }
+
+    setOrderItems(allItems);
+    setCurrentStep('step2');
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setOrderItems(orderItems.filter(item => item.id !== itemId));
+  };
+
+  const handleConfirmSubmit = () => {
+    const ref = `DC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    setOrderReference(ref);
+    setCurrentStep('step5');
+  };
+
+  const handleReturnToAccount = () => {
+    setCurrentStep('dispatcher-step1');
+    setSelectedAction(null);
+    setSelectedService(null);
+    setSelectedSA(null);
+    setOrderItems([]);
+    setOrderReference('');
+    setDisconnectionDate('');
+  };
+
+  const pageVariants = {
+    initial: { opacity: 0, x: 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <AnimatePresence mode="wait">
+
+        {/* ── DISPATCHER STEP 1: Select action ── */}
+        {currentStep === 'dispatcher-step1' && (
+          <motion.div
+            key="dispatcher-step1"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <DispatcherStep1
+              onNext={handleDispatcherAction}
+              onCancel={handleReturnToAccount}
+            />
+          </motion.div>
+        )}
+
+        {/* ── DISPATCHER STEP 2: Select accounts ── */}
+        {currentStep === 'dispatcher-step2' && selectedAction && (
+          <motion.div
+            key="dispatcher-step2"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <DispatcherStep2
+              action={selectedAction}
+              onNext={handleDispatcherAccounts}
+              onBack={() => setCurrentStep('dispatcher-step1')}
+            />
+          </motion.div>
+        )}
+
+        {/* ── D01: Active Services (Disconnect path only) ── */}
+        {currentStep === 'viewer' && (
+          <motion.div
+            key="viewer"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <AssetViewer onDisconnect={handleStartDisconnect} onNext={handleNext} onBack={() => setCurrentStep('dispatcher-step2')} action={selectedAction} selectedSA={selectedSA} disconnectionReason={disconnectionReason} disconnectionComments={disconnectionComments} onReasonChange={setDisconnectionReason} onCommentsChange={setDisconnectionComments} />
+          </motion.div>
+        )}
+
+        {/* ── Reactivate Services ── */}
+        {currentStep === 'reactivate-services' && (
+          <motion.div
+            key="reactivate-services"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ReactivateServices
+              action={selectedAction}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('dispatcher-step2')}
+              onReactivate={(date) => { setReactivationDate(date); setCurrentStep('reactivate-review'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Reactivate Review Order ── */}
+        {currentStep === 'reactivate-review' && (
+          <motion.div
+            key="reactivate-review"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="px-8 py-12"
+          >
+            <div className="max-w-5xl mx-auto">
+              <ReactivateReviewOrder
+                action={selectedAction}
+                selectedSA={selectedSA}
+                reactivationDate={reactivationDate}
+                orderItems={orderItems}
+                onBack={() => setCurrentStep('reactivate-services')}
+                onConfirm={handleConfirmSubmit}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Deactivate Services ── */}
+        {currentStep === 'deactivate-services' && (
+          <motion.div
+            key="deactivate-services"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <DeactivateServices
+              action={selectedAction}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('dispatcher-step2')}
+              onDeactivate={(date) => {
+                setDisconnectionDate(date);
+                setCurrentStep('deactivate-review');
+              }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Deactivate Review Order ── */}
+        {currentStep === 'deactivate-review' && (
+          <motion.div
+            key="deactivate-review"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="px-8 py-12"
+          >
+            <div className="max-w-5xl mx-auto">
+              <DeactivateReviewOrder
+                action={selectedAction}
+                selectedSA={selectedSA}
+                deactivationDate={disconnectionDate}
+                orderItems={orderItems}
+                onBack={() => setCurrentStep('deactivate-services')}
+                onConfirm={handleConfirmSubmit}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── D02–D04: Review Order ── */}
+        {currentStep === 'step2' && selectedService && (
+          <motion.div
+            key="step2"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="px-8 py-12"
+          >
+            <div className="max-w-5xl mx-auto">
+              <Step2ReviewOrder
+                orderItems={orderItems}
+                service={selectedService}
+                disconnectionDate={disconnectionDate}
+                totalActiveMonthlyCharges={calculateTotalActiveMonthlyCharges()}
+                disconnectionReason={disconnectionReason}
+                disconnectionComments={disconnectionComments}
+                onReasonChange={setDisconnectionReason}
+                onCommentsChange={setDisconnectionComments}
+                onRemoveItem={handleRemoveItem}
+                onDisconnectionDateChange={setDisconnectionDate}
+                onBack={() => setCurrentStep(selectedAction === 'deactivate' ? 'deactivate-services' : 'viewer')}
+                onContinue={handleConfirmSubmit}
+                action={selectedAction}
+                selectedSA={selectedSA}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── D05: Success ── */}
+        {currentStep === 'step5' && selectedService && (
+          <motion.div
+            key="step5"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <Step5Success
+              service={selectedService}
+              orderReference={orderReference}
+              orderItems={orderItems}
+              onReturn={handleReturnToAccount}
+              action={selectedAction}
+              selectedSA={selectedSA}
+            />
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default App;
