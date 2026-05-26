@@ -32,6 +32,12 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     bodyRest: ' order request has been successfully created with reference number:',
     servicesList: 'Services to Be Deactivated',
   },
+  move: {
+    title: 'Move Request Created',
+    boldWord: 'move order',
+    bodyRest: ' request has been successfully created with reference number:',
+    servicesList: 'Services Being Moved',
+  },
 };
 
 export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA }: Step5Props) {

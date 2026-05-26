@@ -1,16 +1,30 @@
-import { useState } from 'react';
-import { MinusCircle, RefreshCw, XCircle, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { MinusCircle, RefreshCw, XCircle, Settings, MapPin } from 'lucide-react';
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
   onCancel: () => void;
 }
 
-const actions = [
+const actions: {
+  id: MACDAction;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  iconColor: string;
+  iconBg: string;
+  selectedBorder: string;
+  selectedBg: string;
+  radioDot: string;
+  radioRing: string;
+  labelColor: string;
+  fullWidth?: boolean;
+  badge?: string;
+}[] = [
   {
-    id: 'deactivate' as MACDAction,
+    id: 'deactivate',
     label: 'Deactivate',
     description: 'Temporarily suspend service. The account remains intact and can be reactivated at any time.',
     icon: MinusCircle,
@@ -23,7 +37,7 @@ const actions = [
     labelColor: 'text-amber-800',
   },
   {
-    id: 'reactivate' as MACDAction,
+    id: 'reactivate',
     label: 'Reactivate',
     description: 'Restore a previously deactivated service. Billing and service will resume immediately.',
     icon: RefreshCw,
@@ -36,7 +50,7 @@ const actions = [
     labelColor: 'text-green-700',
   },
   {
-    id: 'disconnect' as MACDAction,
+    id: 'disconnect',
     label: 'Disconnect',
     description: 'Permanently terminate service. This action cannot be undone and will close the service account.',
     icon: XCircle,
@@ -49,7 +63,7 @@ const actions = [
     labelColor: 'text-red-700',
   },
   {
-    id: 'change' as MACDAction,
+    id: 'change',
     label: 'Change',
     description: 'Modify an existing service. Update plan, features, or configuration without interrupting service.',
     icon: Settings,
@@ -61,6 +75,20 @@ const actions = [
     radioRing: 'border-blue-500',
     labelColor: 'text-blue-700',
   },
+  {
+    id: 'move',
+    label: 'Move',
+    description: 'Transfer services to a new address. Supports M01 / M02 / M03.',
+    icon: MapPin,
+    iconColor: 'text-[#800080]',
+    iconBg: 'bg-[#f3e8f3]',
+    selectedBorder: 'border-[#800080]',
+    selectedBg: 'bg-[#faf0fa]',
+    radioDot: 'bg-[#800080]',
+    radioRing: 'border-[#800080]',
+    labelColor: 'text-[#800080]',
+    fullWidth: true,
+  },
 ];
 
 export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
@@ -68,21 +96,6 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
-      {/* Stepper */}
-      <div className="flex items-start justify-center mb-12">
-        <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="w-7 h-7 rounded-full border-2 border-blue-600 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-          </div>
-          <span className="text-xs font-medium text-gray-900 text-center whitespace-nowrap">Select action</span>
-        </div>
-        <div className="flex-1 h-px bg-gray-300 mt-3.5" />
-        <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="w-7 h-7 rounded-full border-2 border-gray-300 bg-white" />
-          <span className="text-xs text-gray-400 text-center whitespace-nowrap">Select accounts</span>
-        </div>
-      </div>
-
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">Manage service</h1>
@@ -103,13 +116,21 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
               key={action.id}
               onClick={() => setSelected(action.id)}
               className={`flex flex-col gap-3 p-5 rounded-xl border-2 text-left transition-all
+                ${action.fullWidth ? 'col-span-2' : ''}
                 ${isSelected
                   ? `${action.selectedBorder} ${action.selectedBg}`
                   : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
             >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.iconBg}`}>
-                <Icon className={`w-5 h-5 ${action.iconColor}`} />
+              <div className="flex items-center gap-2">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.iconBg}`}>
+                  <Icon className={`w-5 h-5 ${action.iconColor}`} />
+                </div>
+                {action.badge && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {action.badge}
+                  </span>
+                )}
               </div>
               <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
                 {action.label}

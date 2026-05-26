@@ -7,13 +7,29 @@ interface DispatcherStep2Props {
   onBack: () => void;
 }
 
-// Service Accounts (for Disconnect)
+// Service Accounts (for Disconnect / Move)
 const serviceAccounts: Service[] = [
   {
     id: 'sa-00912',
     name: 'SA-00912 · Primary residence',
     status: 'Active',
-    address: '412 Oak Ave, Lincoln, NE 68301',
+    address: '742 Evergreen Terrace, Springfield, IL 62701',
+  },
+  {
+    id: 'sa-01047',
+    name: 'SA-01047 · Secondary property',
+    status: 'Active',
+    address: '88 Maple St, Decatur, IL 62522',
+  },
+];
+
+// Service Accounts (for Change)
+const changeServiceAccounts: Service[] = [
+  {
+    id: 'sa-00912',
+    name: 'SA-00912 · Primary residence',
+    status: 'Active',
+    address: '412 Oak Ave, Lincoln, NE 68501',
   },
   {
     id: 'sa-01047',
@@ -22,6 +38,11 @@ const serviceAccounts: Service[] = [
     address: '88 Maple St, Omaha, NE 68102',
   },
 ];
+
+const changeTags: Record<string, string[]> = {
+  'sa-00912': ['Internet 2Gig', 'iTV Premium'],
+  'sa-01047': ['Internet 200M', 'Phone Bundle'],
+};
 
 // Billing Accounts (for Deactivate / Reactivate)
 interface BillingAccount {
@@ -65,6 +86,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   reactivate: 'bg-green-50 text-green-700',
   disconnect: 'bg-red-50 text-red-700',
   change: 'bg-blue-50 text-blue-700',
+  move: 'bg-[#f3e8f3] text-[#800080]',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -72,21 +94,23 @@ const actionLabel: Record<MACDAction, string> = {
   reactivate: 'Reactivate',
   disconnect: 'Disconnect',
   change: 'Change',
+  move: 'Move',
 };
 
 import { useState } from 'react';
 
 export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props) {
-  const isDisconnect = action === 'disconnect';
+  const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'change';
+  const activeServiceAccounts = action === 'change' ? changeServiceAccounts : serviceAccounts;
 
-  // SA radio selection (Disconnect)
+  // SA radio selection (Disconnect / Move)
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);
 
   // BA radio selection (Deactivate/Reactivate) — single select
   const [selectedBA, setSelectedBA] = useState<string>(billingAccounts[0].id);
 
   const handleNext = () => {
-    if (isDisconnect) {
+    if (isServiceAccountAction) {
       const sa = serviceAccounts.find(s => s.id === selectedSA);
       if (sa) onNext([sa], []);
     } else {
@@ -95,29 +119,10 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
     }
   };
 
-  const canProceed = isDisconnect ? !!selectedSA : !!selectedBA;
+  const canProceed = isServiceAccountAction ? !!selectedSA : !!selectedBA;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
-
-      {/* Stepper */}
-      <div className="flex items-start justify-center mb-12">
-        <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="w-7 h-7 rounded-full border-2 border-blue-600 bg-blue-600 flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs text-blue-600 font-medium text-center whitespace-nowrap">Select action</span>
-        </div>
-        <div className="flex-1 h-px bg-blue-600 mt-3.5" />
-        <div className="flex flex-col items-center gap-1.5 flex-1">
-          <div className="w-7 h-7 rounded-full border-2 border-blue-600 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-          </div>
-          <span className="text-xs font-medium text-gray-900 text-center whitespace-nowrap">Select accounts</span>
-        </div>
-      </div>
 
       {/* Header */}
       <div className="mb-8">
@@ -134,41 +139,44 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
       </div>
 
       {/* Content */}
-      {isDisconnect ? (
-        /* ── Disconnect: Service Accounts ── */
+      {isServiceAccountAction ? (
+        /* ── Disconnect / Move: Service Accounts ── */
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Service accounts</p>
           <div className="flex flex-col gap-3">
-            {serviceAccounts.map(sa => {
+            {activeServiceAccounts.map(sa => {
               const isSelected = selectedSA === sa.id;
+              const isMove = action === 'move';
+              const selectedBorder = isMove ? 'border-[#800080]' : 'border-blue-600';
+              const selectedBg = isMove ? 'bg-[#faf0fa]' : 'bg-blue-50';
+              const radioBorder = isMove ? 'border-[#800080]' : 'border-blue-600';
+              const radioDot = isMove ? 'bg-[#800080]' : 'bg-blue-600';
               return (
                 <button
                   key={sa.id}
                   onClick={() => setSelectedSA(sa.id)}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all
-                    ${isSelected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                    ${isSelected ? `${selectedBorder} ${selectedBg}` : 'border-gray-200 bg-white hover:border-gray-300'}`}
                 >
                   {/* Radio */}
-                  <div className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center
-                    ${isSelected ? 'border-blue-600' : 'border-gray-300'}`}
+                  <div className={`mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full border-2
+                    ${isSelected ? radioBorder : 'border-gray-300'}`}
                     style={{ width: 18, height: 18 }}>
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                    {isSelected && <div className={`w-2 h-2 rounded-full ${radioDot}`} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 mb-1">{sa.name}</p>
-                    <p className="text-xs text-gray-500">{sa.address}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <svg className="w-3 h-3 inline-block flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.418-4.418-7-8.015-7-11A7 7 0 0 1 12 3a7 7 0 0 1 7 7c0 2.985-2.582 6.582-7 11z"/><circle cx="12" cy="10" r="2"/></svg>
+                      {sa.address}
+                    </p>
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      {sa.id === 'sa-00912' ? (
-                        <>
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Internet 2Gig</span>
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">iTV Premium</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Internet 200M</span>
-                          <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Phone Bundle</span>
-                        </>
-                      )}
+                      {(action === 'change' ? (changeTags[sa.id] ?? []) : sa.id === 'sa-00912'
+                        ? ['Fiber Internet 1 Gbps', 'Voice', 'WiFi equipment', 'Streaming TV']
+                        : ['Internet 200M']
+                      ).map(tag => (
+                        <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{tag}</span>
+                      ))}
                     </div>
                   </div>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex-shrink-0">

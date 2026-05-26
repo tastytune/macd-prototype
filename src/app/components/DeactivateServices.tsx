@@ -38,12 +38,12 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
 
   const handleReasonChange = (value: string) => {
     setReason(value);
-    setDeactivationDate(value === 'Vacation' ? vacationDefaultDate : today);
+    setDeactivationDate(value === 'Customer Initiated' ? vacationDefaultDate : today);
   };
   const [vacationReturnDate, setVacationReturnDate] = useState('');
   const [comments, setComments] = useState('');
 
-  const deactivationReasons = ['NPD', 'Vacation', 'Deactivation'];
+  const deactivationReasons = ['NPD', 'Customer Initiated', 'Deactivation'];
 
   const allSelected = selected.size === activeServices.length;
 
@@ -67,7 +67,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
       </div>
 
       {/* Deactivation Date — hidden when Vacation is selected */}
-      {reason !== 'Vacation' && (
+      {reason !== 'Customer Initiated' && (
         <div className="mb-6 flex items-center gap-3">
           <span className="text-gray-600 flex items-center gap-1.5">
             Requested Deactivation Date<span className="text-red-600 ml-1">*</span>
@@ -148,7 +148,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
             </select>
           </div>
 
-          {reason === 'Vacation' && (
+          {reason === 'Customer Initiated' && (
             <>
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">

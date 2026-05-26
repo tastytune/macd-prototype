@@ -1,4 +1,4 @@
-import { Trash2, Info, ChevronDown } from 'lucide-react';
+import { Trash2, Info, ChevronDown, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState } from 'react';
 import type { OrderItem, Service } from '../App';
@@ -92,9 +92,16 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div className="p-6 pb-4">
           <div className="flex items-center gap-3 mb-4">
-            <h3 className="text-sm font-medium text-gray-700 text-[20px]">
-              {servicesBeingDisconnected.length > 1 ? 'Services' : 'Service'} being Disconnected -
-            </h3>
+            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 text-[20px]">
+              Requested Disconnection Date<span className="text-red-600 ml-1">*</span>
+              <div className="relative group">
+                <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Disconnection might take X and Z amount of days.
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                </div>
+              </div>
+            </label>
             <input
               type="date"
               value={disconnectionDate}
@@ -176,7 +183,9 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
                               {item.description}
                             </td>
                             <td className="px-4 py-4 text-sm text-gray-600 text-center">
-                              {item.quantity}
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                                Disconnect
+                              </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-gray-900 text-right">
                               ${item.monthlyCharge.toFixed(2)}

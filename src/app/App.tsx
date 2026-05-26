@@ -9,6 +9,11 @@ import { ReactivateServices } from './components/ReactivateServices';
 import { ReactivateReviewOrder } from './components/ReactivateReviewOrder';
 import { DeactivateServices } from './components/DeactivateServices';
 import { DeactivateReviewOrder } from './components/DeactivateReviewOrder';
+import { MoveServices } from './components/MoveServices';
+import { MoveServicesStep3 } from './components/MoveServicesStep3';
+import { MoveServicesStep4 } from './components/MoveServicesStep4';
+import { MoveServicesStep5 } from './components/MoveServicesStep5';
+import { ChangeServiceType } from './components/ChangeServiceType';
 import type { MACDAction } from './components/DispatcherStep1';
 
 export interface Service {
@@ -77,7 +82,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -91,6 +96,11 @@ function App() {
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [disconnectionReason, setDisconnectionReason] = useState<string>('');
   const [disconnectionComments, setDisconnectionComments] = useState<string>('');
+  const [moveScenario, setMoveScenario] = useState<string>('M01');
+  const [moveDestinationAddress, setMoveDestinationAddress] = useState<string>('');
+  const [moveSelectedServiceIds, setMoveSelectedServiceIds] = useState<string[]>(['fiber', 'voice', 'streaming', 'wifi']);
+  const [moveBillingEndDate, setMoveBillingEndDate] = useState<string>('');
+  const [moveInstallationDate, setMoveInstallationDate] = useState<string>('');
 
   const calculateTotalActiveMonthlyCharges = () => {
     const internetTotal = 12.99 + 0.00 + 3.50;
@@ -165,7 +175,15 @@ function App() {
   };
 
   const handleDispatcherAccounts = (services: Service[], childItemIds: string[]) => {
-    if (selectedAction === 'disconnect') {
+    if (selectedAction === 'move') {
+      setSelectedSA(services[0]);
+      setSelectedService(services[0]);
+      setCurrentStep('move-services');
+    } else if (selectedAction === 'change') {
+      setSelectedSA(services[0]);
+      setSelectedService(services[0]);
+      setCurrentStep('change-service-type');
+    } else if (selectedAction === 'disconnect') {
       setSelectedSA(services[0]);
       setCurrentStep('viewer');
     } else if (selectedAction === 'reactivate') {
@@ -193,20 +211,7 @@ function App() {
     }
   };
 
-  // ── Existing flow handlers (unchanged) ──────────────────────
-
-  const handleStartDisconnect = (services: Service[]) => {
-    setSelectedService(services[0]);
-    const date = new Date();
-    date.setDate(date.getDate() + 7);
-    setDisconnectionDate(date.toISOString().split('T')[0]);
-    const allItems: OrderItem[] = [];
-    services.forEach(service => {
-      allItems.push(...generateOrderItemsForService(service));
-    });
-    setOrderItems(allItems);
-    setCurrentStep('step2');
-  };
+  // ── Existing flow handlers ──────────────────────
 
   const handleNext = (services: Service[], childItemIds: string[]) => {
     setSelectedService(services[0]);
@@ -320,7 +325,7 @@ function App() {
             exit="exit"
             transition={{ duration: 0.3 }}
           >
-            <AssetViewer onDisconnect={handleStartDisconnect} onNext={handleNext} onBack={() => setCurrentStep('dispatcher-step2')} action={selectedAction} selectedSA={selectedSA} disconnectionReason={disconnectionReason} disconnectionComments={disconnectionComments} onReasonChange={setDisconnectionReason} onCommentsChange={setDisconnectionComments} />
+            <AssetViewer onNext={handleNext} onBack={() => setCurrentStep('dispatcher-step2')} action={selectedAction} selectedSA={selectedSA} disconnectionReason={disconnectionReason} disconnectionComments={disconnectionComments} onReasonChange={setDisconnectionReason} onCommentsChange={setDisconnectionComments} />
           </motion.div>
         )}
 
@@ -410,6 +415,104 @@ function App() {
                 onConfirm={handleConfirmSubmit}
               />
             </div>
+          </motion.div>
+        )}
+
+        {/* ── Move Services ── */}
+        {currentStep === 'move-services' && (
+          <motion.div
+            key="move-services"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <MoveServices
+              action={selectedAction}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('dispatcher-step2')}
+              onMove={(address, scenario) => { setMoveDestinationAddress(address); setMoveScenario(scenario || 'M01'); setCurrentStep('move-services-step3'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Move Services Step 3: Services selection ── */}
+        {currentStep === 'move-services-step3' && (
+          <motion.div
+            key="move-services-step3"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <MoveServicesStep3
+              scenario={moveScenario}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('move-services')}
+              onNext={(ids) => { setMoveSelectedServiceIds(ids); setCurrentStep('move-dates'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Move Services Step 4: Dates ── */}
+        {currentStep === 'move-dates' && (
+          <motion.div
+            key="move-dates"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <MoveServicesStep4
+              scenario={moveScenario}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('move-services-step3')}
+              onNext={(billingEnd, installation) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setCurrentStep('move-review'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Move Services Step 5: Review ── */}
+        {currentStep === 'move-review' && (
+          <motion.div
+            key="move-review"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <MoveServicesStep5
+              scenario={moveScenario}
+              selectedSA={selectedSA}
+              destinationAddress={moveDestinationAddress}
+              selectedServiceIds={moveSelectedServiceIds}
+              billingEndDate={moveBillingEndDate}
+              installationDate={moveInstallationDate}
+              onBack={() => setCurrentStep('move-dates')}
+              onSubmit={() => handleConfirmSubmit()}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change: Service type selection ── */}
+        {currentStep === 'change-service-type' && (
+          <motion.div
+            key="change-service-type"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangeServiceType
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('dispatcher-step2')}
+              onNext={() => setCurrentStep('step5')}
+            />
           </motion.div>
         )}
 

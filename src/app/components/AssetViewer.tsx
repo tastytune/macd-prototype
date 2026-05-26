@@ -11,7 +11,6 @@ import starzLogo from 'figma:asset/a5513f252498124c13ee55ac36f45597dfc9a4e8.png'
 import sportsTierLogo from 'figma:asset/6944db11e4b77188d75287c86024872fff886b94.png';
 
 interface AssetViewerProps {
-  onDisconnect: (service: Service) => void;
   onNext?: (selectedServices: Service[], selectedChildItems: string[]) => void;
   onBack?: () => void;
   action?: MACDAction | null;
@@ -79,7 +78,7 @@ const getServiceIcon = (serviceId: string) => {
   }
 };
 
-export function AssetViewer({ onDisconnect, onNext, onBack, action, selectedSA, disconnectionReason = '', disconnectionComments = '', onReasonChange, onCommentsChange }: AssetViewerProps) {
+export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionReason = '', disconnectionComments = '', onReasonChange, onCommentsChange }: AssetViewerProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
