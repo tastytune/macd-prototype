@@ -95,11 +95,11 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
   const [selected, setSelected] = useState<MACDAction | null>(null);
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-12">
+    <div className="max-w-4xl mx-auto px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">Manage service</h1>
-        <p className="text-gray-600">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1.5">Manage service</h1>
+        <p className="text-gray-600 text-sm">
           Select the action you want to perform on{' '}
           <span className="font-semibold">Robert Johnson</span>'s{' '}
           <span className="font-semibold">ACC-004821</span> Residential account.
@@ -107,30 +107,51 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
       </div>
 
       {/* Action cards */}
-      <div className="grid grid-cols-2 gap-4 mb-10">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         {actions.map((action) => {
           const Icon = action.icon;
           const isSelected = selected === action.id;
+
+          if (action.fullWidth) {
+            return (
+              <button
+                key={action.id}
+                onClick={() => setSelected(action.id)}
+                className={`col-span-2 flex items-center gap-4 px-5 py-4 rounded-xl border-2 text-left transition-all
+                  ${isSelected
+                    ? `${action.selectedBorder} ${action.selectedBg}`
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+              >
+                <div className={`w-9 h-9 flex-shrink-0 rounded-lg flex items-center justify-center ${action.iconBg}`}>
+                  <Icon className={`w-4 h-4 ${action.iconColor}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
+                    {action.label}
+                  </span>
+                  <p className="text-xs text-gray-500 mt-0.5">{action.description}</p>
+                </div>
+                <div className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center
+                  ${isSelected ? action.radioRing : 'border-gray-300'}`}>
+                  {isSelected && <div className={`w-2 h-2 rounded-full ${action.radioDot}`} />}
+                </div>
+              </button>
+            );
+          }
+
           return (
             <button
               key={action.id}
               onClick={() => setSelected(action.id)}
-              className={`flex flex-col gap-3 p-5 rounded-xl border-2 text-left transition-all
-                ${action.fullWidth ? 'col-span-2' : ''}
+              className={`flex flex-col gap-2.5 p-4 rounded-xl border-2 text-left transition-all
                 ${isSelected
                   ? `${action.selectedBorder} ${action.selectedBg}`
                   : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
             >
-              <div className="flex items-center gap-2">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${action.iconBg}`}>
-                  <Icon className={`w-5 h-5 ${action.iconColor}`} />
-                </div>
-                {action.badge && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                    {action.badge}
-                  </span>
-                )}
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${action.iconBg}`}>
+                <Icon className={`w-4 h-4 ${action.iconColor}`} />
               </div>
               <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
                 {action.label}
@@ -138,12 +159,9 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
               <p className="text-xs text-gray-500 leading-relaxed flex-1">
                 {action.description}
               </p>
-              {/* Radio */}
               <div className={`self-end w-4 h-4 rounded-full border-2 flex items-center justify-center
                 ${isSelected ? action.radioRing : 'border-gray-300'}`}>
-                {isSelected && (
-                  <div className={`w-2 h-2 rounded-full ${action.radioDot}`} />
-                )}
+                {isSelected && <div className={`w-2 h-2 rounded-full ${action.radioDot}`} />}
               </div>
             </button>
           );
