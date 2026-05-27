@@ -21,8 +21,8 @@ const reactivationReasons = [
   'Fully Paid — Account balance cleared in full',
   'Partial Pay — A portion of the balance has been paid',
   'Payment Arrangement — A payment plan has been agreed upon',
-  'Vacation',
-  'Reconnect',
+  'Customer Initiated',
+  'Operator Initiated',
 ];
 
 function addBusinessDays(from: Date, days: number): string {

@@ -43,7 +43,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
   const [vacationReturnDate, setVacationReturnDate] = useState('');
   const [comments, setComments] = useState('');
 
-  const deactivationReasons = ['NPD', 'Customer Initiated', 'Deactivation'];
+  const deactivationReasons = ['NPD', 'Customer Initiated', 'Operator Initiated'];
 
   const allSelected = selected.size === activeServices.length;
 

@@ -51,14 +51,14 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
     return acc;
   }, {} as Record<string, OrderItem[]>);
 
-  const isInternetDisconnected = orderItems.some(item => item.serviceId === 'internet');
+  const isInternetDisconnected = action === 'disconnect';
   const copy = actionCopy[action ?? 'disconnect'] ?? actionCopy.disconnect;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
       {/* Success Icon and Header */}
-      <div className="text-center mb-4">
-        <div className="flex items-center justify-center gap-4 mb-4">
+      <div className="mb-4">
+        <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>

@@ -150,12 +150,14 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
                   : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${action.iconBg}`}>
-                <Icon className={`w-4 h-4 ${action.iconColor}`} />
+              <div className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 flex-shrink-0 rounded-lg flex items-center justify-center ${action.iconBg}`}>
+                  <Icon className={`w-4 h-4 ${action.iconColor}`} />
+                </div>
+                <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
+                  {action.label}
+                </span>
               </div>
-              <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
-                {action.label}
-              </span>
               <p className="text-xs text-gray-500 leading-relaxed flex-1">
                 {action.description}
               </p>
