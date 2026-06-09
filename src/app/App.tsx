@@ -14,6 +14,11 @@ import { MoveServicesStep3 } from './components/MoveServicesStep3';
 import { MoveServicesStep4 } from './components/MoveServicesStep4';
 import { MoveServicesStep5 } from './components/MoveServicesStep5';
 import { ChangeServiceType } from './components/ChangeServiceType';
+import { ChangeInternetPlan } from './components/ChangeInternetPlan';
+import { ChangeTelevisionPlan } from './components/ChangeTelevisionPlan';
+import { ChangePhonePlan } from './components/ChangePhonePlan';
+import { ChangeInstallationDate } from './components/ChangeInstallationDate';
+import { ChangeReviewOrder } from './components/ChangeReviewOrder';
 import type { MACDAction } from './components/DispatcherStep1';
 
 export interface Service {
@@ -38,6 +43,12 @@ export interface OrderItem {
   description: string;
   quantity: number;
   monthlyCharge: number;
+}
+
+export interface CartLine {
+  label: string;
+  price: number;
+  group: 'internet' | 'television' | 'phone';
 }
 
 // Define the services structure for mapping child items
@@ -82,13 +93,13 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
   const [selectedAction, setSelectedAction] = useState<MACDAction | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedChildItems, setSelectedChildItems] = useState<SelectedChildItem[]>([]);
+  const [_selectedChildItems, setSelectedChildItems] = useState<SelectedChildItem[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedSA, setSelectedSA] = useState<Service | null>(null);
   const [reactivationDate, setReactivationDate] = useState<string>('');
@@ -99,6 +110,9 @@ function App() {
   const [moveScenario, setMoveScenario] = useState<string>('M01');
   const [moveDestinationAddress, setMoveDestinationAddress] = useState<string>('');
   const [moveSelectedServiceIds, setMoveSelectedServiceIds] = useState<string[]>(['fiber', 'voice', 'streaming', 'wifi']);
+  const [changeInstallationDate, setChangeInstallationDate] = useState<string>('');
+  const [changeCartLines, setChangeCartLines] = useState<CartLine[]>([]);
+  const [changeInternetPlanId, setChangeInternetPlanId] = useState<string>('');
   const [moveBillingEndDate, setMoveBillingEndDate] = useState<string>('');
   const [moveInstallationDate, setMoveInstallationDate] = useState<string>('');
 
@@ -182,6 +196,7 @@ function App() {
     } else if (selectedAction === 'change') {
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
+      setChangeCartLines([]);
       setCurrentStep('change-service-type');
     } else if (selectedAction === 'disconnect') {
       setSelectedSA(services[0]);
@@ -511,8 +526,116 @@ function App() {
             <ChangeServiceType
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onNext={() => setCurrentStep('step5')}
+              onNext={(serviceType) => {
+                if (serviceType === 'television') setCurrentStep('change-television-plan');
+                else if (serviceType === 'phone') setCurrentStep('change-phone-plan');
+                else setCurrentStep('change-internet-plan');
+              }}
             />
+          </motion.div>
+        )}
+
+        {/* ── Change: Internet plan selection ── */}
+        {currentStep === 'change-internet-plan' && (
+          <motion.div
+            key="change-internet-plan"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangeInternetPlan
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('change-service-type')}
+              onSkip={() => { setChangeInternetPlanId(''); setCurrentStep('change-television-plan'); }}
+              onNext={(planId, _addOns, lines) => { setChangeCartLines(lines); setChangeInternetPlanId(planId); setCurrentStep('change-television-plan'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change: Television plan selection ── */}
+        {currentStep === 'change-television-plan' && (
+          <motion.div
+            key="change-television-plan"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangeTelevisionPlan
+              selectedSA={selectedSA}
+              selectedInternetPlanId={changeInternetPlanId}
+              previousLines={changeCartLines}
+              onBack={() => setCurrentStep('change-internet-plan')}
+              onSkip={() => setCurrentStep('change-phone-plan')}
+              onNext={(_planId, _addOns, lines) => { setChangeCartLines(lines); setCurrentStep('change-phone-plan'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change: Phone plan selection ── */}
+        {currentStep === 'change-phone-plan' && (
+          <motion.div
+            key="change-phone-plan"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangePhonePlan
+              selectedSA={selectedSA}
+              previousLines={changeCartLines}
+              onBack={() => setCurrentStep('change-television-plan')}
+              onSkip={() => setCurrentStep('change-installation-date')}
+              onNext={(_planId, lines) => { setChangeCartLines(lines); setCurrentStep('change-installation-date'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change: Installation Date ── */}
+        {currentStep === 'change-installation-date' && (
+          <motion.div
+            key="change-installation-date"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangeInstallationDate
+              selectedSA={selectedSA}
+              cartLines={changeCartLines}
+              onBack={() => setCurrentStep('change-phone-plan')}
+              onSkip={() => { setChangeInstallationDate(''); setCurrentStep('change-review'); }}
+              onNext={(date) => { setChangeInstallationDate(date); setCurrentStep('change-review'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change: Review Order ── */}
+        {currentStep === 'change-review' && (
+          <motion.div
+            key="change-review"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="px-8 py-12"
+          >
+            <div className="max-w-5xl mx-auto">
+              <ChangeReviewOrder
+                action={selectedAction}
+                selectedSA={selectedSA}
+                installationDate={changeInstallationDate}
+                cartLines={changeCartLines}
+                onBack={() => setCurrentStep('change-installation-date')}
+                onConfirm={() => setCurrentStep('step5')}
+              />
+            </div>
           </motion.div>
         )}
 

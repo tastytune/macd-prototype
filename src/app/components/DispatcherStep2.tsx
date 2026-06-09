@@ -40,7 +40,7 @@ const changeServiceAccounts: Service[] = [
 ];
 
 const changeTags: Record<string, string[]> = {
-  'sa-00912': ['Internet 2Gig', 'iTV Premium'],
+  'sa-00912': ['Internet 2Gig', 'iTV Premium', 'Cinemax', 'FANatic'],
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
 };
 

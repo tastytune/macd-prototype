@@ -52,6 +52,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
   }, {} as Record<string, OrderItem[]>);
 
   const isInternetDisconnected = action === 'disconnect';
+  const isDeactivation = action === 'deactivate';
   const copy = actionCopy[action ?? 'disconnect'] ?? actionCopy.disconnect;
 
   return (
@@ -108,6 +109,19 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
           </div>
         )}
 
+        {/* Deactivation confirmation notice */}
+        {isDeactivation && (
+          <div className="mb-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  The customer will receive a confirmation via their preferred contact method with the details of this request, including the scheduled deactivation date and affected services.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Finish Button */}

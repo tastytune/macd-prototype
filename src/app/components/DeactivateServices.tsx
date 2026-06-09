@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Wifi, Phone, Tv, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Wifi, Phone, Tv, HelpCircle } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { DateInput } from './DateInput';
 
 interface DeactivateServicesProps {
   action: MACDAction | null;
@@ -17,33 +18,31 @@ const activeServices = [
   { id: 'tv',       name: 'iTV Extra',             icon: Tv },
 ];
 
-function addBusinessDays(from: Date, days: number): string {
-  const date = new Date(from);
-  let added = 0;
-  while (added < days) {
-    date.setDate(date.getDate() + 1);
-    const dow = date.getDay();
-    if (dow !== 0 && dow !== 6) added++;
-  }
-  return date.toISOString().split('T')[0];
+
+function nextWeekday(iso: string): string {
+  const d = new Date(iso + 'T12:00:00');
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() + 2); // Sat → Mon
+  if (dow === 0) d.setDate(d.getDate() + 1); // Sun → Mon
+  return d.toISOString().split('T')[0];
 }
 
 export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }: DeactivateServicesProps) {
   const todayDate = new Date();
   const today = todayDate.toISOString().split('T')[0];
-  const vacationDefaultDate = addBusinessDays(todayDate, 3);
-  const [deactivationDate, setDeactivationDate] = useState(today);
+  const vacationDefaultDate = nextWeekday(today);
+  const [deactivationDate, setDeactivationDate] = useState(() => nextWeekday(today));
   const [selected, setSelected] = useState<Set<string>>(new Set(activeServices.map(s => s.id)));
   const [reason, setReason] = useState('NPD');
 
   const handleReasonChange = (value: string) => {
     setReason(value);
-    setDeactivationDate(value === 'Customer Initiated' ? vacationDefaultDate : today);
+    setDeactivationDate(value === 'Customer-Initiated Vacation' ? vacationDefaultDate : nextWeekday(today));
   };
   const [vacationReturnDate, setVacationReturnDate] = useState('');
   const [comments, setComments] = useState('');
 
-  const deactivationReasons = ['NPD', 'Customer Initiated', 'Operator Initiated'];
+  const deactivationReasons = ['NPD', 'Customer-Initiated Vacation', 'Operator Initiated'];
 
   const allSelected = selected.size === activeServices.length;
 
@@ -67,7 +66,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
       </div>
 
       {/* Deactivation Date — hidden when Vacation is selected */}
-      {reason !== 'Customer Initiated' && (
+      {reason !== 'Customer-Initiated Vacation' && (
         <div className="mb-6 flex items-center gap-3">
           <span className="text-gray-600 flex items-center gap-1.5">
             Requested Deactivation Date<span className="text-red-600 ml-1">*</span>
@@ -83,7 +82,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
             <input
               type="date"
               value={deactivationDate}
-              onChange={e => setDeactivationDate(e.target.value)}
+              onChange={e => setDeactivationDate(nextWeekday(e.target.value))}
               min={today}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             />
@@ -148,7 +147,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
             </select>
           </div>
 
-          {reason === 'Customer Initiated' && (
+          {reason === 'Customer-Initiated Vacation' && (
             <>
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
@@ -161,25 +160,13 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
                     </div>
                   </div>
                 </label>
-                <input
-                  type="date"
-                  value={deactivationDate}
-                  onChange={e => setDeactivationDate(e.target.value)}
-                  min={today}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <DateInput value={deactivationDate} onChange={v => setDeactivationDate(nextWeekday(v))} min={today} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Requested Reactivate Date<span className="text-red-600 ml-1">*</span>
+                  Requested Reactivate Date
                 </label>
-                <input
-                  type="date"
-                  value={vacationReturnDate}
-                  onChange={e => setVacationReturnDate(e.target.value)}
-                  min={deactivationDate || today}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <DateInput value={vacationReturnDate} onChange={v => setVacationReturnDate(nextWeekday(v))} min={deactivationDate || today} />
               </div>
             </>
           )}
@@ -196,14 +183,6 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
             className="w-full px-4 py-2.5 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
         </div>
-      </div>
-
-      {/* Warning banner */}
-      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-8">
-        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800">
-          The user is about to deactivate products and its related features.
-        </p>
       </div>
 
       {/* Navigation */}

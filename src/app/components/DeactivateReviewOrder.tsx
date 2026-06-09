@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, AlertTriangle } from 'lucide-react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -40,8 +40,13 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
 
 const serviceGroups = Object.keys(serviceLineItems);
 
+const exemptItems = [
+  { description: 'Email' },
+  { description: 'Voicemail' },
+];
+
 export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, orderItems, onBack, onConfirm }: DeactivateReviewOrderProps) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set(serviceGroups));
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set([...serviceGroups, 'Exempt Services']));
 
   const toggle = (name: string) => {
     const next = new Set(collapsed);
@@ -122,6 +127,36 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
                         )) : []),
                       ];
                     })}
+                    {/* Exempt Services group */}
+                    {(() => {
+                      const isCollapsed = collapsed.has('Exempt Services');
+                      return [
+                        <tr
+                          key="header-exempt"
+                          className="bg-gray-100 border-t border-b border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                          onClick={() => toggle('Exempt Services')}
+                        >
+                          <td colSpan={3} className="px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                              <span className="font-medium text-gray-900">Exempt Services</span>
+                              <span className="text-xs text-gray-500">({exemptItems.length} items)</span>
+                            </div>
+                          </td>
+                        </tr>,
+                        ...(!isCollapsed ? exemptItems.map((item, i) => (
+                          <tr key={`exempt-${i}`} className="hover:bg-gray-50 border-b border-gray-200">
+                            <td className="px-4 py-4 text-sm text-gray-900 pl-8">{item.description}</td>
+                            <td className="px-4 py-4 text-sm text-center">
+                              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                Exempt
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-400 text-right">—</td>
+                          </tr>
+                        )) : []),
+                      ];
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -162,6 +197,14 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Warning banner */}
+      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mt-6">
+        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-amber-800">
+          The user is about to deactivate products and its related features on <strong>{formatDate(deactivationDate)}</strong>. This action can not be undone.
+        </p>
       </div>
 
       {/* Navigation */}

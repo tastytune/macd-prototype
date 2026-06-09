@@ -1,5 +1,22 @@
 import React, { useState } from 'react';
-import { MinusCircle, RefreshCw, XCircle, Settings, MapPin } from 'lucide-react';
+import { Pause, Play, XCircle, RefreshCw } from 'lucide-react';
+
+function MovePinsIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 28 30" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+      {/* Shadow under front pin */}
+      <ellipse cx="17" cy="28.5" rx="4.5" ry="1.4" fill="currentColor" opacity="0.25"/>
+      {/* Back small pin */}
+      <path d="M8,4 C5.8,4 4,5.8 4,8 C4,10.8 8,14.5 8,14.5 C8,14.5 12,10.8 12,8 C12,5.8 10.2,4 8,4 Z"
+            fill="white" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/>
+      <circle cx="8" cy="8" r="1.9" fill="currentColor"/>
+      {/* Front large pin */}
+      <path d="M17,11 C13.7,11 11,13.7 11,17 C11,21.2 17,27.2 17,27.2 C17,27.2 23,21.2 23,17 C23,13.7 20.3,11 17,11 Z"
+            fill="white" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+      <circle cx="17" cy="17" r="3.2" fill="currentColor"/>
+    </svg>
+  );
+}
 
 export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move';
 
@@ -27,7 +44,7 @@ const actions: {
     id: 'deactivate',
     label: 'Deactivate',
     description: 'Temporarily suspend service. The account remains intact and can be reactivated at any time.',
-    icon: MinusCircle,
+    icon: Pause,
     iconColor: 'text-amber-800',
     iconBg: 'bg-amber-50',
     selectedBorder: 'border-amber-400',
@@ -40,7 +57,7 @@ const actions: {
     id: 'reactivate',
     label: 'Reactivate',
     description: 'Restore a previously deactivated service. Billing and service will resume immediately.',
-    icon: RefreshCw,
+    icon: Play,
     iconColor: 'text-green-600',
     iconBg: 'bg-green-50',
     selectedBorder: 'border-green-600',
@@ -66,7 +83,7 @@ const actions: {
     id: 'change',
     label: 'Change',
     description: 'Modify an existing service. Update plan, features, or configuration without interrupting service.',
-    icon: Settings,
+    icon: RefreshCw,
     iconColor: 'text-blue-600',
     iconBg: 'bg-blue-50',
     selectedBorder: 'border-blue-500',
@@ -79,7 +96,7 @@ const actions: {
     id: 'move',
     label: 'Move',
     description: 'Transfer services to a new address. Supports M01 / M02 / M03.',
-    icon: MapPin,
+    icon: MovePinsIcon,
     iconColor: 'text-[#800080]',
     iconBg: 'bg-[#f3e8f3]',
     selectedBorder: 'border-[#800080]',
@@ -124,7 +141,7 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
                   }`}
               >
                 <div className={`w-9 h-9 flex-shrink-0 rounded-lg flex items-center justify-center ${action.iconBg}`}>
-                  <Icon className={`w-4 h-4 ${action.iconColor}`} />
+                  <Icon className={`w-6 h-6 ${action.iconColor}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
@@ -152,7 +169,7 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
             >
               <div className="flex items-center gap-2.5">
                 <div className={`w-9 h-9 flex-shrink-0 rounded-lg flex items-center justify-center ${action.iconBg}`}>
-                  <Icon className={`w-4 h-4 ${action.iconColor}`} />
+                  <Icon className={`w-6 h-6 ${action.iconColor}`} />
                 </div>
                 <span className={`text-sm font-semibold ${isSelected ? action.labelColor : 'text-gray-800'}`}>
                   {action.label}

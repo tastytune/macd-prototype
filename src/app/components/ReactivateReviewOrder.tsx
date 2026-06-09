@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -162,6 +162,14 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Warning banner */}
+      <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mt-6">
+        <AlertTriangle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-green-700">
+          The user is about to reactivate products and its related features on <strong>{formatDate(reactivationDate)}</strong>. This action can not be undone.
+        </p>
       </div>
 
       {/* Navigation */}

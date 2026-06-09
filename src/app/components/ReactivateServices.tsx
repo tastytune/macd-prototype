@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Wifi, Phone, Tv, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Wifi, Phone, Tv, HelpCircle } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { DateInput } from './DateInput';
 
 interface ReactivateServicesProps {
   action: MACDAction | null;
@@ -21,7 +22,7 @@ const reactivationReasons = [
   'Fully Paid — Account balance cleared in full',
   'Partial Pay — A portion of the balance has been paid',
   'Payment Arrangement — A payment plan has been agreed upon',
-  'Customer Initiated',
+  'Customer-Initiated Vacation',
   'Operator Initiated',
 ];
 
@@ -126,13 +127,7 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
                 </div>
               </div>
             </label>
-            <input
-              type="date"
-              value={reactivationDate}
-              onChange={e => setReactivationDate(e.target.value)}
-              min={today}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <DateInput value={reactivationDate} onChange={setReactivationDate} min={today} />
           </div>
         </div>
         <div>
@@ -147,14 +142,6 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
             className="w-full px-4 py-2.5 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
         </div>
-      </div>
-
-      {/* Warning banner */}
-      <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-8">
-        <AlertTriangle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-green-700">
-          The user is about to reactivate products and its related features.
-        </p>
       </div>
 
       {/* Navigation */}
