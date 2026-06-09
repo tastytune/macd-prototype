@@ -52,6 +52,7 @@ interface BillingAccount {
   detail: string;
   amount: string;
   status: 'Current' | 'Past due';
+  deactivated: boolean;
 }
 
 const billingAccounts: BillingAccount[] = [
@@ -62,6 +63,7 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Primary billing · Monthly',
     amount: '$189.00/mo',
     status: 'Current',
+    deactivated: true,
   },
   {
     id: 'ba-00412',
@@ -70,14 +72,16 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Equipment lease · Monthly',
     amount: '$14.99/mo',
     status: 'Current',
+    deactivated: true,
   },
   {
     id: 'ba-00558',
     label: 'BA-00558',
     linkedSA: 'SA-01047 · Secondary property',
     detail: 'Primary billing · Monthly',
-    amount: '$79.00/mo',
-    status: 'Past due',
+    amount: '$10.00/mo',
+    status: 'Current',
+    deactivated: false,
   },
 ];
 
@@ -194,20 +198,28 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
           <div className="flex flex-col gap-3">
             {billingAccounts.map(ba => {
               const isSelected = selectedBA === ba.id;
+              const isReactivate = action === 'reactivate';
+              const isDisabled = isReactivate && !ba.deactivated;
               return (
                 <button
                   key={ba.id}
-                  onClick={() => setSelectedBA(ba.id)}
+                  onClick={() => !isDisabled && setSelectedBA(ba.id)}
+                  disabled={isDisabled}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all
-                    ${isSelected ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                    ${isDisabled
+                      ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                      : isSelected
+                        ? 'border-blue-600 bg-blue-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
                 >
                   {/* Radio */}
                   <div
                     className={`mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full border-2
-                      ${isSelected ? 'border-blue-600' : 'border-gray-300 bg-white'}`}
+                      ${isDisabled ? 'border-gray-300 bg-white' : isSelected ? 'border-blue-600' : 'border-gray-300 bg-white'}`}
                     style={{ width: 17, height: 17 }}
                   >
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                    {isSelected && !isDisabled && <div className="w-2 h-2 rounded-full bg-blue-600" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">{ba.label}</p>
@@ -215,11 +227,17 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     <p className="text-xs text-gray-500 mt-0.5">{ba.detail}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-900">{action === 'reactivate' ? '$10.00/mo' : ba.amount}</span>
-                    {action === 'reactivate' ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                        Deactivated
-                      </span>
+                    <span className="text-sm font-semibold text-gray-900">{ba.amount}</span>
+                    {isReactivate ? (
+                      ba.deactivated ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                          Deactivated
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700 border border-green-200">
+                          Active
+                        </span>
+                      )
                     ) : (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium
                         ${ba.status === 'Current' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
