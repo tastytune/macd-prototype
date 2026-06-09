@@ -79,7 +79,7 @@ const billingAccounts: BillingAccount[] = [
     label: 'BA-00558',
     linkedSA: 'SA-01047 · Secondary property',
     detail: 'Primary billing · Monthly',
-    amount: '$10.00/mo',
+    amount: '$79.00/mo',
     status: 'Current',
     deactivated: false,
   },
@@ -227,7 +227,7 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     <p className="text-xs text-gray-500 mt-0.5">{ba.detail}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-900">{ba.amount}</span>
+                    <span className="text-sm font-semibold text-gray-900">{isReactivate && ba.deactivated ? '$10.00/mo' : ba.amount}</span>
                     {isReactivate ? (
                       ba.deactivated ? (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
