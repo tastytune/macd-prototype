@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import type { Service, CartLine } from '../App';
+import { PromoSection, PROMOS } from './ChangePromos';
 
 interface ChangePhonePlanProps {
   selectedSA?: Service | null;
   previousLines: CartLine[];
+  isDowngrade?: boolean;
+  isUpgrade?: boolean;
+  selectedPromos?: Set<string>;
+  onPromoToggle?: (id: string) => void;
   onBack: () => void;
   onSkip: () => void;
   onNext: (planId: string, lines: CartLine[]) => void;
@@ -32,7 +37,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
 
-export function ChangePhonePlan({ selectedSA, previousLines, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
@@ -141,7 +146,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, onBack, onSkip, onN
               onClick={() => {
                 if (!selectedPlan || !activePlan) return;
                 const phoneLines: CartLine[] = [{ label: `${activePlan.title} ${activePlan.subtitle}`, price: activePlan.price, group: 'phone' }];
-                onNext(selectedPlan, [...previousLines, ...phoneLines]);
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone');
+                onNext(selectedPlan, [...nonPhoneLines, ...phoneLines]);
               }}
               disabled={!selectedPlan}
               className={`px-7 py-2.5 rounded-lg text-sm font-bold transition-colors
@@ -179,7 +185,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, onBack, onSkip, onN
                 const phoneLines: CartLine[] = selectedPlan && activePlan
                   ? [{ label: `${activePlan.title} ${activePlan.subtitle}`, price: activePlan.price, group: 'phone' as const }]
                   : [];
-                const allLines = [...previousLines, ...phoneLines];
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone');
+                const allLines = [...nonPhoneLines, ...phoneLines];
                 const total = allLines.reduce((s, l) => s + l.price, 0);
                 return allLines.length > 0 ? (
                   <div className="space-y-2 mb-3">
@@ -189,17 +196,36 @@ export function ChangePhonePlan({ selectedSA, previousLines, onBack, onSkip, onN
                         <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
                       </div>
                     ))}
-                    <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
-                      <span className="text-gray-700">Total</span>
-                      <span className="text-gray-900">${total.toFixed(2)}/mo</span>
-                    </div>
+                    {(isDowngrade || isUpgrade) && onPromoToggle && (
+                      <PromoSection
+                        selectedPromos={selectedPromos}
+                        onToggle={onPromoToggle}
+                        promoIds={isUpgrade ? ['apply-promo'] : undefined}
+                        automaticPromoIds={isUpgrade ? ['price-lock'] : []}
+                      />
+                    )}
+                    {(() => {
+                      const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                      return (
+                        <div className="border-t border-gray-100 pt-2 space-y-1.5">
+                          {discount > 0 && (
+                            <div className="flex justify-between text-sm text-green-700">
+                              <span>Promo discount</span>
+                              <span className="font-medium">−${discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-sm font-semibold">
+                            <span className="text-gray-700">Total</span>
+                            <span className="text-gray-900">${(total - discount).toFixed(2)}/mo</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>
                 );
               })()}
-
-              <p className="text-xs text-gray-400">Billed monthly</p>
             </div>
           </div>
         </div>

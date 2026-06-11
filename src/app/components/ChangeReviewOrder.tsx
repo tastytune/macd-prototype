@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
+import { PromoSection, PROMOS } from './ChangePromos';
 import type { Service, CartLine } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -8,10 +9,22 @@ interface ChangeReviewOrderProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   installationDate: string;
+  installationSlot?: string;
   cartLines: CartLine[];
+  isDowngrade?: boolean;
+  isUpgrade?: boolean;
+  selectedPromos?: Set<string>;
+  onPromoToggle?: (id: string) => void;
   onBack: () => void;
   onConfirm: () => void;
 }
+
+const TIME_SLOT_LABELS: Record<string, string> = {
+  'morning-1':   '8:00 AM – 10:00 AM',
+  'morning-2':   '10:00 AM – 12:00 PM',
+  'afternoon-1': '1:00 PM – 3:00 PM',
+  'afternoon-2': '3:00 PM – 5:00 PM',
+};
 
 type GroupKey = 'internet' | 'television' | 'phone';
 
@@ -59,7 +72,7 @@ const GROUP_LABEL: Record<GroupKey, string> = {
 
 const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 
-export function ChangeReviewOrder({ action, selectedSA, installationDate, cartLines, onBack, onConfirm }: ChangeReviewOrderProps) {
+export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
   const activeGroups = GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
@@ -97,12 +110,11 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, cartLi
               <div className="flex items-center gap-3 mb-1 flex-wrap">
                 <h3 className="text-[20px] font-bold text-gray-700">Services being Changed</h3>
                 {installationDate && (
-                  <span className="text-[16px] font-bold text-gray-900">— {formatDate(installationDate)}</span>
+                  <span className="text-[16px] font-bold text-gray-900">
+                    — {formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}
+                  </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500">
-                Items marked <span className="font-semibold text-red-600">Removed</span> will be replaced by items marked <span className="font-semibold text-green-700">Added</span>.
-              </p>
             </div>
 
             <div className="px-6 pb-6">
@@ -122,8 +134,13 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, cartLi
                       </tr>
                     ) : activeGroups.flatMap(group => {
                       const isCollapsed = collapsed.has(group);
-                      const removedItems = currentPlans[group] ?? [];
-                      const addedItems = cartLines.filter(l => l.group === group);
+                      const currentItems = currentPlans[group] ?? [];
+                      const newItems = cartLines.filter(l => l.group === group);
+                      const normalize = (s: string) => s.toLowerCase().trim();
+                      const newLabels = new Set(newItems.map(l => normalize(l.label)));
+                      const currentDescs = new Set(currentItems.map(i => normalize(i.description)));
+                      const removedItems = currentItems.filter(i => !newLabels.has(normalize(i.description)));
+                      const addedItems = newItems.filter(l => !currentDescs.has(normalize(l.label)));
                       const totalRows = removedItems.length + addedItems.length;
 
                       return [
@@ -183,6 +200,9 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, cartLi
               {installationDate && (
                 <div className="pb-4 mb-4 border-b border-gray-200">
                   <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>
+                  {installationSlot && TIME_SLOT_LABELS[installationSlot] && (
+                    <p className="text-xs text-gray-500">{TIME_SLOT_LABELS[installationSlot]}</p>
+                  )}
                 </div>
               )}
 
@@ -193,25 +213,57 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, cartLi
                 </div>
               </div>
 
-              <div className="pt-4 border-t-2 border-gray-300">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-gray-900">Total Monthly</span>
-                    <div className="relative group">
-                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        Total monthly recurring charges after the change is applied.
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-xl font-medium text-gray-900">${addedTotal.toFixed(2)}</span>
+              {(isDowngrade || isUpgrade) && onPromoToggle && (
+                <div className="mt-4">
+                  <PromoSection
+                    selectedPromos={selectedPromos}
+                    onToggle={onPromoToggle}
+                    promoIds={isUpgrade ? ['apply-promo'] : undefined}
+                    automaticPromoIds={isUpgrade ? ['price-lock'] : []}
+                  />
                 </div>
+              )}
+
+              <div className="pt-4 border-t-2 border-gray-300 mt-4">
+                {(() => {
+                  const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                  return (
+                    <>
+                      {discount > 0 && (
+                        <div className="flex justify-between text-sm text-green-700 mb-2">
+                          <span>Promo discount</span>
+                          <span className="font-medium">−${discount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-medium text-gray-900">Total Monthly</span>
+                          <div className="relative group">
+                            <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              Total monthly recurring charges after the change is applied.
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-xl font-medium text-gray-900">${(addedTotal - discount).toFixed(2)}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
         </div>
 
+      </div>
+
+      {/* Warning banner */}
+      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
+        <AlertTriangle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-blue-800">
+          The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.
+        </p>
       </div>
 
       {/* Navigation */}

@@ -51,6 +51,21 @@ export interface CartLine {
   group: 'internet' | 'television' | 'phone';
 }
 
+const SA_INITIAL_CART: Record<string, CartLine[]> = {
+  'sa-00912': [
+    { label: 'Internet 2 Gig',         price: 124.95, group: 'internet'    },
+    { label: 'Whole Home Wi-Fi',        price:   5.95, group: 'internet'    },
+    { label: 'TV 150+ (iTV Premium)',   price:  79.95, group: 'television'  },
+    { label: 'Cinemax',                 price:  12.99, group: 'television'  },
+    { label: 'FANatic',                 price:   5.99, group: 'television'  },
+  ],
+  'sa-01047': [
+    { label: 'Internet 200 Mbps',       price:  55.95, group: 'internet'    },
+    { label: 'Whole Home Wi-Fi',        price:   5.95, group: 'internet'    },
+    { label: 'Unlimited Local Calling', price:  15.95, group: 'phone'       },
+  ],
+};
+
 // Define the services structure for mapping child items
 const servicesData: Service[] = [
   {
@@ -111,8 +126,20 @@ function App() {
   const [moveDestinationAddress, setMoveDestinationAddress] = useState<string>('');
   const [moveSelectedServiceIds, setMoveSelectedServiceIds] = useState<string[]>(['fiber', 'voice', 'streaming', 'wifi']);
   const [changeInstallationDate, setChangeInstallationDate] = useState<string>('');
+  const [changeInstallationSlot, setChangeInstallationSlot] = useState<string>('');
   const [changeCartLines, setChangeCartLines] = useState<CartLine[]>([]);
   const [changeInternetPlanId, setChangeInternetPlanId] = useState<string>('');
+  const [changeSelectedPromos, setChangeSelectedPromos] = useState<Set<string>>(new Set());
+  const toggleChangePromo = (id: string) => setChangeSelectedPromos(prev => {
+    const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next;
+  });
+  const SA_INET_PLAN: Record<string, string> = { 'sa-00912': '2gig', 'sa-01047': '200mbps' };
+  const PLAN_IDX: Record<string, number> = { '200mbps': 0, '1gig': 1, '2gig': 2 };
+  const SA_HAS_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
+  const changeIsDowngrade = !!changeInternetPlanId && (PLAN_IDX[changeInternetPlanId] ?? 0) < (PLAN_IDX[SA_INET_PLAN[selectedSA?.id ?? ''] ?? '200mbps'] ?? 0);
+  // isUpgrade: internet was upgraded, OR internet untouched but SA has active Price Lock
+  const changeIsUpgrade = (!!changeInternetPlanId && (PLAN_IDX[changeInternetPlanId] ?? 0) > (PLAN_IDX[SA_INET_PLAN[selectedSA?.id ?? ''] ?? '200mbps'] ?? 0))
+    || (!changeInternetPlanId && SA_HAS_PRICE_LOCK.has(selectedSA?.id ?? ''));
   const [moveBillingEndDate, setMoveBillingEndDate] = useState<string>('');
   const [moveInstallationDate, setMoveInstallationDate] = useState<string>('');
 
@@ -196,7 +223,9 @@ function App() {
     } else if (selectedAction === 'change') {
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
-      setChangeCartLines([]);
+      setChangeCartLines(SA_INITIAL_CART[services[0].id] ?? []);
+      setChangeInternetPlanId('');
+      setChangeSelectedPromos(new Set());
       setCurrentStep('change-service-type');
     } else if (selectedAction === 'disconnect') {
       setSelectedSA(services[0]);
@@ -547,6 +576,10 @@ function App() {
           >
             <ChangeInternetPlan
               selectedSA={selectedSA}
+              previousLines={changeCartLines}
+              isDowngrade={changeIsDowngrade}
+              selectedPromos={changeSelectedPromos}
+              onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-service-type')}
               onSkip={() => { setChangeInternetPlanId(''); setCurrentStep('change-television-plan'); }}
               onNext={(planId, _addOns, lines) => { setChangeCartLines(lines); setChangeInternetPlanId(planId); setCurrentStep('change-television-plan'); }}
@@ -568,6 +601,10 @@ function App() {
               selectedSA={selectedSA}
               selectedInternetPlanId={changeInternetPlanId}
               previousLines={changeCartLines}
+              isDowngrade={changeIsDowngrade}
+              isUpgrade={changeIsUpgrade}
+              selectedPromos={changeSelectedPromos}
+              onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-internet-plan')}
               onSkip={() => setCurrentStep('change-phone-plan')}
               onNext={(_planId, _addOns, lines) => { setChangeCartLines(lines); setCurrentStep('change-phone-plan'); }}
@@ -588,6 +625,10 @@ function App() {
             <ChangePhonePlan
               selectedSA={selectedSA}
               previousLines={changeCartLines}
+              isDowngrade={changeIsDowngrade}
+              isUpgrade={changeIsUpgrade}
+              selectedPromos={changeSelectedPromos}
+              onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}
               onSkip={() => setCurrentStep('change-installation-date')}
               onNext={(_planId, lines) => { setChangeCartLines(lines); setCurrentStep('change-installation-date'); }}
@@ -608,9 +649,13 @@ function App() {
             <ChangeInstallationDate
               selectedSA={selectedSA}
               cartLines={changeCartLines}
+              isDowngrade={changeIsDowngrade}
+              isUpgrade={changeIsUpgrade}
+              selectedPromos={changeSelectedPromos}
+              onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-phone-plan')}
-              onSkip={() => { setChangeInstallationDate(''); setCurrentStep('change-review'); }}
-              onNext={(date) => { setChangeInstallationDate(date); setCurrentStep('change-review'); }}
+              onSkip={() => { setChangeInstallationDate(''); setChangeInstallationSlot(''); setCurrentStep('change-review'); }}
+              onNext={(date, slot) => { setChangeInstallationDate(date); setChangeInstallationSlot(slot); setCurrentStep('change-review'); }}
             />
           </motion.div>
         )}
@@ -631,7 +676,12 @@ function App() {
                 action={selectedAction}
                 selectedSA={selectedSA}
                 installationDate={changeInstallationDate}
+                installationSlot={changeInstallationSlot}
                 cartLines={changeCartLines}
+                isDowngrade={changeIsDowngrade}
+                isUpgrade={changeIsUpgrade}
+                selectedPromos={changeSelectedPromos}
+                onPromoToggle={toggleChangePromo}
                 onBack={() => setCurrentStep('change-installation-date')}
                 onConfirm={() => setCurrentStep('step5')}
               />
@@ -688,6 +738,8 @@ function App() {
               onReturn={handleReturnToAccount}
               action={selectedAction}
               selectedSA={selectedSA}
+              installationDate={changeInstallationDate}
+              installationSlot={changeInstallationSlot}
             />
           </motion.div>
         )}

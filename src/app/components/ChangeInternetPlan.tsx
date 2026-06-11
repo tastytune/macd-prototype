@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { MapPin, Info } from 'lucide-react';
 import type { Service, CartLine } from '../App';
+import { PromoSection, PROMOS } from './ChangePromos';
 
 interface ChangeInternetPlanProps {
   selectedSA?: Service | null;
+  previousLines?: CartLine[];
+  isDowngrade?: boolean;
+  selectedPromos?: Set<string>;
+  onPromoToggle?: (id: string) => void;
   onBack: () => void;
   onSkip: () => void;
   onNext: (planId: string, addOns: string[], lines: CartLine[]) => void;
@@ -21,21 +26,35 @@ const SA_INTERNET_PLAN: Record<string, string> = {
   'sa-01047': '200mbps',
 };
 
+// SAs that have an active Price Lock promotion
+const SA_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
+
 const ADD_ONS = [
   { id: 'whole-home-wifi',   label: 'Whole Home Wi-Fi',  price: 5.95, isCurrentlyActive: true },
   { id: 'service-assurance', label: 'Service Assurance', price: 3.49, isCurrentlyActive: false },
 ];
 
-export function ChangeInternetPlan({ selectedSA, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(
     new Set(ADD_ONS.filter(a => a.isCurrentlyActive).map(a => a.id))
   );
 
-  const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '200mbps';
+  const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
   const currentPlan = PLANS.find(p => p.id === currentPlanId)!;
-  const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : currentPlan;
-  const planLabel = activePlan ? `${activePlan.speed} ${activePlan.unit}` : '';
+  const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : undefined;
+  const planLabel = activePlan
+    ? `Internet ${activePlan.speed} ${activePlan.unit}`
+    : `Internet ${currentPlan.speed} ${currentPlan.unit}`;
+
+  // Compute upgrade/downgrade locally so promos show before the user clicks Continue
+  const currentPlanIdx = PLANS.findIndex(p => p.id === currentPlanId);
+  const selectedPlanIdx = selectedPlan ? PLANS.findIndex(p => p.id === selectedPlan) : -1;
+  const localIsDowngrade = selectedPlanIdx !== -1 && selectedPlanIdx < currentPlanIdx;
+  const localIsUpgrade   = selectedPlanIdx !== -1 && selectedPlanIdx > currentPlanIdx;
+  const effectiveIsDowngrade = localIsDowngrade || !!isDowngrade;
+  const effectiveIsUpgrade   = localIsUpgrade && !effectiveIsDowngrade;
+  const showPromos = effectiveIsDowngrade || effectiveIsUpgrade;
 
   const initialAddOnIds = new Set(ADD_ONS.filter(a => a.isCurrentlyActive).map(a => a.id));
   const addOnsChanged = selectedAddOns.size !== initialAddOnIds.size
@@ -106,11 +125,35 @@ export function ChangeInternetPlan({ selectedSA, onBack, onSkip, onNext }: Chang
                         : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer'
                     }`}
                 >
-                  {isCurrent && (
-                    <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
-                      Active
-                    </span>
-                  )}
+                  {/* Fixed-height pill row so all cards align regardless of whether pills are shown */}
+                  <div className="h-7 flex items-center justify-center gap-1.5 mb-3">
+                    {isCurrent && (
+                      <>
+                        <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
+                          Active
+                        </span>
+                        {SA_PRICE_LOCK.has(selectedSA?.id ?? '') && !selectedPlan && (
+                          <span className="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-2.5 py-0.5">
+                            Price Lock
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {isSelected && showPromos && (
+                      <>
+                        {(effectiveIsUpgrade || (effectiveIsDowngrade && selectedPromos.has('price-lock'))) && (
+                          <span className="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-2.5 py-0.5">
+                            Price Lock
+                          </span>
+                        )}
+                        {selectedPromos.has('apply-promo') && (
+                          <span className="inline-block text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5">
+                            Promo
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
 
                   <div className={`text-6xl font-bold leading-none mb-1
                     ${isCurrent ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -238,32 +281,107 @@ export function ChangeInternetPlan({ selectedSA, onBack, onSkip, onNext }: Chang
                 Monthly Recurring Charges
               </p>
 
-              {selectedPlan ? (
-                <div className="space-y-2 mb-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Internet {activePlan?.speed} {activePlan?.unit}</span>
-                    <span className="font-medium text-gray-900">${activePlan?.price.toFixed(2)}</span>
-                  </div>
-                  {[...selectedAddOns].map(id => {
-                    const a = ADD_ONS.find(x => x.id === id);
-                    if (!a) return null;
-                    return (
-                      <div key={id} className="flex justify-between text-sm">
-                        <span className="text-gray-600">{a.label}</span>
-                        <span className="font-medium text-gray-900">${a.price.toFixed(2)}</span>
-                      </div>
-                    );
-                  })}
-                  <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
-                    <span className="text-gray-700">Total</span>
-                    <span className="text-gray-900">${planTotal.toFixed(2)}/mo</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>
-              )}
+              {(() => {
+                const ADD_ON_LABELS = new Set(ADD_ONS.map(a => a.label));
+                const nonInternetLines = previousLines.filter(l => l.group !== 'internet');
+                const oldInternetPlanLines = previousLines.filter(l => l.group === 'internet' && !ADD_ON_LABELS.has(l.label));
+                const oldInternetAddOnLines = previousLines.filter(l => l.group === 'internet' && ADD_ON_LABELS.has(l.label));
+                const oldAddOnLabelSet = new Set(oldInternetAddOnLines.map(l => l.label));
+                const newlyAddedAddOns = [...selectedAddOns]
+                  .map(id => ADD_ONS.find(x => x.id === id)!)
+                  .filter(a => a && !oldAddOnLabelSet.has(a.label));
+                const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
 
-              <p className="text-xs text-gray-400">Billed monthly</p>
+                if (selectedPlan && activePlan) {
+                  const keptAddOnTotal = oldInternetAddOnLines
+                    .filter(l => { const a = ADD_ONS.find(x => x.label === l.label); return a ? selectedAddOns.has(a.id) : false; })
+                    .reduce((s, l) => s + l.price, 0);
+                  const newAddOnTotal = newlyAddedAddOns.reduce((s, a) => s + a.price, 0);
+                  const fullTotal = nonInternetLines.reduce((s, l) => s + l.price, 0) + activePlan.price + keptAddOnTotal + newAddOnTotal;
+
+                  return (
+                    <div className="space-y-2 mb-3">
+                      {/* Non-internet lines – unchanged */}
+                      {nonInternetLines.map((line, i) => (
+                        <div key={`ni-${i}`} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{line.label}</span>
+                          <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      {/* Old internet plan – struck through */}
+                      {oldInternetPlanLines.map((line, i) => (
+                        <div key={`op-${i}`} className="flex justify-between text-sm">
+                          <span className="text-gray-400 line-through">{line.label}</span>
+                          <span className="text-gray-400 line-through">${line.price.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      {/* Old add-ons – struck if deselected, normal if kept */}
+                      {oldInternetAddOnLines.map((line, i) => {
+                        const a = ADD_ONS.find(x => x.label === line.label);
+                        const kept = a ? selectedAddOns.has(a.id) : false;
+                        return (
+                          <div key={`oa-${i}`} className="flex justify-between text-sm">
+                            <span className={kept ? 'text-gray-600' : 'text-gray-400 line-through'}>{line.label}</span>
+                            <span className={kept ? 'font-medium text-gray-900' : 'text-gray-400 line-through'}>${line.price.toFixed(2)}</span>
+                          </div>
+                        );
+                      })}
+                      {/* New internet plan */}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Internet {activePlan.speed} {activePlan.unit}</span>
+                        <span className="font-medium text-gray-900">${activePlan.price.toFixed(2)}</span>
+                      </div>
+                      {/* Newly added add-ons */}
+                      {newlyAddedAddOns.map(a => (
+                        <div key={a.id} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{a.label}</span>
+                          <span className="font-medium text-gray-900">${a.price.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      {showPromos && onPromoToggle && (
+                        <PromoSection
+                          selectedPromos={selectedPromos}
+                          onToggle={onPromoToggle}
+                          promoIds={effectiveIsUpgrade ? ['apply-promo'] : undefined}
+                          automaticPromoIds={effectiveIsUpgrade ? ['price-lock'] : []}
+                        />
+                      )}
+                      <div className="border-t border-gray-100 pt-2 space-y-1.5">
+                        {promoDiscount > 0 && (
+                          <div className="flex justify-between text-sm text-green-700">
+                            <span>Promo discount</span>
+                            <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-sm font-semibold">
+                          <span className="text-gray-700">Total</span>
+                          <span className="text-gray-900">${(fullTotal - promoDiscount).toFixed(2)}/mo</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (previousLines.length > 0) {
+                  return (
+                    <div className="space-y-2 mb-3">
+                      {previousLines.map((line, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{line.label}</span>
+                          <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
+                        <span className="text-gray-700">Total</span>
+                        <span className="text-gray-900">${previousLines.reduce((s, l) => s + l.price, 0).toFixed(2)}/mo</span>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>;
+              })()}
+
             </div>
           </div>
         </div>

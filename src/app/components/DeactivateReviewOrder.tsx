@@ -40,6 +40,24 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
 
 const serviceGroups = Object.keys(serviceLineItems);
 
+const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: number }[]> = {
+  'ba-00391': [
+    { description: 'Internet 2 Gig',           monthlyCharge: 124.95 },
+    { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
+    { description: 'TV 150+ (iTV Premium)',     monthlyCharge:  79.95 },
+    { description: 'Cinemax',                   monthlyCharge:  12.99 },
+    { description: 'FANatic',                   monthlyCharge:   5.99 },
+  ],
+  'ba-00412': [
+    { description: 'Equipment lease',           monthlyCharge:  14.99 },
+  ],
+  'ba-00558': [
+    { description: 'Internet 200 Mbps',         monthlyCharge:  55.95 },
+    { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
+    { description: 'Unlimited Local Calling',   monthlyCharge:  15.95 },
+  ],
+};
+
 const exemptItems = [
   { description: 'Email' },
   { description: 'Voicemail' },
@@ -59,7 +77,9 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
-  const totalMonthly = orderItems.reduce((sum, item) => sum + item.quantity * item.monthlyCharge, 0);
+  const baId = orderItems[0]?.serviceId ?? '';
+  const activeServices = BA_ACTIVE_PLANS[baId] ?? [];
+  const totalMonthly = activeServices.reduce((sum, s) => sum + s.monthlyCharge, 0);
   const deactivationFee = 10.00;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');
@@ -169,10 +189,16 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
             <div className="p-6">
               <div className="pb-4 mb-4 border-b border-gray-200">
-                {orderItems.map(item => (
-                  <p key={item.id} className="text-sm font-medium text-gray-900 mb-1">{item.serviceName}</p>
-                ))}
-                <p className="text-xs text-gray-600 mt-1">Deactivation: {formatDate(deactivationDate)}</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Active Services</p>
+                <div className="space-y-1.5">
+                  {activeServices.map((svc, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{svc.description}</span>
+                      <span className="text-gray-900">${svc.monthlyCharge.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-3">Deactivation: {formatDate(deactivationDate)}</p>
               </div>
 
               <div className="space-y-2 mb-4">

@@ -44,6 +44,16 @@ const changeTags: Record<string, string[]> = {
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
 };
 
+const changePromoPills: Record<string, { label: string; style: string }[]> = {
+  'sa-00912': [
+    { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
+    { label: 'Apply Promo', style: 'bg-purple-100 text-purple-700' },
+  ],
+  'sa-01047': [
+    { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
+  ],
+};
+
 // Billing Accounts (for Deactivate / Reactivate)
 interface BillingAccount {
   id: string;
@@ -131,15 +141,7 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">Select accounts</h1>
-        <p className="text-gray-600 flex items-center gap-2 flex-wrap">
-          Action:
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${actionBadgeStyle[action]}`}>
-            {actionLabel[action]}
-          </span>
-          <span className="text-gray-400">·</span>
-          Robert Johnson
-          
-        </p>
+        <p className="text-gray-600">Robert Johnson</p>
       </div>
 
       {/* Content */}
@@ -180,6 +182,9 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                         : ['Internet 200M']
                       ).map(tag => (
                         <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{tag}</span>
+                      ))}
+                      {action === 'change' && (changePromoPills[sa.id] ?? []).map(pill => (
+                        <span key={pill.label} className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${pill.style}`}>{pill.label}</span>
                       ))}
                     </div>
                   </div>

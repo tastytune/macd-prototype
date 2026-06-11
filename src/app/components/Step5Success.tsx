@@ -4,6 +4,13 @@ import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
 
+const TIME_SLOT_LABELS: Record<string, string> = {
+  'morning-1':   '8:00 AM – 10:00 AM',
+  'morning-2':   '10:00 AM – 12:00 PM',
+  'afternoon-1': '1:00 PM – 3:00 PM',
+  'afternoon-2': '3:00 PM – 5:00 PM',
+};
+
 interface Step5Props {
   service: Service;
   orderReference: string;
@@ -11,6 +18,8 @@ interface Step5Props {
   onReturn: () => void;
   action?: MACDAction | null;
   selectedSA?: Service | null;
+  installationDate?: string;
+  installationSlot?: string;
 }
 
 const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; servicesList: string }> = {
@@ -38,9 +47,15 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     bodyRest: ' request has been successfully created with reference number:',
     servicesList: 'Services Being Moved',
   },
+  change: {
+    title: 'Change Request Created',
+    boldWord: 'change',
+    bodyRest: ' order request has been successfully created with reference number:',
+    servicesList: 'Services Being Changed',
+  },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -53,7 +68,11 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
 
   const isInternetDisconnected = action === 'disconnect';
   const isDeactivation = action === 'deactivate';
+  const isChange = action === 'change';
   const copy = actionCopy[action ?? 'disconnect'] ?? actionCopy.disconnect;
+
+  const formatDate = (ds: string) =>
+    new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -77,6 +96,19 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <a href="https://salesforce.com/order/SF-2024-001234" target="_blank" rel="noopener noreferrer" className="block text-center text-blue-600 hover:text-blue-800 underline font-extralight text-xl pt-5">SF-2024-001234</a>
           </div>
         </div>
+
+        {/* Installation date — shown for Change when a date was selected */}
+        {isChange && installationDate && (
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                Installation scheduled for <strong>{formatDate(installationDate)}</strong>
+                {installationSlot && TIME_SLOT_LABELS[installationSlot] ? <>, <strong>{TIME_SLOT_LABELS[installationSlot]}</strong></> : ''}
+                {selectedSA?.address ? <> at <strong>{selectedSA.address}</strong></> : ''}.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Hardware Return Information - Only shown if Internet is being disconnected */}
         {isInternetDisconnected && (
