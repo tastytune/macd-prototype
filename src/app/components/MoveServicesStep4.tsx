@@ -1,23 +1,65 @@
-import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { HelpCircle, Lock, Calendar } from 'lucide-react';
 import type { Service } from '../App';
+import type { MACDAction } from './DispatcherStep1';
+import { ContextBar } from './ContextBar';
 
 interface MoveServicesStep4Props {
   scenario: string;
   selectedSA?: Service | null;
   onBack: () => void;
-  onNext: (billingEnd: string, installation: string) => void;
+  onNext: (billingEnd: string, installation: string, timeSlot: string) => void;
 }
 
-const MOVE_STEPS = ['Account', 'Destination', 'Services', 'Dates', 'Review'];
-const CURRENT_STEP = 3;
+const SA_SERVICES: Record<string, { id: string; summaryLabel: string; price: number }[]> = {
+  'sa-00912': [
+    { id: 'internet', summaryLabel: 'Internet 2Gig', price: 124.95 },
+    { id: 'itv',      summaryLabel: 'iTV Premium',   price: 79.95  },
+    { id: 'cinemax',  summaryLabel: 'Cinemax',       price: 12.99  },
+    { id: 'fanatic',  summaryLabel: 'FANatic',        price: 5.99   },
+  ],
+  'sa-01047': [
+    { id: 'internet-200m', summaryLabel: 'Internet 200M', price: 69.95 },
+    { id: 'phone-bundle',  summaryLabel: 'Phone Bundle',  price: 29.95 },
+  ],
+};
+
+const TIME_SLOTS = [
+  { id: 'morning-1',   period: 'MORNING',    label: '8:00 AM – 10:00 AM' },
+  { id: 'morning-2',   period: 'MORNING',    label: '10:00 AM – 12:00 PM' },
+  { id: 'afternoon-1', period: 'AFTERNOON',  label: '1:00 PM – 3:00 PM' },
+  { id: 'afternoon-2', period: 'AFTERNOON',  label: '3:00 PM – 5:00 PM' },
+];
+
+function getNextWeekdays(count: number): Date[] {
+  const days: Date[] = [];
+  const cursor = new Date();
+  cursor.setDate(cursor.getDate() + 1);
+  while (days.length < count) {
+    const dow = cursor.getDay();
+    if (dow !== 0 && dow !== 6) days.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
+}
+
+function formatDateLabel(date: Date) {
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function formatDateValue(date: Date) {
+  return date.toISOString().split('T')[0];
+}
 
 export function MoveServicesStep4({ scenario, selectedSA, onBack, onNext }: MoveServicesStep4Props) {
+  const SERVICES = SA_SERVICES[selectedSA?.id ?? ''] ?? SA_SERVICES['sa-00912'];
+  const totalMRC = SERVICES.reduce((s, svc) => s + svc.price, 0);
   const [billingEndDate, setBillingEndDate] = useState('');
   const [installationDate, setInstallationDate] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
+  const [dateViaInput, setDateViaInput] = useState(false);
 
-  const saName = selectedSA?.name ?? 'SA-00912 · Primary residence';
-  const originAddress = selectedSA?.address ?? '742 Evergreen Terrace, Springfield, IL 62701';
+  const weekdays = getNextWeekdays(3);
 
   const installHint = scenario === 'M03'
     ? 'Min: 15 business days (technology change).'
@@ -25,118 +67,233 @@ export function MoveServicesStep4({ scenario, selectedSA, onBack, onNext }: Move
 
   const canProceed = billingEndDate !== '' && installationDate !== '';
 
+  const handleSlotClick = (date: Date, slotId: string) => {
+    const dateStr = formatDateValue(date);
+    setInstallationDate(dateStr);
+    setSelectedSlot({ dateStr, slotId });
+    setDateViaInput(false);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-8 py-10">
+    <div className="max-w-6xl mx-auto px-8 py-10">
 
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 mb-6 text-sm flex-wrap">
-        {MOVE_STEPS.map((step, i) => (
-          <span key={step} className="flex items-center gap-1.5">
-            {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
-            <span className={
-              i < CURRENT_STEP
-                ? 'font-semibold text-blue-600'
-                : i === CURRENT_STEP
-                ? 'font-semibold text-gray-900'
-                : 'text-gray-400'
-            }>
-              {step}
-            </span>
-          </span>
-        ))}
-      </nav>
-
-      {/* Context bar */}
-      <div className="flex items-stretch rounded-xl border border-[#d9a0d9] bg-[#faf0fa] overflow-hidden mb-8 text-sm">
-        <div className="flex items-center px-4 py-3 bg-[#f3e8f3] border-r border-[#d9a0d9]">
-          <span className="text-xs font-bold tracking-widest uppercase text-[#800080]">Moving</span>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Customer</p>
-            <p className="font-medium text-gray-900">Robert Johnson · ACC-004821</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Service account</p>
-            <p className="font-medium text-gray-900">{saName}</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Origin</p>
-            <p className="font-medium text-gray-900">{originAddress}</p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
+        <ContextBar action={'move' as MACDAction} selectedSA={selectedSA} />
       </div>
 
-      {/* Form card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-8">Dates &amp; schedule</h2>
+      <div className="flex gap-6 items-start">
 
-        {/* Date fields */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          <div>
-            <label className="block text-sm text-gray-700 mb-2">
-              Billing end date (old address)
-            </label>
-            <input
-              type="date"
-              value={billingEndDate}
-              onChange={e => setBillingEndDate(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <p className="mt-1.5 text-xs text-gray-400">Date customer vacates. Billing stops here.</p>
-          </div>
-          <div>
-            <label className="block text-sm text-gray-700 mb-2">
-              Installation date (new address)
-            </label>
-            <input
-              type="date"
-              value={installationDate}
-              onChange={e => setInstallationDate(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <p className="mt-1.5 text-xs text-gray-400">{installHint}</p>
+        {/* Left: form card */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-white rounded-2xl border border-gray-200 p-8">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-8">Dates &amp; schedule</h2>
+
+            {/* Date fields */}
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
+                  Billing end date (old address) <span className="text-red-500">*</span>
+                  <div className="relative group">
+                    <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      Date customer vacates. Billing stops here.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                    </div>
+                  </div>
+                </label>
+                <input
+                  type="date"
+                  value={billingEndDate}
+                  onChange={e => setBillingEndDate(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
+                  Installation date (new address) <span className="text-red-500">*</span>
+                  <div className="relative group">
+                    <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      {installHint}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                    </div>
+                  </div>
+                </label>
+                <input
+                  type="date"
+                  value={installationDate}
+                  onChange={e => { setInstallationDate(e.target.value); setSelectedSlot(null); setDateViaInput(true); }}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {dateViaInput && installationDate && (
+                  <div className="mt-3 p-4 rounded-xl border border-gray-200 bg-white w-full">
+                    {(['MORNING', 'AFTERNOON'] as const).map(period => (
+                      <div key={period} className="mb-3 last:mb-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                          {period === 'MORNING' ? 'Morning' : 'Afternoon'}
+                        </p>
+                        <div className="space-y-1.5">
+                          {TIME_SLOTS.filter(s => s.period === period).map(slot => {
+                            const isSelected = selectedSlot?.slotId === slot.id;
+                            return (
+                              <button
+                                key={slot.id}
+                                onClick={() => setSelectedSlot({ dateStr: installationDate, slotId: slot.id })}
+                                className={`block w-full py-1.5 px-3 rounded-lg text-xs font-medium text-left transition-colors
+                                  ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
+                              >
+                                {slot.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Selection */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Quick Selection – Next Available Dates:</p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {weekdays.map(date => {
+                  const dateStr = formatDateValue(date);
+                  const isCardSelected = selectedSlot?.dateStr === dateStr;
+                  return (
+                    <div
+                      key={dateStr}
+                      className={`w-52 rounded-2xl border p-5 transition-all
+                        ${isCardSelected ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white'}`}
+                    >
+                      <p className={`text-sm font-semibold mb-4 ${isCardSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                        {formatDateLabel(date)}
+                      </p>
+
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Morning</p>
+                      <div className="space-y-2 mb-4">
+                        {TIME_SLOTS.filter(s => s.period === 'MORNING').map(slot => {
+                          const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
+                          return (
+                            <button
+                              key={slot.id}
+                              onClick={() => handleSlotClick(date, slot.id)}
+                              className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
+                                ${isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                                }`}
+                            >
+                              {slot.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Afternoon</p>
+                      <div className="space-y-2">
+                        {TIME_SLOTS.filter(s => s.period === 'AFTERNOON').map(slot => {
+                          const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
+                          return (
+                            <button
+                              key={slot.id}
+                              onClick={() => handleSlotClick(date, slot.id)}
+                              className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
+                                ${isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                                }`}
+                            >
+                              {slot.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex justify-end gap-3 mt-10">
+              <button
+                onClick={onBack}
+                className="px-6 py-2.5 rounded-full text-sm font-medium border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  const slotLabel = selectedSlot ? (TIME_SLOTS.find(s => s.id === selectedSlot.slotId)?.label ?? '') : '';
+                  onNext(billingEndDate, installationDate, slotLabel);
+                }}
+                disabled={!canProceed}
+                className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors
+                  ${canProceed
+                    ? 'bg-[#800080] text-white hover:bg-[#6a006a]'
+                    : 'bg-[#c9a0c9] text-white cursor-not-allowed'
+                  }`}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
 
-        <hr className="border-gray-200 mb-6" />
+        {/* Right: Order Summary */}
+        <div className="w-72 shrink-0">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
 
-        {/* Move fee */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Move fee</p>
-        <div className="flex items-start justify-between px-5 py-4 rounded-xl border border-gray-200 bg-gray-50">
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Standard move fee</p>
-            <p className="text-xs text-gray-500 mt-0.5">Applied to all moves. Credit on request in competitive areas.</p>
+              <div className="pb-4 mb-4 border-b border-gray-200">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700">Current monthly charges</span>
+                  <span className="text-gray-900">${totalMRC.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                {SERVICES.map(svc => (
+                  <div key={svc.id} className="flex justify-between text-sm">
+                    <span className="text-gray-500">{svc.summaryLabel}</span>
+                    <span className="text-gray-700">${svc.price.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm pt-1">
+                  <span className="text-gray-500">Standard move fee</span>
+                  <span className="text-gray-700">$65.00</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t-2 border-gray-300">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-900">New MRC</span>
+                  <span className="text-xl font-medium text-gray-900">${totalMRC.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Difference</span>
+                  <span className="font-semibold text-gray-500">$0.00</span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-start gap-2 px-3 py-2.5 bg-blue-50 rounded-lg border border-blue-100">
+                <Lock className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <span className="text-xs text-blue-600 leading-snug">Price lock continues — clock does not reset.</span>
+              </div>
+            </div>
           </div>
-          <span className="text-sm font-bold text-gray-900 flex-shrink-0 ml-6">$65.00</span>
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-end gap-3 mt-10">
-          <button
-            onClick={onBack}
-            className="px-6 py-2.5 rounded-full text-sm font-medium border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 transition-colors"
-          >
-            Back
-          </button>
-          <button
-            onClick={() => onNext(billingEndDate, installationDate)}
-            disabled={!canProceed}
-            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors
-              ${canProceed
-                ? 'bg-[#800080] text-white hover:bg-[#6a006a]'
-                : 'bg-[#c9a0c9] text-white cursor-not-allowed'
-              }`}
-          >
-            Next
-          </button>
-        </div>
       </div>
-
     </div>
   );
 }

@@ -1,5 +1,8 @@
-import { ChevronRight, Check } from 'lucide-react';
+import { Check, AlertTriangle, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 import type { Service } from '../App';
+import type { MACDAction } from './DispatcherStep1';
+import { ContextBar } from './ContextBar';
 
 interface MoveServicesStep5Props {
   scenario: string;
@@ -8,19 +11,26 @@ interface MoveServicesStep5Props {
   selectedServiceIds: string[];
   billingEndDate: string;
   installationDate: string;
+  timeSlot?: string;
   onBack: () => void;
   onSubmit: () => void;
 }
 
-const MOVE_STEPS = ['Account', 'Destination', 'Services', 'Dates', 'Review'];
-const CURRENT_STEP = 4;
-
-const ALL_SERVICES = [
-  { id: 'fiber',     name: 'Fiber Internet 1 Gbps', price: 79.99 },
-  { id: 'voice',     name: 'Voice (217) 555-0148',  price: 19.99 },
-  { id: 'streaming', name: 'Streaming TV',           price: 15.00 },
-  { id: 'wifi',      name: 'WiFi equipment',         price: 10.00 },
-];
+const SA_ALL_SERVICES: Record<string, { id: string; name: string; price: number }[]> = {
+  'sa-00912': [
+    { id: 'internet', name: 'Internet 2Gig', price: 124.95 },
+    { id: 'itv',      name: 'iTV Premium',   price: 79.95  },
+    { id: 'cinemax',  name: 'Cinemax',       price: 12.99  },
+    { id: 'fanatic',  name: 'FANatic',       price: 5.99   },
+    // M03 coax replacements
+    { id: 'internet-coax-200', name: 'Internet 200 Mbps', price: 79.95 },
+    { id: 'internet-coax-1g',  name: 'Internet 1 Gig',   price: 99.95 },
+  ],
+  'sa-01047': [
+    { id: 'internet-200m', name: 'Internet 200M', price: 69.95 },
+    { id: 'phone-bundle',  name: 'Phone Bundle',  price: 29.95 },
+  ],
+};
 
 const MOVE_TYPE_LABEL: Record<string, string> = {
   M01: 'M01 — Full move',
@@ -30,8 +40,7 @@ const MOVE_TYPE_LABEL: Record<string, string> = {
 
 function formatDate(iso: string) {
   if (!iso) return '—';
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 export function MoveServicesStep5({
@@ -41,158 +50,164 @@ export function MoveServicesStep5({
   selectedServiceIds,
   billingEndDate,
   installationDate,
+  timeSlot,
   onBack,
   onSubmit,
 }: MoveServicesStep5Props) {
-  const saName = selectedSA?.name ?? 'SA-00912 · Primary residence';
-  const originAddress = selectedSA?.address ?? '742 Evergreen Terrace, Springfield, IL 62701';
+  const originAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
   const technology = scenario === 'M03' ? 'Fiber → Coax (technology change)' : 'Fiber → Fiber (no change)';
-  const newMRC = ALL_SERVICES.filter(s => selectedServiceIds.includes(s.id)).reduce((sum, s) => sum + s.price, 0);
-  const orderMgmt = scenario === 'M03'
-    ? [
-        { label: 'FSL work order',  value: 'Auto-generated on submit' },
-        { label: 'Tech change KDD', value: 'Fiber removal + coax activation' },
-        { label: 'IDI sync',        value: 'Billing end date will sync' },
-        { label: 'Customer email',  value: 'Sent on submit' },
-      ]
-    : [
-        { label: 'FSL work order',   value: 'Auto-generated on submit' },
-        { label: 'Follow-on KDD-35', value: 'Temp → buried (auto)' },
-        { label: 'IDI sync',         value: 'Billing end date will sync' },
-        { label: 'Customer email',   value: 'Sent on submit' },
-      ];
+
+  const allServices = SA_ALL_SERVICES[selectedSA?.id ?? ''] ?? SA_ALL_SERVICES['sa-00912'];
+  const movingServices = allServices.filter(s => selectedServiceIds.includes(s.id));
+  const disconnectingServices = allServices.filter(s => !selectedServiceIds.includes(s.id));
+  const newMRC = movingServices.reduce((sum, s) => sum + s.price, 0);
+
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-10">
+    <div className="max-w-6xl mx-auto px-8 py-10">
 
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 mb-6 text-sm flex-wrap">
-        {MOVE_STEPS.map((step, i) => (
-          <span key={step} className="flex items-center gap-1.5">
-            {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
-            <span className={
-              i < CURRENT_STEP
-                ? 'font-semibold text-blue-600'
-                : i === CURRENT_STEP
-                ? 'font-semibold text-gray-900'
-                : 'text-gray-400'
-            }>
-              {step}
-            </span>
-          </span>
-        ))}
-      </nav>
-
-      {/* Context bar */}
-      <div className="flex items-stretch rounded-xl border border-[#d9a0d9] bg-[#faf0fa] overflow-hidden mb-8 text-sm">
-        <div className="flex items-center px-4 py-3 bg-[#f3e8f3] border-r border-[#d9a0d9]">
-          <span className="text-xs font-bold tracking-widest uppercase text-[#800080]">Moving</span>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Customer</p>
-            <p className="font-medium text-gray-900">Robert Johnson · ACC-004821</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Service account</p>
-            <p className="font-medium text-gray-900">{saName}</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Origin</p>
-            <p className="font-medium text-gray-900">{originAddress}</p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
+        <ContextBar action={'move' as MACDAction} selectedSA={selectedSA} />
       </div>
 
-      {/* Form card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-1">Review &amp; confirm</h2>
-        <p className="text-sm text-gray-500 mb-8">Verify all details. A confirmation email will be sent to the customer.</p>
+      <div className="flex gap-6 items-start">
 
-        {/* MOVE SUMMARY */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Move summary</p>
-        <div className="flex flex-col gap-2.5 mb-6">
-          {[
-            { label: 'Move type',       value: MOVE_TYPE_LABEL[scenario] ?? scenario },
-            { label: 'Customer',        value: 'Robert Johnson · ACC-004821' },
-            { label: 'Service account', value: saName },
-            { label: 'Origin',          value: originAddress },
-            { label: 'Destination',     value: destinationAddress || '—' },
-            { label: 'Technology',      value: technology },
-          ].map(row => (
-            <div key={row.label} className="grid grid-cols-2 text-sm">
-              <span className="text-gray-500">{row.label}</span>
-              <span className="text-gray-900">{row.value}</span>
-            </div>
-          ))}
-        </div>
-        <hr className="border-gray-200 mb-6" />
-
-        {/* SERVICES */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Services</p>
-        <div className="flex flex-col gap-2.5 mb-6">
-          {ALL_SERVICES.map(svc => {
-            const isMoving = selectedServiceIds.includes(svc.id);
-            return (
-              <div key={svc.id} className="grid grid-cols-2 text-sm">
-                <span className="text-gray-500">{svc.name}</span>
-                <span className={isMoving ? 'text-gray-900' : 'text-red-600'}>
-                  {isMoving ? `Moving · $${svc.price.toFixed(2)}/mo` : 'Disconnecting'}
-                </span>
+        {/* ── Left: services table ── */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div className="p-6 pb-4">
+              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                <h3 className="text-[20px] font-bold text-gray-700">Services being Moved</h3>
+                {installationDate && (
+                  <span className="text-[16px] font-bold text-gray-900">
+                    — {formatDate(installationDate)}
+                  </span>
+                )}
               </div>
-            );
-          })}
-        </div>
-        <hr className="border-gray-200 mb-6" />
-
-        {/* DATES & BILLING */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Dates &amp; billing</p>
-        <div className="flex flex-col gap-2.5 mb-6">
-          {[
-            { label: 'Billing end (old)',   value: formatDate(billingEndDate) },
-            { label: 'Installation (new)',  value: formatDate(installationDate) },
-            { label: 'New MRC',             value: `$${newMRC.toFixed(2)}/mo` },
-            { label: 'Move fee (one-time)', value: '$65.00' },
-          ].map(row => (
-            <div key={row.label} className="grid grid-cols-2 text-sm">
-              <span className="text-gray-500">{row.label}</span>
-              <span className="text-gray-900">{row.value}</span>
             </div>
-          ))}
-        </div>
-        <hr className="border-gray-200 mb-6" />
 
-        {/* ORDER MANAGEMENT */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Order management</p>
-        <div className="flex flex-col gap-2.5 mb-8">
-          {orderMgmt.map(row => (
-            <div key={row.label} className="grid grid-cols-2 text-sm">
-              <span className="text-gray-500">{row.label}</span>
-              <span className="text-gray-900">{row.value}</span>
+            <div className="px-6 pb-6">
+              <div className="overflow-hidden border border-gray-200 rounded-lg">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Item Description</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-28">Status</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Monthly Charge</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white">
+                    {/* Moving services group */}
+                    <tr
+                      className="bg-gray-100 border-t border-b border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                      onClick={() => setCollapsed(c => !c)}
+                    >
+                      <td colSpan={3} className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${collapsed ? '-rotate-90' : ''}`} />
+                          <span className="font-medium text-gray-900">Services</span>
+                          <span className="text-xs text-gray-500">({movingServices.length + disconnectingServices.length} items)</span>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {!collapsed && <>
+                      {movingServices.map(svc => (
+                        <tr key={svc.id} className="border-b border-gray-100 bg-[#faf0fa]/40">
+                          <td className="px-4 py-3.5 text-sm text-gray-900 pl-8 font-medium">{svc.name}</td>
+                          <td className="px-4 py-3.5 text-sm text-center">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f3e8f3] text-[#800080] border border-[#d9a0d9]">
+                              Moving
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-sm text-gray-900 text-right font-medium">${svc.price.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                      {disconnectingServices.map(svc => (
+                        <tr key={svc.id} className="border-b border-gray-100 bg-red-50/40">
+                          <td className="px-4 py-3.5 text-sm text-gray-500 pl-8 line-through">{svc.name}</td>
+                          <td className="px-4 py-3.5 text-sm text-center">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                              Disconnecting
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-sm text-gray-400 text-right line-through">${svc.price.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </>}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onBack}
-            className="px-6 py-2.5 rounded-full text-sm font-medium border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 transition-colors"
-          >
-            Back
-          </button>
-          <button
-            onClick={onSubmit}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold bg-[#800080] text-white hover:bg-[#6a006a] transition-colors"
-          >
-            <Check className="w-4 h-4" />
-            Submit move order
-          </button>
+        {/* ── Right: Order Summary ── */}
+        <div className="w-80 shrink-0">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
+            <div className="p-6">
+
+              {/* Move details */}
+              <div className="pb-4 mb-4 border-b border-gray-200 space-y-1">
+                {originAddress && <p className="text-xs text-gray-500">From: <strong className="text-gray-700">{originAddress}</strong></p>}
+                {destinationAddress && <p className="text-xs text-gray-500">To: <strong className="text-gray-700">{destinationAddress}</strong></p>}
+                {billingEndDate && <p className="text-xs text-gray-500">Billing end: {formatDate(billingEndDate)}</p>}
+                {installationDate && <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>}
+                <p className="text-xs text-gray-500">{technology}</p>
+              </div>
+
+              {/* Charges */}
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700">New monthly charges</span>
+                  <span className="text-gray-900">${newMRC.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-700">Move fee (one-time)</span>
+                  <span className="text-gray-900">$65.00</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t-2 border-gray-300">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-900">Total Monthly</span>
+                  <span className="text-xl font-medium text-gray-900">${newMRC.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+      </div>
+
+      {/* Warning banner */}
+      <div className="flex items-start gap-3 p-4 bg-[#faf0fa] border border-[#d9a0d9] rounded-lg mt-6">
+        <AlertTriangle className="w-4 h-4 text-[#800080] flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-[#800080]">
+          The user is about to move services
+          {billingEndDate ? <> with billing ending on <strong>{formatDate(billingEndDate)}</strong></> : ''}
+          {installationDate ? <> and installation scheduled for <strong>{formatDate(installationDate)}</strong>{timeSlot ? <> (<strong>{timeSlot}</strong>)</> : ''}</> : ''}
+          . This action cannot be undone.
+        </p>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-end gap-3 pt-6">
+        <button
+          onClick={onBack}
+          className="px-6 py-2.5 rounded-md text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all"
+        >
+          Back
+        </button>
+        <button
+          onClick={onSubmit}
+          className="inline-flex items-center gap-2 px-8 py-2.5 rounded-md text-sm font-medium border border-[#d9a0d9] bg-[#faf0fa] text-[#800080] hover:bg-[#f3e8f3] transition-all"
+        >
+          <Check className="w-4 h-4" />
+          Submit Move Order
+        </button>
       </div>
 
     </div>

@@ -340,18 +340,6 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
         </div>
       )}
 
-      {/* Warning banner */}
-      {onNext && (
-        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mt-6">
-          <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-          <p className="text-sm text-red-700">
-            You are about to disconnect.<br></br> <span className="font-small">D01</span> Disconnect ALL · <span className="font-medium">D02</span> Disconnect Standalone · <span className="font-medium">D03</span> Disconnect Partial · <span className="font-medium">D04</span> Disconnect Add-On · <span className="font-medium">D05</span> Bundle Break/Bundle Constituent Disconnect
-          </p>
-        </div>
-      )}
-
       {(onBack || onNext) && (
         <div className="mt-8 flex justify-end gap-3">
           {onBack && (

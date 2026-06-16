@@ -2,7 +2,7 @@ import { HelpCircle } from 'lucide-react';
 
 export const PROMOS = [
   { id: 'price-lock',  label: 'Price Lock',  description: 'Guaranteed rate for 12 months',      discount: 0 },
-  { id: 'apply-promo', label: 'Apply Promo', description: 'First 3 months at promotional rate', discount: 9 },
+  { id: 'apply-promo', label: 'Promo', description: 'First 3 months at promotional rate', discount: 9 },
 ];
 
 interface PromoSectionProps {

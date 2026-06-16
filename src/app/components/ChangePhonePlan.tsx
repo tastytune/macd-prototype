@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
+import { ContextBar } from './ContextBar';
 
 interface ChangePhonePlanProps {
   selectedSA?: Service | null;
@@ -43,20 +44,14 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan = PLANS.find(p => p.id === selectedPlan);
 
-  const saName = selectedSA?.name ?? 'SA-00912 · Primary residence';
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
 
-      {/* Account context */}
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">Change Phone Service</h1>
-        <p className="text-gray-500 text-sm">
-          Account: <span className="font-medium text-gray-700">Robert Johnson · ACC-004821</span>
-          <span className="mx-2 text-gray-300">·</span>
-          Service account: <span className="font-medium text-gray-700">{saName}</span>
-        </p>
+        <ContextBar action="change" selectedSA={selectedSA} />
       </div>
 
       <div className="flex gap-8 items-start">

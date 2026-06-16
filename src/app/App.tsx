@@ -142,6 +142,7 @@ function App() {
     || (!changeInternetPlanId && SA_HAS_PRICE_LOCK.has(selectedSA?.id ?? ''));
   const [moveBillingEndDate, setMoveBillingEndDate] = useState<string>('');
   const [moveInstallationDate, setMoveInstallationDate] = useState<string>('');
+  const [moveTimeSlot, setMoveTimeSlot] = useState<string>('');
 
   const calculateTotalActiveMonthlyCharges = () => {
     const internetTotal = 12.99 + 0.00 + 3.50;
@@ -514,7 +515,7 @@ function App() {
               scenario={moveScenario}
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('move-services-step3')}
-              onNext={(billingEnd, installation) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setCurrentStep('move-review'); }}
+              onNext={(billingEnd, installation, timeSlot) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setMoveTimeSlot(timeSlot); setCurrentStep('move-review'); }}
             />
           </motion.div>
         )}
@@ -536,6 +537,7 @@ function App() {
               selectedServiceIds={moveSelectedServiceIds}
               billingEndDate={moveBillingEndDate}
               installationDate={moveInstallationDate}
+              timeSlot={moveTimeSlot}
               onBack={() => setCurrentStep('move-dates')}
               onSubmit={() => handleConfirmSubmit()}
             />

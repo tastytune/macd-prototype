@@ -1,7 +1,8 @@
-import { ChevronRight, Check, AlertTriangle, Info } from 'lucide-react';
+import { Check, AlertTriangle, Info } from 'lucide-react';
 import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
+import { ContextBar } from './ContextBar';
 
 interface MoveServicesProps {
   action: MACDAction | null;
@@ -10,14 +11,11 @@ interface MoveServicesProps {
   onMove: (address: string, scenario: string) => void;
 }
 
-const MOVE_STEPS = ['Account', 'Destination', 'Services', 'Dates', 'Review'];
-
 const MOVE_SCENARIOS = [
   { value: 'M01', label: 'M01 · Full move — same technology' },
   { value: 'M02', label: 'M02 · Partial move — same technology' },
   { value: 'M03', label: 'M03 · Technology change — fiber → coax' },
 ];
-const CURRENT_STEP = 1; // Destination
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
@@ -26,8 +24,8 @@ const US_STATES = [
   'VA','WA','WV','WI','WY',
 ];
 
-export function MoveServices({ selectedSA, onBack, onMove }: MoveServicesProps) {
-  const [scenario, setScenario] = useState('M01');
+export function MoveServices({ action, selectedSA, onBack, onMove }: MoveServicesProps) {
+  const [scenario, setScenario] = useState('');
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('IL');
@@ -37,53 +35,12 @@ export function MoveServices({ selectedSA, onBack, onMove }: MoveServicesProps) 
   const canCheckServiceability =
     (street.trim() !== '' && city.trim() !== '' && zip.trim() !== '') || scenario !== '';
 
-  const saName = selectedSA?.name ?? 'SA-00912 · Primary residence';
-  const originAddress = selectedSA?.address ?? '742 Evergreen Terrace, Springfield, IL 62701';
-
   return (
     <div className="max-w-4xl mx-auto px-8 py-10">
 
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 mb-6 text-sm flex-wrap">
-        {MOVE_STEPS.map((step, i) => (
-          <span key={step} className="flex items-center gap-1.5">
-            {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
-            <span className={
-              i < CURRENT_STEP
-                ? 'font-semibold text-blue-600'
-                : i === CURRENT_STEP
-                ? 'font-semibold text-gray-900'
-                : 'text-gray-400'
-            }>
-              {step}
-            </span>
-          </span>
-        ))}
-      </nav>
-
-      {/* Context bar */}
-      <div className="flex items-stretch rounded-xl border border-[#d9a0d9] bg-[#faf0fa] overflow-hidden mb-8 text-sm">
-        <div className="flex items-center px-4 py-3 bg-[#f3e8f3] border-r border-[#d9a0d9]">
-          <span className="text-xs font-bold tracking-widest uppercase text-[#800080]">Moving</span>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Customer</p>
-            <p className="font-medium text-gray-900">Robert Johnson · ACC-004821</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3 border-r border-[#d9a0d9]">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Service account</p>
-            <p className="font-medium text-gray-900">{saName}</p>
-          </div>
-        </div>
-        <div className="flex items-center px-5 py-3">
-          <div>
-            <p className="text-xs text-[#9a4a9a] mb-0.5">Origin</p>
-            <p className="font-medium text-gray-900">{originAddress}</p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
+        <ContextBar action={action} selectedSA={selectedSA} />
       </div>
 
       {/* Form card */}
@@ -243,7 +200,7 @@ export function MoveServices({ selectedSA, onBack, onMove }: MoveServicesProps) 
           }}
           className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#800080] focus:border-[#800080]"
         >
-          <option value="">— Load a scenario —</option>
+          <option value="">LOAD ESCENARIO</option>
           {MOVE_SCENARIOS.map(s => (
             <option key={s.value} value={s.value}>{s.label}</option>
           ))}

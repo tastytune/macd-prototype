@@ -7,24 +7,8 @@ interface DispatcherStep2Props {
   onBack: () => void;
 }
 
-// Service Accounts (for Disconnect / Move)
+// Service Accounts (shared across all actions)
 const serviceAccounts: Service[] = [
-  {
-    id: 'sa-00912',
-    name: 'SA-00912 · Primary residence',
-    status: 'Active',
-    address: '742 Evergreen Terrace, Springfield, IL 62701',
-  },
-  {
-    id: 'sa-01047',
-    name: 'SA-01047 · Secondary property',
-    status: 'Active',
-    address: '88 Maple St, Decatur, IL 62522',
-  },
-];
-
-// Service Accounts (for Change)
-const changeServiceAccounts: Service[] = [
   {
     id: 'sa-00912',
     name: 'SA-00912 · Primary residence',
@@ -39,6 +23,8 @@ const changeServiceAccounts: Service[] = [
   },
 ];
 
+const changeServiceAccounts = serviceAccounts;
+
 const changeTags: Record<string, string[]> = {
   'sa-00912': ['Internet 2Gig', 'iTV Premium', 'Cinemax', 'FANatic'],
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
@@ -47,7 +33,7 @@ const changeTags: Record<string, string[]> = {
 const changePromoPills: Record<string, { label: string; style: string }[]> = {
   'sa-00912': [
     { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
-    { label: 'Apply Promo', style: 'bg-purple-100 text-purple-700' },
+    { label: 'Promo', style: 'bg-purple-100 text-purple-700' },
   ],
   'sa-01047': [
     { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
@@ -177,13 +163,10 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                       {sa.address}
                     </p>
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      {(action === 'change' ? (changeTags[sa.id] ?? []) : sa.id === 'sa-00912'
-                        ? ['Fiber Internet 1 Gbps', 'Voice', 'WiFi equipment', 'Streaming TV']
-                        : ['Internet 200M']
-                      ).map(tag => (
+                      {(changeTags[sa.id] ?? []).map(tag => (
                         <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{tag}</span>
                       ))}
-                      {action === 'change' && (changePromoPills[sa.id] ?? []).map(pill => (
+                      {(changePromoPills[sa.id] ?? []).map(pill => (
                         <span key={pill.label} className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${pill.style}`}>{pill.label}</span>
                       ))}
                     </div>

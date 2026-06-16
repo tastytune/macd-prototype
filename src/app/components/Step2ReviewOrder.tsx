@@ -1,4 +1,4 @@
-import { Trash2, Info, ChevronDown, HelpCircle } from 'lucide-react';
+import { Trash2, Info, ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState } from 'react';
 import type { OrderItem, Service } from '../App';
@@ -294,6 +294,14 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
       </div>
       </div>{/* end right column */}
       </div>{/* end flex row */}
+
+      {/* Warning banner */}
+      <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mt-6">
+        <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-red-700">
+          You are about to disconnect. This action cannot be undone.
+        </p>
+      </div>
 
       {/* Navigation */}
       <div className="flex items-center justify-end gap-3 pt-6">
