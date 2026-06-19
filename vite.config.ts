@@ -29,4 +29,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src/app'),
     },
   },
+  server: {
+    hmr: {
+      host: 'localhost',
+      protocol: 'ws',
+      timeout: 5000,
+    },
+  },
 })

@@ -27,8 +27,10 @@ const SA_ALL_SERVICES: Record<string, { id: string; name: string; price: number 
     { id: 'internet-coax-1g',  name: 'Internet 1 Gig',   price: 99.95 },
   ],
   'sa-01047': [
-    { id: 'internet-200m', name: 'Internet 200M', price: 69.95 },
-    { id: 'phone-bundle',  name: 'Phone Bundle',  price: 29.95 },
+    { id: 'internet-200m', name: 'Internet 200M',          price: 69.95  },
+    { id: 'phone-bundle',  name: 'Phone Bundle',           price: 29.95  },
+    { id: 'm04-1gig', name: 'Internet 1 Gig (Offer)', price: 49.95  },
+    { id: 'm04-2gig', name: 'Internet 2 Gig (Offer)', price: 109.95 },
   ],
 };
 

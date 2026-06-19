@@ -15,6 +15,7 @@ const MOVE_SCENARIOS = [
   { value: 'M01', label: 'M01 · Full move — same technology' },
   { value: 'M02', label: 'M02 · Partial move — same technology' },
   { value: 'M03', label: 'M03 · Technology change — fiber → coax' },
+  { value: 'M04', label: 'M04 · Offer migration — new address' },
 ];
 
 const US_STATES = [
@@ -126,6 +127,29 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
           </div>
         )}
 
+        {/* Serviceability results — M04 */}
+        {serviceabilityChecked && scenario === 'M04' && (
+          <div className="mt-6">
+            <hr className="border-gray-200 mb-5" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Serviceability Check</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                <Check className="w-3.5 h-3.5" /> Fiber available
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                <Check className="w-3.5 h-3.5" /> Voice portable
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[#f3e8f3] text-[#800080] border border-[#d9a0d9]">
+                <Info className="w-3.5 h-3.5" /> Offer migration available
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 px-4 py-3 bg-[#faf0fa] rounded-lg border border-[#d9a0d9]">
+              <Info className="w-4 h-4 text-[#800080] flex-shrink-0" />
+              <span className="text-sm text-[#800080]">Fiber available at destination. Replacement offers are available — agent must select the new plan.</span>
+            </div>
+          </div>
+        )}
+
         {/* Serviceability results — M01 / M02 */}
         {serviceabilityChecked && (scenario === 'M01' || scenario === 'M02') && (
           <div className="mt-6">
@@ -191,7 +215,12 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
             const val = e.target.value;
             setScenario(val);
             setServiceabilityChecked(false);
-            if (val) {
+            if (val === 'M04') {
+              setStreet('850 N 96th St');
+              setCity('Omaha');
+              setState('NE');
+              setZip('68114');
+            } else if (val) {
               setStreet('450 Birchwood Ave');
               setCity('Springfield');
               setState('IL');

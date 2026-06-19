@@ -21,6 +21,8 @@ const SA_SERVICES: Record<string, { id: string; summaryLabel: string; price: num
   'sa-01047': [
     { id: 'internet-200m', summaryLabel: 'Internet 200M', price: 69.95 },
     { id: 'phone-bundle',  summaryLabel: 'Phone Bundle',  price: 29.95 },
+    { id: 'm04-1gig', summaryLabel: 'Internet 1 Gig (Offer)', price: 49.95  },
+    { id: 'm04-2gig', summaryLabel: 'Internet 2 Gig (Offer)', price: 109.95 },
   ],
 };
 
