@@ -99,8 +99,19 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
   const [selectedM04Offer, setSelectedM04Offer] = useState<string | null>(null);
   const [selectedITVTier, setSelectedITVTier] = useState<string | null>(null);
   const [selectedTVAddons, setSelectedTVAddons] = useState<Set<string>>(new Set());
+  const [phoneBundleActive, setPhoneBundleActive] = useState(true);
   const currentMRC_M04 = SERVICES.reduce((s, svc) => s + svc.price, 0);
   const selectedOffer = M04_OFFERS.find(o => o.id === selectedM04Offer);
+  const phoneBundlePrice = SERVICES.find(s => s.id === 'phone-bundle')?.price ?? 0;
+  const selectedITVTierData = ITV_TIERS.find(t => t.id === selectedITVTier);
+  const selectedAddonsData = TV_ADDONS.filter(a => selectedTVAddons.has(a.id));
+  const addonsTotal = selectedAddonsData.reduce((s, a) => s + a.price, 0);
+  const newMRC_M04 = selectedOffer
+    ? selectedOffer.price
+      + (phoneBundleActive ? phoneBundlePrice : 0)
+      + (selectedITVTierData?.price ?? 0)
+      + addonsTotal
+    : null;
 
   const toggleTVAddon = (id: string) => {
     setSelectedTVAddons(prev => {
@@ -119,7 +130,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
 
   /* ── M04: Offer migration UI ── */
   if (isM04) {
-    const offerDiff = selectedOffer ? selectedOffer.price - currentMRC_M04 : null;
+    const offerDiff = newMRC_M04 !== null ? newMRC_M04 - currentMRC_M04 : null;
     return (
       <div className="max-w-6xl mx-auto px-8 py-10">
         <div className="mb-8">
@@ -139,24 +150,41 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                 {SERVICES.map(svc => {
                   const isReplacing = selectedM04Offer !== null && svc.id === 'internet-200m';
                   const hasOffers = svc.id === 'internet-200m';
+                  const isPhoneBundle = svc.id === 'phone-bundle';
+                  const isPhoneExcluded = isPhoneBundle && !phoneBundleActive;
                   return (
                     <div key={svc.id} className="flex flex-col gap-2">
                       {/* Current service row */}
-                      <div className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all
-                        ${isReplacing ? 'border-amber-300 bg-amber-50' : 'border-[#800080] bg-[#faf0fa]'}`}>
+                      <div
+                        onClick={
+                          isPhoneBundle ? () => setPhoneBundleActive(p => !p)
+                          : isReplacing ? () => setSelectedM04Offer(null)
+                          : undefined
+                        }
+                        className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all
+                          ${isPhoneBundle || isReplacing ? 'cursor-pointer' : ''}
+                          ${isReplacing
+                            ? 'border-amber-300 bg-amber-50'
+                            : isPhoneExcluded
+                              ? 'border-gray-200 bg-gray-50 opacity-60'
+                              : 'border-[#800080] bg-[#faf0fa]'
+                          }`}
+                      >
                         <div className={`mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full border-2 transition-all
-                          ${isReplacing ? 'border-amber-400' : 'border-[#800080]'}`}
+                          ${isReplacing ? 'border-amber-400' : isPhoneExcluded ? 'border-gray-300' : 'border-[#800080]'}`}
                           style={{ width: 18, height: 18 }}>
-                          {!isReplacing && <div className="w-2 h-2 rounded-full bg-[#800080]" />}
+                          {!isReplacing && !isPhoneExcluded && <div className="w-2 h-2 rounded-full bg-[#800080]" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 mb-1">{svc.name}</p>
+                          <p className={`text-sm font-semibold mb-1 ${isPhoneExcluded ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{svc.name}</p>
                           <p className="text-xs text-gray-500">{svc.detail}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                          <p className="text-sm font-medium text-gray-700">${svc.price.toFixed(2)}/mo</p>
+                          <p className={`text-sm font-medium ${isPhoneExcluded ? 'text-gray-400' : 'text-gray-700'}`}>${svc.price.toFixed(2)}/mo</p>
                           {isReplacing ? (
                             <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Replacing</span>
+                          ) : isPhoneExcluded ? (
+                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">Not moving</span>
                           ) : (
                             <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Active</span>
                           )}
@@ -270,7 +298,12 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                 Back
               </button>
               <button
-                onClick={() => selectedM04Offer && onNext([selectedM04Offer, ...(selectedITVTier ? [selectedITVTier] : []), ...selectedTVAddons])}
+                onClick={() => selectedM04Offer && onNext([
+                  selectedM04Offer,
+                  ...(phoneBundleActive ? ['phone-bundle'] : []),
+                  ...(selectedITVTier ? [selectedITVTier] : []),
+                  ...selectedTVAddons,
+                ])}
                 disabled={!selectedM04Offer}
                 className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors
                   ${selectedM04Offer ? 'bg-[#800080] text-white hover:bg-[#6a006a]' : 'bg-[#c9a0c9] text-white cursor-not-allowed'}`}>
@@ -290,19 +323,22 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                     <span className="text-gray-500">Current MRC</span>
                     <span className="text-gray-700">${currentMRC_M04.toFixed(2)}</span>
                   </div>
-                  {SERVICES.map(svc => (
-                    <div key={svc.id} className="flex justify-between text-sm pl-2">
-                      <span className="text-gray-400">{svc.summaryLabel}</span>
-                      <span className="text-gray-500">${svc.price.toFixed(2)}</span>
-                    </div>
-                  ))}
+                  {SERVICES.map(svc => {
+                    const isExcluded = svc.id === 'phone-bundle' && !phoneBundleActive;
+                    return (
+                      <div key={svc.id} className={`flex justify-between text-sm pl-2 ${isExcluded ? 'opacity-50' : ''}`}>
+                        <span className={`${isExcluded ? 'line-through text-gray-400' : 'text-gray-400'}`}>{svc.summaryLabel}</span>
+                        <span className={`${isExcluded ? 'line-through text-gray-400' : 'text-gray-500'}`}>${svc.price.toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-700">New MRC</span>
-                    <span className={`font-medium ${selectedOffer ? 'text-gray-900' : 'text-gray-400'}`}>
-                      {selectedOffer ? `$${selectedOffer.price.toFixed(2)}` : '—'}
+                    <span className={`font-medium ${newMRC_M04 !== null ? 'text-gray-900' : 'text-gray-400'}`}>
+                      {newMRC_M04 !== null ? `$${newMRC_M04.toFixed(2)}` : '—'}
                     </span>
                   </div>
                   {selectedOffer && (
@@ -311,6 +347,24 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                       <span className="text-gray-500">${selectedOffer.price.toFixed(2)}</span>
                     </div>
                   )}
+                  {selectedOffer && phoneBundleActive && (
+                    <div className="flex justify-between text-sm pl-2">
+                      <span className="text-gray-400">Phone Bundle</span>
+                      <span className="text-gray-500">${phoneBundlePrice.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedITVTierData && (
+                    <div className="flex justify-between text-sm pl-2">
+                      <span className="text-gray-400">iTV {selectedITVTierData.detail}</span>
+                      <span className="text-gray-500">${selectedITVTierData.price.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedAddonsData.map(addon => (
+                    <div key={addon.id} className="flex justify-between text-sm pl-2">
+                      <span className="text-gray-400">{addon.name}</span>
+                      <span className="text-gray-500">${addon.price.toFixed(2)}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="pt-4 border-t-2 border-gray-300">

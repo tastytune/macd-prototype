@@ -514,6 +514,7 @@ function App() {
             <MoveServicesStep4
               scenario={moveScenario}
               selectedSA={selectedSA}
+              selectedServiceIds={moveSelectedServiceIds}
               onBack={() => setCurrentStep('move-services-step3')}
               onNext={(billingEnd, installation, timeSlot) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setMoveTimeSlot(timeSlot); setCurrentStep('move-review'); }}
             />
@@ -740,8 +741,10 @@ function App() {
               onReturn={handleReturnToAccount}
               action={selectedAction}
               selectedSA={selectedSA}
-              installationDate={changeInstallationDate}
+              installationDate={selectedAction === 'move' ? moveInstallationDate : changeInstallationDate}
               installationSlot={changeInstallationSlot}
+              billingEndDate={moveBillingEndDate}
+              timeSlot={moveTimeSlot}
             />
           </motion.div>
         )}

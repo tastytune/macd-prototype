@@ -1,4 +1,4 @@
-import { CheckCircle2, MapPin, Mail, ChevronDown } from 'lucide-react';
+import { CheckCircle2, MapPin, Mail, ChevronDown, CalendarClock } from 'lucide-react';
 import { useState } from 'react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -20,6 +20,8 @@ interface Step5Props {
   selectedSA?: Service | null;
   installationDate?: string;
   installationSlot?: string;
+  billingEndDate?: string;
+  timeSlot?: string;
 }
 
 const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; servicesList: string }> = {
@@ -55,7 +57,7 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -73,6 +75,11 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
 
   const formatDate = (ds: string) =>
     new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const formatDateWithDay = (ds: string) =>
+    new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  const isMove = action === 'move';
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -96,6 +103,39 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <a href="https://salesforce.com/order/SF-2024-001234" target="_blank" rel="noopener noreferrer" className="block text-center text-blue-600 hover:text-blue-800 underline font-extralight text-xl pt-5">SF-2024-001234</a>
           </div>
         </div>
+
+        {/* Key Dates — shown for Move */}
+        {isMove && (installationDate || billingEndDate) && (
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <CalendarClock className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <p className="font-semibold text-amber-800 text-sm">Key Dates — Agent Reference</p>
+              </div>
+              <ul className="space-y-3 text-sm text-amber-800">
+                {installationDate && (
+                  <li className="flex flex-col gap-0.5">
+                    <span className="font-semibold">Installation at new address</span>
+                    <span>
+                      {formatDateWithDay(installationDate)}
+                      {timeSlot && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-xs font-medium">
+                          {timeSlot}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                )}
+                {billingEndDate && (
+                  <li className="flex flex-col gap-0.5">
+                    <span className="font-semibold">Billing end at origin address</span>
+                    <span>{formatDateWithDay(billingEndDate)}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Installation date — shown for Change when a date was selected */}
         {isChange && installationDate && (

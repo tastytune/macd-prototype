@@ -183,6 +183,27 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                               <td className="px-4 py-3.5 text-sm text-gray-900 text-right font-medium">${item.price.toFixed(2)}</td>
                             </tr>
                           )),
+                          // Phone Bundle child modifications (C08: removed, C09: attribute changed)
+                          ...(group === 'phone' ? cartLines.filter(l => l.group === 'phone-removed').map((item, i) => (
+                            <tr key={`phone-feat-removed-${i}`} className="border-b border-gray-100 bg-red-50/20">
+                              <td className="px-4 py-2.5 text-xs text-gray-400 pl-12 line-through border-l-2 border-l-red-200">{item.label}</td>
+                              <td className="px-4 py-2.5 text-xs text-center">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600 border border-red-200">Removed</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-gray-400 text-right">—</td>
+                            </tr>
+                          )) : []),
+                          ...(group === 'phone' ? cartLines.filter(l => l.group === 'phone-changed').map((item, i) => (
+                            <tr key={`phone-feat-changed-${i}`} className="border-b border-gray-100 bg-blue-50/20">
+                              <td className="px-4 py-2.5 text-xs text-blue-700 pl-12 border-l-2 border-l-blue-200">{item.label}</td>
+                              <td className="px-4 py-2.5 text-xs text-center">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 border border-blue-200">Changed</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-blue-800 text-right font-medium">
+                                {item.price > 0 ? `+$${item.price.toFixed(2)}` : '—'}
+                              </td>
+                            </tr>
+                          )) : []),
                         ] : []),
                       ];
                     })}

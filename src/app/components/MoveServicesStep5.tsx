@@ -16,23 +16,41 @@ interface MoveServicesStep5Props {
   onSubmit: () => void;
 }
 
-const SA_ALL_SERVICES: Record<string, { id: string; name: string; price: number }[]> = {
+// Original services active at the origin address (used to compute "Disconnecting")
+const SA_BASE_SERVICES: Record<string, { id: string; name: string; price: number }[]> = {
   'sa-00912': [
     { id: 'internet', name: 'Internet 2Gig', price: 124.95 },
     { id: 'itv',      name: 'iTV Premium',   price: 79.95  },
     { id: 'cinemax',  name: 'Cinemax',       price: 12.99  },
     { id: 'fanatic',  name: 'FANatic',       price: 5.99   },
-    // M03 coax replacements
-    { id: 'internet-coax-200', name: 'Internet 200 Mbps', price: 79.95 },
-    { id: 'internet-coax-1g',  name: 'Internet 1 Gig',   price: 99.95 },
   ],
   'sa-01047': [
-    { id: 'internet-200m', name: 'Internet 200M',          price: 69.95  },
-    { id: 'phone-bundle',  name: 'Phone Bundle',           price: 29.95  },
-    { id: 'm04-1gig', name: 'Internet 1 Gig (Offer)', price: 49.95  },
-    { id: 'm04-2gig', name: 'Internet 2 Gig (Offer)', price: 109.95 },
+    { id: 'internet-200m', name: 'Internet 200M', price: 69.95 },
+    { id: 'phone-bundle',  name: 'Phone Bundle',  price: 29.95 },
   ],
 };
+
+// Full catalog to resolve any selected service ID → name + price
+const SERVICE_CATALOG: { id: string; name: string; price: number }[] = [
+  { id: 'internet',          name: 'Internet 2Gig',           price: 124.95 },
+  { id: 'itv',               name: 'iTV Premium',             price: 79.95  },
+  { id: 'cinemax',           name: 'Cinemax',                 price: 12.99  },
+  { id: 'fanatic',           name: 'FANatic',                 price: 5.99   },
+  { id: 'internet-coax-200', name: 'Internet 200 Mbps',       price: 79.95  },
+  { id: 'internet-coax-1g',  name: 'Internet 1 Gig',         price: 99.95  },
+  { id: 'internet-200m',     name: 'Internet 200M',           price: 69.95  },
+  { id: 'phone-bundle',      name: 'Phone Bundle',            price: 29.95  },
+  { id: 'm04-1gig',          name: 'Internet 1 Gig (Offer)',  price: 49.95  },
+  { id: 'm04-2gig',          name: 'Internet 2 Gig (Offer)',  price: 109.95 },
+  { id: 'itv-75',            name: 'iTV 75+ channels',        price: 49.95  },
+  { id: 'itv-150',           name: 'iTV 150+ channels',       price: 79.95  },
+  { id: 'itv-250',           name: 'iTV 250+ channels',       price: 109.95 },
+  { id: 'tv-hbo',            name: 'HBO',                     price: 14.99  },
+  { id: 'tv-cinemax',        name: 'Cinemax',                 price: 12.99  },
+  { id: 'tv-fanatic',        name: 'FANatic',                 price: 5.99   },
+  { id: 'tv-showtime',       name: 'Showtime',                price: 10.99  },
+  { id: 'tv-starz',          name: 'STARZ',                   price: 8.99   },
+];
 
 const MOVE_TYPE_LABEL: Record<string, string> = {
   M01: 'M01 — Full move',
@@ -44,6 +62,7 @@ function formatDate(iso: string) {
   if (!iso) return '—';
   return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
+
 
 export function MoveServicesStep5({
   scenario,
@@ -59,10 +78,14 @@ export function MoveServicesStep5({
   const originAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
   const technology = scenario === 'M03' ? 'Fiber → Coax (technology change)' : 'Fiber → Fiber (no change)';
 
-  const allServices = SA_ALL_SERVICES[selectedSA?.id ?? ''] ?? SA_ALL_SERVICES['sa-00912'];
-  const movingServices = allServices.filter(s => selectedServiceIds.includes(s.id));
-  const disconnectingServices = allServices.filter(s => !selectedServiceIds.includes(s.id));
+  const baseServices = SA_BASE_SERVICES[selectedSA?.id ?? ''] ?? SA_BASE_SERVICES['sa-00912'];
+  const movingServices = selectedServiceIds
+    .map(id => SERVICE_CATALOG.find(s => s.id === id))
+    .filter((s): s is { id: string; name: string; price: number } => s !== undefined);
+  const disconnectingServices = baseServices.filter(s => !selectedServiceIds.includes(s.id));
+  const originalMRC = baseServices.reduce((sum, s) => sum + s.price, 0);
   const newMRC = movingServices.reduce((sum, s) => sum + s.price, 0);
+  const mrcDiff = newMRC - originalMRC;
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -172,10 +195,22 @@ export function MoveServicesStep5({
                 </div>
               </div>
 
-              <div className="pt-4 border-t-2 border-gray-300">
+              <div className="pt-4 border-t-2 border-gray-300 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900">Total Monthly</span>
                   <span className="text-xl font-medium text-gray-900">${newMRC.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Difference</span>
+                  <span className={`font-semibold ${
+                    mrcDiff < 0 ? 'text-red-600'
+                    : mrcDiff > 0 ? 'text-green-600'
+                    : 'text-gray-500'
+                  }`}>
+                    {mrcDiff === 0 ? '$0.00'
+                      : mrcDiff > 0 ? `+$${mrcDiff.toFixed(2)}`
+                      : `-$${Math.abs(mrcDiff).toFixed(2)}`}
+                  </span>
                 </div>
               </div>
             </div>

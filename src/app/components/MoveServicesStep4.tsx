@@ -7,11 +7,13 @@ import { ContextBar } from './ContextBar';
 interface MoveServicesStep4Props {
   scenario: string;
   selectedSA?: Service | null;
+  selectedServiceIds?: string[];
   onBack: () => void;
   onNext: (billingEnd: string, installation: string, timeSlot: string) => void;
 }
 
-const SA_SERVICES: Record<string, { id: string; summaryLabel: string; price: number }[]> = {
+// Original services active before the move (to compute originalMRC)
+const SA_BASE_SERVICES: Record<string, { id: string; summaryLabel: string; price: number }[]> = {
   'sa-00912': [
     { id: 'internet', summaryLabel: 'Internet 2Gig', price: 124.95 },
     { id: 'itv',      summaryLabel: 'iTV Premium',   price: 79.95  },
@@ -21,10 +23,30 @@ const SA_SERVICES: Record<string, { id: string; summaryLabel: string; price: num
   'sa-01047': [
     { id: 'internet-200m', summaryLabel: 'Internet 200M', price: 69.95 },
     { id: 'phone-bundle',  summaryLabel: 'Phone Bundle',  price: 29.95 },
-    { id: 'm04-1gig', summaryLabel: 'Internet 1 Gig (Offer)', price: 49.95  },
-    { id: 'm04-2gig', summaryLabel: 'Internet 2 Gig (Offer)', price: 109.95 },
   ],
 };
+
+// Full catalog to resolve any selected service ID
+const SERVICE_CATALOG: { id: string; summaryLabel: string; price: number }[] = [
+  { id: 'internet',          summaryLabel: 'Internet 2Gig',           price: 124.95 },
+  { id: 'itv',               summaryLabel: 'iTV Premium',             price: 79.95  },
+  { id: 'cinemax',           summaryLabel: 'Cinemax',                 price: 12.99  },
+  { id: 'fanatic',           summaryLabel: 'FANatic',                 price: 5.99   },
+  { id: 'internet-coax-200', summaryLabel: 'Internet 200 Mbps',       price: 79.95  },
+  { id: 'internet-coax-1g',  summaryLabel: 'Internet 1 Gig',         price: 99.95  },
+  { id: 'internet-200m',     summaryLabel: 'Internet 200M',           price: 69.95  },
+  { id: 'phone-bundle',      summaryLabel: 'Phone Bundle',            price: 29.95  },
+  { id: 'm04-1gig',          summaryLabel: 'Internet 1 Gig (Offer)',  price: 49.95  },
+  { id: 'm04-2gig',          summaryLabel: 'Internet 2 Gig (Offer)',  price: 109.95 },
+  { id: 'itv-75',            summaryLabel: 'iTV 75+ channels',        price: 49.95  },
+  { id: 'itv-150',           summaryLabel: 'iTV 150+ channels',       price: 79.95  },
+  { id: 'itv-250',           summaryLabel: 'iTV 250+ channels',       price: 109.95 },
+  { id: 'tv-hbo',            summaryLabel: 'HBO',                     price: 14.99  },
+  { id: 'tv-cinemax',        summaryLabel: 'Cinemax',                 price: 12.99  },
+  { id: 'tv-fanatic',        summaryLabel: 'FANatic',                 price: 5.99   },
+  { id: 'tv-showtime',       summaryLabel: 'Showtime',                price: 10.99  },
+  { id: 'tv-starz',          summaryLabel: 'STARZ',                   price: 8.99   },
+];
 
 const TIME_SLOTS = [
   { id: 'morning-1',   period: 'MORNING',    label: '8:00 AM – 10:00 AM' },
@@ -53,9 +75,17 @@ function formatDateValue(date: Date) {
   return date.toISOString().split('T')[0];
 }
 
-export function MoveServicesStep4({ scenario, selectedSA, onBack, onNext }: MoveServicesStep4Props) {
-  const SERVICES = SA_SERVICES[selectedSA?.id ?? ''] ?? SA_SERVICES['sa-00912'];
-  const totalMRC = SERVICES.reduce((s, svc) => s + svc.price, 0);
+export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, onBack, onNext }: MoveServicesStep4Props) {
+  const baseServices = SA_BASE_SERVICES[selectedSA?.id ?? ''] ?? SA_BASE_SERVICES['sa-00912'];
+  const originalMRC = baseServices.reduce((s, svc) => s + svc.price, 0);
+
+  const movingServices = selectedServiceIds && selectedServiceIds.length > 0
+    ? selectedServiceIds
+        .map(id => SERVICE_CATALOG.find(s => s.id === id))
+        .filter((s): s is { id: string; summaryLabel: string; price: number } => s !== undefined)
+    : baseServices;
+  const totalMRC = movingServices.reduce((s, svc) => s + svc.price, 0);
+  const mrcDiff = totalMRC - originalMRC;
   const [billingEndDate, setBillingEndDate] = useState('');
   const [installationDate, setInstallationDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
@@ -259,12 +289,12 @@ export function MoveServicesStep4({ scenario, selectedSA, onBack, onNext }: Move
               <div className="pb-4 mb-4 border-b border-gray-200">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">Current monthly charges</span>
-                  <span className="text-gray-900">${totalMRC.toFixed(2)}</span>
+                  <span className="text-gray-900">${originalMRC.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="space-y-2 mb-4">
-                {SERVICES.map(svc => (
+                {movingServices.map(svc => (
                   <div key={svc.id} className="flex justify-between text-sm">
                     <span className="text-gray-500">{svc.summaryLabel}</span>
                     <span className="text-gray-700">${svc.price.toFixed(2)}</span>
@@ -283,7 +313,15 @@ export function MoveServicesStep4({ scenario, selectedSA, onBack, onNext }: Move
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Difference</span>
-                  <span className="font-semibold text-gray-500">$0.00</span>
+                  <span className={`font-semibold ${
+                    mrcDiff < 0 ? 'text-red-600'
+                    : mrcDiff > 0 ? 'text-green-600'
+                    : 'text-gray-500'
+                  }`}>
+                    {mrcDiff === 0 ? '$0.00'
+                      : mrcDiff > 0 ? `+$${mrcDiff.toFixed(2)}`
+                      : `-$${Math.abs(mrcDiff).toFixed(2)}`}
+                  </span>
                 </div>
               </div>
 
