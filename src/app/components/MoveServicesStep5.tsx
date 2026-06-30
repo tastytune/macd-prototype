@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface MoveServicesStep5Props {
   scenario: string;
@@ -20,7 +21,7 @@ interface MoveServicesStep5Props {
 const SA_BASE_SERVICES: Record<string, { id: string; name: string; price: number }[]> = {
   'sa-00912': [
     { id: 'internet', name: 'Internet 2Gig', price: 124.95 },
-    { id: 'itv',      name: 'iTV Premium',   price: 79.95  },
+    { id: 'itv',      name: 'iTV Preferred', price: 79.95  },
     { id: 'cinemax',  name: 'Cinemax',       price: 12.99  },
     { id: 'fanatic',  name: 'FANatic',       price: 5.99   },
   ],
@@ -33,7 +34,7 @@ const SA_BASE_SERVICES: Record<string, { id: string; name: string; price: number
 // Full catalog to resolve any selected service ID → name + price
 const SERVICE_CATALOG: { id: string; name: string; price: number }[] = [
   { id: 'internet',          name: 'Internet 2Gig',           price: 124.95 },
-  { id: 'itv',               name: 'iTV Premium',             price: 79.95  },
+  { id: 'itv',               name: 'iTV Preferred',           price: 79.95  },
   { id: 'cinemax',           name: 'Cinemax',                 price: 12.99  },
   { id: 'fanatic',           name: 'FANatic',                 price: 5.99   },
   { id: 'internet-coax-200', name: 'Internet 200 Mbps',       price: 79.95  },
@@ -42,9 +43,9 @@ const SERVICE_CATALOG: { id: string; name: string; price: number }[] = [
   { id: 'phone-bundle',      name: 'Phone Bundle',            price: 29.95  },
   { id: 'm04-1gig',          name: 'Internet 1 Gig (Offer)',  price: 49.95  },
   { id: 'm04-2gig',          name: 'Internet 2 Gig (Offer)',  price: 109.95 },
-  { id: 'itv-75',            name: 'iTV 75+ channels',        price: 49.95  },
-  { id: 'itv-150',           name: 'iTV 150+ channels',       price: 79.95  },
-  { id: 'itv-250',           name: 'iTV 250+ channels',       price: 109.95 },
+  { id: 'itv-75',            name: 'iTV Essentials',          price: 49.95  },
+  { id: 'itv-150',           name: 'iTV Preferred',           price: 79.95  },
+  { id: 'itv-250',           name: 'iTV Extra',               price: 109.95 },
   { id: 'tv-hbo',            name: 'HBO',                     price: 14.99  },
   { id: 'tv-cinemax',        name: 'Cinemax',                 price: 12.99  },
   { id: 'tv-fanatic',        name: 'FANatic',                 price: 5.99   },
@@ -88,6 +89,7 @@ export function MoveServicesStep5({
   const mrcDiff = newMRC - originalMRC;
 
   const [collapsed, setCollapsed] = useState(false);
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-10">
@@ -96,6 +98,7 @@ export function MoveServicesStep5({
         <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
         <ContextBar action={'move' as MACDAction} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Destination', 'Services', 'Schedule', 'Review order']} currentIndex={4} />
 
       <div className="flex gap-6 items-start">
 
@@ -190,8 +193,16 @@ export function MoveServicesStep5({
                   <span className="text-gray-900">${newMRC.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">Move fee (one-time)</span>
-                  <span className="text-gray-900">$65.00</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Move fee (one-time)</span>
+                    <button
+                      onClick={() => setMoveFeeApplied(v => !v)}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
                 </div>
               </div>
 

@@ -3,6 +3,7 @@ import { ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ReactivateReviewOrderProps {
   action: MACDAction | null;
@@ -64,6 +65,7 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
         <h1 className="text-3xl text-gray-900 mb-2">Review Order</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-6 items-start">
         {/* Left column */}
@@ -136,25 +138,21 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
                 <p className="text-xs text-gray-600 mt-1">Reactivation: {formatDate(reactivationDate)}</p>
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">Monthly charges</span>
                   <span className="text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
               </div>
 
+              <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
+                <span className="font-medium text-gray-700">Difference</span>
+                <span className="text-base font-bold text-green-600">+${totalMonthly.toFixed(2)}</span>
+              </div>
+
               <div className="pt-4 border-t-2 border-gray-300">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-gray-900">Total Monthly</span>
-                    <div className="relative group">
-                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        This is a help text to explain the CRC, Total monthly
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                      </div>
-                    </div>
-                  </div>
+                  <span className="font-medium text-gray-900">Total Monthly</span>
                   <span className="text-xl font-medium text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
               </div>

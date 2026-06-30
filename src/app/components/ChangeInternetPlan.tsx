@@ -3,6 +3,7 @@ import { MapPin, Info } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ChangeInternetPlanProps {
   selectedSA?: Service | null;
@@ -87,6 +88,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
         <h1 className="text-3xl text-gray-900 mb-2">Change Internet Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-8 items-start">
 
@@ -348,6 +350,19 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                             <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
                           </div>
                         )}
+                        {(() => {
+                          const prevTotal = previousLines.reduce((s, l) => s + l.price, 0);
+                          const diff = (fullTotal - promoDiscount) - prevTotal;
+                          if (diff === 0) return null;
+                          return (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Difference</span>
+                              <span className={`font-semibold ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                              </span>
+                            </div>
+                          );
+                        })()}
                         <div className="flex justify-between text-sm font-semibold">
                           <span className="text-gray-700">Total</span>
                           <span className="text-gray-900">${(fullTotal - promoDiscount).toFixed(2)}/mo</span>

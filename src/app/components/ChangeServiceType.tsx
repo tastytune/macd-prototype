@@ -1,6 +1,7 @@
 import { Wifi, Tv, Phone } from 'lucide-react';
 import { useState } from 'react';
 import type { Service } from '../App';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ChangeServiceTypeProps {
   selectedSA?: Service | null;
@@ -52,6 +53,7 @@ export function ChangeServiceType({ selectedSA, onBack, onNext }: ChangeServiceT
           Service account: <span className="font-medium text-gray-700">{saName}</span>
         </p>
       </div>
+      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={1} />
 
       {/* Service type cards */}
       <div className="grid grid-cols-3 gap-0 rounded-2xl border border-gray-200 overflow-hidden mb-10">

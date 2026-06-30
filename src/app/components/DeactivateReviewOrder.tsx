@@ -3,15 +3,23 @@ import { ChevronDown, AlertTriangle } from 'lucide-react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface DeactivateReviewOrderProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   deactivationDate: string;
+  selectedServiceIds?: string[];
   orderItems: OrderItem[];
   onBack: () => void;
   onConfirm: () => void;
 }
+
+const SERVICE_ID_TO_GROUP: Record<string, string> = {
+  internet: 'Residential Internet',
+  phone:    'Phone',
+  tv:       'iTV Extra',
+};
 
 const serviceLineItems: Record<string, { description: string; monthlyCharge: number }[]> = {
   'Residential Internet': [
@@ -44,7 +52,7 @@ const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: numb
   'ba-00391': [
     { description: 'Internet 2 Gig',           monthlyCharge: 124.95 },
     { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
-    { description: 'TV 150+ (iTV Premium)',     monthlyCharge:  79.95 },
+    { description: 'iTV Preferred',             monthlyCharge:  79.95 },
     { description: 'Cinemax',                   monthlyCharge:  12.99 },
     { description: 'FANatic',                   monthlyCharge:   5.99 },
   ],
@@ -63,8 +71,12 @@ const exemptItems = [
   { description: 'Voicemail' },
 ];
 
-export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, orderItems, onBack, onConfirm }: DeactivateReviewOrderProps) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set([...serviceGroups, 'Exempt Services']));
+export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, selectedServiceIds, orderItems, onBack, onConfirm }: DeactivateReviewOrderProps) {
+  const activeGroups = selectedServiceIds && selectedServiceIds.length > 0
+    ? serviceGroups.filter(g => selectedServiceIds.some(id => SERVICE_ID_TO_GROUP[id] === g))
+    : serviceGroups;
+
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set([...activeGroups, 'Exempt Services']));
 
   const toggle = (name: string) => {
     const next = new Set(collapsed);
@@ -80,7 +92,11 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
   const baId = orderItems[0]?.serviceId ?? '';
   const activeServices = BA_ACTIVE_PLANS[baId] ?? [];
   const totalMonthly = activeServices.reduce((sum, s) => sum + s.monthlyCharge, 0);
-  const deactivationFee = 10.00;
+  const deactivatedMRC = activeGroups.reduce((sum, g) =>
+    sum + (serviceLineItems[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
+  );
+  const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
+  const deactivationFee = deactivationFeeApplied ? 10.00 : 0;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');
   const daysUsed = dateObj.getDate();
@@ -93,6 +109,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
         <h1 className="text-3xl text-gray-900 mb-2">Review Order</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-6 items-start">
         {/* Left column */}
@@ -116,7 +133,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-                    {serviceGroups.flatMap(groupName => {
+                    {activeGroups.flatMap(groupName => {
                       const items = serviceLineItems[groupName];
                       const isCollapsed = collapsed.has(groupName);
 
@@ -201,15 +218,28 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
                 <p className="text-xs text-gray-500 mt-3">Deactivation: {formatDate(deactivationDate)}</p>
               </div>
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">Current monthly charges</span>
                   <span className="text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">Deactivation fees</span>
-                  <span className="text-gray-900">${deactivationFee.toFixed(2)}/mo</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Deactivation fees</span>
+                    <button
+                      onClick={() => setDeactivationFeeApplied(v => !v)}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${deactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${deactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  <span className={deactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$10.00/mo</span>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
+                <span className="font-medium text-gray-700">Difference</span>
+                <span className="text-base font-bold text-red-600">-${(deactivatedMRC - deactivationFee).toFixed(2)}</span>
               </div>
 
               <div className="pt-4 border-t-2 border-gray-300">
@@ -229,7 +259,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, or
       <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mt-6">
         <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800">
-          The user is about to deactivate products and its related features on <strong>{formatDate(deactivationDate)}</strong>. This action can not be undone.
+          The user is about to deactivate products and its related features on <strong>{formatDate(deactivationDate)}</strong>. The customer can reactivate at any time.
         </p>
       </div>
 

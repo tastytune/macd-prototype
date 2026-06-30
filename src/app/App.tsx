@@ -55,7 +55,7 @@ const SA_INITIAL_CART: Record<string, CartLine[]> = {
   'sa-00912': [
     { label: 'Internet 2 Gig',         price: 124.95, group: 'internet'    },
     { label: 'Whole Home Wi-Fi',        price:   5.95, group: 'internet'    },
-    { label: 'TV 150+ (iTV Premium)',   price:  79.95, group: 'television'  },
+    { label: 'iTV Preferred',           price:  79.95, group: 'television'  },
     { label: 'Cinemax',                 price:  12.99, group: 'television'  },
     { label: 'FANatic',                 price:   5.99, group: 'television'  },
   ],
@@ -120,6 +120,7 @@ function App() {
   const [reactivationDate, setReactivationDate] = useState<string>('');
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
+  const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
   const [disconnectionReason, setDisconnectionReason] = useState<string>('');
   const [disconnectionComments, setDisconnectionComments] = useState<string>('');
   const [moveScenario, setMoveScenario] = useState<string>('M01');
@@ -292,6 +293,7 @@ function App() {
     }
 
     setOrderItems(allItems);
+    setDisconnectionDate('');
     setCurrentStep('step2');
   };
 
@@ -431,8 +433,9 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onDeactivate={(date) => {
+              onDeactivate={(date, ids) => {
                 setDisconnectionDate(date);
+                setDeactivateSelectedIds(ids);
                 setCurrentStep('deactivate-review');
               }}
             />
@@ -455,6 +458,7 @@ function App() {
                 action={selectedAction}
                 selectedSA={selectedSA}
                 deactivationDate={disconnectionDate}
+                selectedServiceIds={deactivateSelectedIds}
                 orderItems={orderItems}
                 onBack={() => setCurrentStep('deactivate-services')}
                 onConfirm={handleConfirmSubmit}

@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { MACDAction } from './DispatcherStep1';
 import type { Service } from '../App';
+import { ContextBar } from './ContextBar';
 
 interface DispatcherStep2Props {
   action: MACDAction;
@@ -26,7 +28,7 @@ const serviceAccounts: Service[] = [
 const changeServiceAccounts = serviceAccounts;
 
 const changeTags: Record<string, string[]> = {
-  'sa-00912': ['Internet 2Gig', 'iTV Premium', 'Cinemax', 'FANatic'],
+  'sa-00912': ['Internet 2Gig', 'iTV Preferred', 'Cinemax', 'FANatic'],
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
 };
 
@@ -36,6 +38,22 @@ const changePromoPills: Record<string, { label: string; style: string }[]> = {
     { label: 'Promo', style: 'bg-purple-100 text-purple-700' },
   ],
   'sa-01047': [
+    { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
+  ],
+};
+
+const baTags: Record<string, string[]> = {
+  'ba-00391': ['Internet 2Gig', 'iTV Preferred', 'Cinemax', 'FANatic'],
+  'ba-00412': ['Equipment Lease'],
+  'ba-00558': ['Internet 200M', 'Phone Bundle'],
+};
+
+const baPromoPills: Record<string, { label: string; style: string }[]> = {
+  'ba-00391': [
+    { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
+    { label: 'Promo',      style: 'bg-purple-100 text-purple-700' },
+  ],
+  'ba-00558': [
     { label: 'Price Lock', style: 'bg-indigo-100 text-indigo-700' },
   ],
 };
@@ -97,8 +115,6 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
 };
 
-import { useState } from 'react';
-
 export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props) {
   const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'change';
   const activeServiceAccounts = action === 'change' ? changeServiceAccounts : serviceAccounts;
@@ -125,9 +141,9 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
     <div className="max-w-4xl mx-auto px-8 py-12">
 
       {/* Header */}
-      <div className="mb-8">
+      <div>
         <h1 className="text-3xl text-gray-900 mb-2">Select accounts</h1>
-        <p className="text-gray-600">Robert Johnson</p>
+        <ContextBar action={action} selectedSA={null} />
       </div>
 
       {/* Content */}
@@ -139,10 +155,10 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
             {activeServiceAccounts.map(sa => {
               const isSelected = selectedSA === sa.id;
               const isMove = action === 'move';
-              const selectedBorder = isMove ? 'border-[#800080]' : 'border-blue-600';
-              const selectedBg = isMove ? 'bg-[#faf0fa]' : 'bg-blue-50';
-              const radioBorder = isMove ? 'border-[#800080]' : 'border-blue-600';
-              const radioDot = isMove ? 'bg-[#800080]' : 'bg-blue-600';
+              const selectedBorder = isMove ? 'border-blue-600' : 'border-blue-600';
+              const selectedBg = isMove ? 'bg-blue-50' : 'bg-blue-50';
+              const radioBorder = isMove ? 'border-blue-600' : 'border-blue-600';
+              const radioDot = isMove ? 'bg-blue-600' : 'bg-blue-600';
               return (
                 <button
                   key={sa.id}
@@ -164,14 +180,14 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     </p>
                     <div className="flex gap-2 mt-2 flex-wrap">
                       {(changeTags[sa.id] ?? []).map(tag => (
-                        <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">{tag}</span>
+                        <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-400 text-white font-medium">{tag}</span>
                       ))}
                       {(changePromoPills[sa.id] ?? []).map(pill => (
                         <span key={pill.label} className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${pill.style}`}>{pill.label}</span>
                       ))}
                     </div>
                   </div>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex-shrink-0">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium flex-shrink-0">
                     Active
                   </span>
                 </button>
@@ -213,6 +229,16 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     <p className="text-sm font-semibold text-gray-900">{ba.label}</p>
                     <p className="text-xs text-blue-600 font-medium mt-0.5">{ba.linkedSA}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{ba.detail}</p>
+                    {((baTags[ba.id] ?? []).length > 0 || (baPromoPills[ba.id] ?? []).length > 0) && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {(baTags[ba.id] ?? []).map(tag => (
+                          <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-400 text-white font-medium">{tag}</span>
+                        ))}
+                        {(baPromoPills[ba.id] ?? []).map(pill => (
+                          <span key={pill.label} className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${pill.style}`}>{pill.label}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
                     <span className="text-sm font-semibold text-gray-900">{isReactivate && ba.deactivated ? '$10.00/mo' : ba.amount}</span>
@@ -222,13 +248,13 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                           Deactivated
                         </span>
                       ) : (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700 border border-green-200">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
                           Active
                         </span>
                       )
                     ) : (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-                        ${ba.status === 'Current' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                        ${ba.status === 'Current' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
                         {ba.status}
                       </span>
                     )}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pause, Play, XCircle, RefreshCw } from 'lucide-react';
+import { Pause, Play, Power, RefreshCw } from 'lucide-react';
 
 function MovePinsIcon({ className }: { className?: string }) {
   return (
@@ -43,7 +43,7 @@ const actions: {
   {
     id: 'deactivate',
     label: 'Deactivate',
-    description: 'Temporarily suspend service. The account remains intact and can be reactivated at any time.',
+    description: 'Temporarily suspend services. The account remains intact and can be reactivated at any time.',
     icon: Pause,
     iconColor: 'text-amber-800',
     iconBg: 'bg-amber-50',
@@ -70,7 +70,7 @@ const actions: {
     id: 'disconnect',
     label: 'Disconnect',
     description: 'Permanently terminate service. This action cannot be undone and will close the service account.',
-    icon: XCircle,
+    icon: Power,
     iconColor: 'text-red-600',
     iconBg: 'bg-red-50',
     selectedBorder: 'border-red-500',
@@ -115,7 +115,7 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
     <div className="max-w-4xl mx-auto px-8 py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1.5">Manage service</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1.5">Manage Services</h1>
         <p className="text-gray-600 text-sm">
           Select the action you want to perform on{' '}
           <span className="font-semibold">Robert Johnson</span>'s{' '}
@@ -189,12 +189,6 @@ export function DispatcherStep1({ onNext, onCancel }: DispatcherStep1Props) {
 
       {/* Footer */}
       <div className="flex justify-end gap-3">
-        <button
-          onClick={onCancel}
-          className="px-7 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-800 hover:bg-gray-50 transition-colors"
-        >
-          Cancel
-        </button>
         <button
           onClick={() => selected && onNext(selected)}
           disabled={!selected}

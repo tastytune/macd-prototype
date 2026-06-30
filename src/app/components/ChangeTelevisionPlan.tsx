@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ChangeTelevisionPlanProps {
   selectedSA?: Service | null;
@@ -18,9 +19,9 @@ interface ChangeTelevisionPlanProps {
 }
 
 const PLANS = [
-  { id: '75plus',  channels: '75+',  price: 49.95  },
-  { id: '150plus', channels: '150+', price: 79.95  },
-  { id: '250plus', channels: '250+', price: 109.95 },
+  { id: '75plus',  channels: '75+',  name: 'iTV Essentials', price: 49.95  },
+  { id: '150plus', channels: '150+', name: 'iTV Preferred',  price: 79.95  },
+  { id: '250plus', channels: '250+', name: 'iTV Extra',      price: 109.95 },
 ];
 
 // Current TV plan per SA (sa-01047 has no TV service)
@@ -104,7 +105,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   };
 
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
-  const planLabel = activePlan ? `${activePlan.channels} Channels` : '';
+  const planLabel = activePlan ? activePlan.name : '';
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
@@ -113,6 +114,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
         <h1 className="text-3xl text-gray-900 mb-2">Change Television Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-8 items-start">
 
@@ -156,7 +158,11 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     </span>
                   )}
 
-                  <div className={`text-6xl font-bold leading-none mb-1
+                  <div className={`text-sm font-semibold uppercase tracking-widest mb-2
+                    ${!isSelectable ? 'text-gray-300' : 'text-blue-600'}`}>
+                    {plan.name}
+                  </div>
+                  <div className={`text-5xl font-bold leading-none mb-1
                     ${!isSelectable ? 'text-gray-300' : 'text-gray-900'}`}>
                     {plan.channels}
                   </div>
@@ -244,7 +250,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                 const currentTvPlan = currentPlanId ? PLANS.find(p => p.id === currentPlanId) : undefined;
                 const displayPlan = activePlan ?? currentTvPlan;
                 const tvLines: CartLine[] = displayPlan ? [
-                  { label: `TV ${displayPlan.channels} channels`, price: displayPlan.price, group: 'television' as const },
+                  { label: displayPlan.name, price: displayPlan.price, group: 'television' as const },
                   ...[...selectedAddOns].map(id => {
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.name, price: a.price, group: 'television' as const };
@@ -292,7 +298,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
                 // Lines kept/added (used for total)
                 const keptTvLines: CartLine[] = displayPlan ? [
-                  { label: `TV ${displayPlan.channels} channels`, price: displayPlan.price, group: 'television' as const },
+                  { label: displayPlan.name, price: displayPlan.price, group: 'television' as const },
                   ...[...selectedAddOns].map(id => {
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.name, price: a.price, group: 'television' as const };
@@ -331,12 +337,22 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     )}
                     {(() => {
                       const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                      const prevTotal = previousLines.reduce((s, l) => s + l.price, 0);
+                      const diff = (total - discount) - prevTotal;
                       return (
                         <div className="border-t border-gray-100 pt-2 space-y-1.5">
                           {discount > 0 && (
                             <div className="flex justify-between text-sm text-green-700">
                               <span>Promo discount</span>
                               <span className="font-medium">−${discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {diff !== 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Difference</span>
+                              <span className={`font-semibold ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                              </span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm font-semibold">

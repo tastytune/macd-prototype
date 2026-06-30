@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import cinemaxLogo from 'figma:asset/e73cd34a93b6cf4ced24e49c0d27ef619f645480.png';
 import hboLogo from 'figma:asset/8c729044885a4bab439320b910fb1e838b9186b5.png';
@@ -125,6 +126,7 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
         <h1 className="text-3xl text-gray-900 mb-2">Active Services</h1>
         <ContextBar action={action ?? null} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={1} />
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="overflow-hidden">

@@ -4,6 +4,7 @@ import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
 import { DateInput } from './DateInput';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ReactivateServicesProps {
   action: MACDAction | null;
@@ -59,7 +60,7 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
         <h1 className="text-3xl text-gray-900 mb-2">Reactivate Services</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
-
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={1} />
 
       {/* Service list */}
       <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">

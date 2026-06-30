@@ -19,8 +19,7 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-// Week starts Monday: Mo Tu We Th Fr | Sa Su (last two are weekend)
-const DAY_HEADERS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const DAY_HEADERS = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
 
 export function DateInput({ value, onChange, min, className = '' }: DateInputProps) {
   const todayISO = new Date().toISOString().split('T')[0];
@@ -49,17 +48,24 @@ export function DateInput({ value, onChange, min, className = '' }: DateInputPro
   }
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  // Convert Sun-based getDay() to Mon-based column (Mon=0 … Sun=6)
-  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
-  const firstCol = (firstDow + 6) % 7;
 
-  const cells: (number | null)[] = Array(firstCol).fill(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length % 7 !== 0) cells.push(null);
+  // Build a 5-column (Mon–Fri only) grid — weekends are excluded entirely
+  const weekdayCells: (number | null)[] = [];
+  let firstWeekday = 1;
+  let firstWeekdayCol = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = (new Date(viewYear, viewMonth, d).getDay() + 6) % 7; // Mon=0…Sun=6
+    if (dow < 5) { firstWeekday = d; firstWeekdayCol = dow; break; }
+  }
+  for (let i = 0; i < firstWeekdayCol; i++) weekdayCells.push(null);
+  for (let d = firstWeekday; d <= daysInMonth; d++) {
+    const dow = (new Date(viewYear, viewMonth, d).getDay() + 6) % 7;
+    if (dow < 5) weekdayCells.push(d);
+  }
+  while (weekdayCells.length % 5 !== 0) weekdayCells.push(null);
 
-  function handleDayClick(day: number, col: number, iso: string) {
-    if (col >= 5) return;                  // Sat or Sun
-    if (min && iso < min) return;          // before min
+  function handleDayClick(iso: string) {
+    if (min && iso < min) return;
     onChange(iso);
     setOpen(false);
   }
@@ -92,42 +98,35 @@ export function DateInput({ value, onChange, min, className = '' }: DateInputPro
             </button>
           </div>
 
-          {/* Day-of-week headers — Sa/Su visually grayed */}
-          <div className="grid grid-cols-7 mb-1">
-            {DAY_HEADERS.map((h, i) => (
-              <div
-                key={h}
-                className={`text-center text-xs font-medium py-1 select-none
-                  ${i >= 5 ? 'text-gray-300' : 'text-gray-500'}`}
-              >
+          {/* Day-of-week headers — Mon to Fri only */}
+          <div className="grid grid-cols-5 mb-1">
+            {DAY_HEADERS.map(h => (
+              <div key={h} className="text-center text-xs font-medium py-1 select-none text-gray-500">
                 {h}
               </div>
             ))}
           </div>
 
-          {/* Day cells */}
-          <div className="grid grid-cols-7">
-            {cells.map((day, idx) => {
+          {/* Day cells — 5-column weekday grid */}
+          <div className="grid grid-cols-5">
+            {weekdayCells.map((day, idx) => {
               if (day === null) return <div key={idx} />;
-              const col = idx % 7; // 0=Mo … 4=Fr, 5=Sa, 6=Su
               const mm = String(viewMonth + 1).padStart(2, '0');
               const dd = String(day).padStart(2, '0');
               const iso = `${viewYear}-${mm}-${dd}`;
-              const isWeekend = col >= 5;
               const isPast = !!min && iso < min;
-              const isDisabled = isWeekend || isPast;
               const isSelected = iso === value;
               const isToday = iso === todayISO;
 
               return (
                 <div
                   key={idx}
-                  onClick={() => handleDayClick(day, col, iso)}
+                  onClick={() => !isPast && handleDayClick(iso)}
                   className={`
                     text-center text-xs py-1.5 rounded select-none
                     ${isSelected
                       ? 'bg-blue-600 text-white font-semibold cursor-pointer'
-                      : isDisabled
+                      : isPast
                         ? 'text-gray-300 cursor-default'
                         : isToday
                           ? 'text-blue-600 font-semibold cursor-pointer hover:bg-blue-50'

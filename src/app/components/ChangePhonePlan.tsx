@@ -3,6 +3,7 @@ import { MapPin, AlertTriangle } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ChangePhonePlanProps {
   selectedSA?: Service | null;
@@ -118,6 +119,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         <h1 className="text-3xl text-gray-900 mb-2">Change Phone Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-8 items-start">
 
@@ -353,12 +355,22 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     )}
                     {(() => {
                       const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                      const prevTotal = previousLines.reduce((s, l) => s + l.price, 0);
+                      const diff = (total - discount) - prevTotal;
                       return (
                         <div className="border-t border-gray-100 pt-2 space-y-1.5">
                           {discount > 0 && (
                             <div className="flex justify-between text-sm text-green-700">
                               <span>Promo discount</span>
                               <span className="font-medium">−${discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {diff !== 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Difference</span>
+                              <span className={`font-semibold ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                              </span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm font-semibold">

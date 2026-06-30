@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import type { OrderItem, Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { DateInput } from './DateInput';
+import { Breadcrumb } from './Breadcrumb';
 
 interface Step2Props {
   orderItems: OrderItem[];
@@ -81,8 +83,9 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">Review Order</h1>
         <ContextBar action={action ?? null} selectedSA={selectedSA} />
-      
+
       </div>
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={2} />
 
       <div className="flex gap-6 items-start">
       {/* Left column: main content */}
@@ -92,7 +95,7 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div className="p-6 pb-4">
           <div className="flex items-center gap-3 mb-4">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 text-[20px]">
+            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 text-[20px] whitespace-nowrap shrink-0">
               Requested Disconnection Date<span className="text-red-600 ml-1">*</span>
               <div className="relative group">
                 <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
@@ -102,12 +105,11 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
                 </div>
               </div>
             </label>
-            <input
-              type="date"
+            <DateInput
               value={disconnectionDate}
-              onChange={(e) => onDisconnectionDateChange(e.target.value)}
+              onChange={onDisconnectionDateChange}
               min={new Date().toISOString().split('T')[0]}
-              className="px-3 py-1.5 border border-gray-300 rounded-md text-gray-900 bg-white font-normal text-[16px] cursor-pointer hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-40"
             />
           </div>
         </div>
@@ -227,16 +229,19 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
           </div>
 
           {/* Charges Breakdown */}
-          <div className="space-y-4 mb-4">
-            {/* Monthly Charges Section */}
-            <div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">Current monthly charges</span>
-                <span className="text-gray-900">${orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0).toFixed(2)}</span>
-              </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-700">Current monthly charges</span>
+              <span className="text-gray-900">${orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0).toFixed(2)}</span>
             </div>
+          </div>
 
-        
+          {/* Difference */}
+          <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
+            <span className="font-medium text-gray-700">Difference</span>
+            <span className="text-base font-bold text-red-600">
+              -${orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0).toFixed(2)}
+            </span>
           </div>
 
           {/* Total */}

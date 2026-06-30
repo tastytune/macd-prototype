@@ -3,6 +3,8 @@ import { HelpCircle, Lock, Calendar } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { DateInput } from './DateInput';
+import { Breadcrumb } from './Breadcrumb';
 
 interface MoveServicesStep4Props {
   scenario: string;
@@ -16,7 +18,7 @@ interface MoveServicesStep4Props {
 const SA_BASE_SERVICES: Record<string, { id: string; summaryLabel: string; price: number }[]> = {
   'sa-00912': [
     { id: 'internet', summaryLabel: 'Internet 2Gig', price: 124.95 },
-    { id: 'itv',      summaryLabel: 'iTV Premium',   price: 79.95  },
+    { id: 'itv',      summaryLabel: 'iTV Preferred',  price: 79.95  },
     { id: 'cinemax',  summaryLabel: 'Cinemax',       price: 12.99  },
     { id: 'fanatic',  summaryLabel: 'FANatic',        price: 5.99   },
   ],
@@ -29,7 +31,7 @@ const SA_BASE_SERVICES: Record<string, { id: string; summaryLabel: string; price
 // Full catalog to resolve any selected service ID
 const SERVICE_CATALOG: { id: string; summaryLabel: string; price: number }[] = [
   { id: 'internet',          summaryLabel: 'Internet 2Gig',           price: 124.95 },
-  { id: 'itv',               summaryLabel: 'iTV Premium',             price: 79.95  },
+  { id: 'itv',               summaryLabel: 'iTV Preferred',           price: 79.95  },
   { id: 'cinemax',           summaryLabel: 'Cinemax',                 price: 12.99  },
   { id: 'fanatic',           summaryLabel: 'FANatic',                 price: 5.99   },
   { id: 'internet-coax-200', summaryLabel: 'Internet 200 Mbps',       price: 79.95  },
@@ -38,9 +40,9 @@ const SERVICE_CATALOG: { id: string; summaryLabel: string; price: number }[] = [
   { id: 'phone-bundle',      summaryLabel: 'Phone Bundle',            price: 29.95  },
   { id: 'm04-1gig',          summaryLabel: 'Internet 1 Gig (Offer)',  price: 49.95  },
   { id: 'm04-2gig',          summaryLabel: 'Internet 2 Gig (Offer)',  price: 109.95 },
-  { id: 'itv-75',            summaryLabel: 'iTV 75+ channels',        price: 49.95  },
-  { id: 'itv-150',           summaryLabel: 'iTV 150+ channels',       price: 79.95  },
-  { id: 'itv-250',           summaryLabel: 'iTV 250+ channels',       price: 109.95 },
+  { id: 'itv-75',            summaryLabel: 'iTV Essentials',          price: 49.95  },
+  { id: 'itv-150',           summaryLabel: 'iTV Preferred',           price: 79.95  },
+  { id: 'itv-250',           summaryLabel: 'iTV Extra',               price: 109.95 },
   { id: 'tv-hbo',            summaryLabel: 'HBO',                     price: 14.99  },
   { id: 'tv-cinemax',        summaryLabel: 'Cinemax',                 price: 12.99  },
   { id: 'tv-fanatic',        summaryLabel: 'FANatic',                 price: 5.99   },
@@ -113,6 +115,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
         <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
         <ContextBar action={'move' as MACDAction} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Destination', 'Services', 'Schedule', 'Review order']} currentIndex={3} />
 
       <div className="flex gap-6 items-start">
 
@@ -134,11 +137,9 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                     </div>
                   </div>
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={billingEndDate}
-                  onChange={e => setBillingEndDate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={v => setBillingEndDate(v)}
                 />
               </div>
               <div>
@@ -152,11 +153,9 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                     </div>
                   </div>
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={installationDate}
-                  onChange={e => { setInstallationDate(e.target.value); setSelectedSlot(null); setDateViaInput(true); }}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={v => { setInstallationDate(v); setSelectedSlot(null); setDateViaInput(true); }}
                 />
                 {dateViaInput && installationDate && (
                   <div className="mt-3 p-4 rounded-xl border border-gray-200 bg-white w-full">

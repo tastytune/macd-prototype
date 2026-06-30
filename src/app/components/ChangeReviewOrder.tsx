@@ -4,6 +4,7 @@ import { PromoSection, PROMOS } from './ChangePromos';
 import type { Service, CartLine } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface ChangeReviewOrderProps {
   action: MACDAction | null;
@@ -35,7 +36,7 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
       { description: 'Whole Home Wi-Fi',  monthlyCharge: 5.95   },
     ],
     television: [
-      { description: 'TV 150+ Channels (iTV Premium)', monthlyCharge: 79.95 },
+      { description: 'iTV Preferred',                  monthlyCharge: 79.95 },
       { description: 'Cinemax',                        monthlyCharge: 12.99 },
       { description: 'FANatic',                        monthlyCharge: 5.99  },
     ],
@@ -57,7 +58,7 @@ const DEFAULT_CURRENT_PLANS: Partial<Record<GroupKey, { description: string; mon
     { description: 'Whole Home Wi-Fi',  monthlyCharge: 5.95  },
   ],
   television: [
-    { description: 'TV 75+ Channels', monthlyCharge: 49.95 },
+    { description: 'iTV Essentials',  monthlyCharge: 49.95 },
   ],
   phone: [
     { description: 'Unlimited Local Calling', monthlyCharge: 15.95 },
@@ -93,6 +94,9 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
   };
 
   const addedTotal = cartLines.reduce((s, l) => s + l.price, 0);
+  const currentTotal = activeGroups.reduce((sum, g) =>
+    sum + (currentPlans[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
+  );
 
   return (
     <div>
@@ -100,6 +104,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         <h1 className="text-3xl text-gray-900 mb-2">Review Order</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={4} />
 
       <div className="flex gap-6 items-start">
 
@@ -227,7 +232,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 </div>
               )}
 
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">New monthly charges</span>
                   <span className="text-gray-900">${addedTotal.toFixed(2)}</span>
@@ -245,7 +250,20 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 </div>
               )}
 
-              <div className="pt-4 border-t-2 border-gray-300 mt-4">
+              {(() => {
+                const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                const diff = (addedTotal - discount) - currentTotal;
+                return (
+                  <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
+                    <span className="font-medium text-gray-700">Difference</span>
+                    <span className={`text-base font-bold ${diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                    </span>
+                  </div>
+                );
+              })()}
+
+              <div className="pt-4 border-t-2 border-gray-300">
                 {(() => {
                   const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
                   return (

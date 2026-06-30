@@ -4,12 +4,13 @@ import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
 import { DateInput } from './DateInput';
+import { Breadcrumb } from './Breadcrumb';
 
 interface DeactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   onBack: () => void;
-  onDeactivate: (date: string) => void;
+  onDeactivate: (date: string, selectedIds: string[]) => void;
 }
 
 const activeServices = [
@@ -35,9 +36,15 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
   const [selected, setSelected] = useState<Set<string>>(new Set(activeServices.map(s => s.id)));
   const [reason, setReason] = useState('NPD');
 
+  const isCustomerVacation = reason === 'Customer-Initiated Vacation';
+
   const handleReasonChange = (value: string) => {
     setReason(value);
     setDeactivationDate(value === 'Customer-Initiated Vacation' ? vacationDefaultDate : nextWeekday(today));
+    // NPD / Operator Initiated: reset to all selected
+    if (value !== 'Customer-Initiated Vacation') {
+      setSelected(new Set(activeServices.map(s => s.id)));
+    }
   };
   const [vacationReturnDate, setVacationReturnDate] = useState('');
   const [comments, setComments] = useState('');
@@ -45,9 +52,18 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
   const deactivationReasons = ['NPD', 'Customer-Initiated Vacation', 'Operator Initiated'];
 
   const allSelected = selected.size === activeServices.length;
+  const someSelected = selected.size > 0 && !allSelected;
 
   const toggleAll = () => {
     setSelected(allSelected ? new Set() : new Set(activeServices.map(s => s.id)));
+  };
+
+  const toggleItem = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
 
@@ -64,63 +80,68 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
         <h1 className="text-3xl text-gray-900 mb-2">Deactivate Services</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={1} />
 
       {/* Deactivation Date — hidden when Vacation is selected */}
       {reason !== 'Customer-Initiated Vacation' && (
         <div className="mb-6 flex items-center gap-3">
-          <span className="text-gray-600 flex items-center gap-1.5">
+          <span className="text-gray-600 flex items-center gap-1.5 whitespace-nowrap">
             Requested Deactivation Date<span className="text-red-600 ml-1">*</span>
             <div className="relative group">
               <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                Deactivation date takes X amount of days
+                Business days only. Same-day deactivation is available.
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
               </div>
             </div>
           </span>
-          <div className="relative inline-block">
-            <input
-              type="date"
-              value={deactivationDate}
-              onChange={e => setDeactivationDate(nextWeekday(e.target.value))}
-              min={today}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-            />
-            <span className="font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors">
-              {formatDate(deactivationDate)}
-            </span>
-          </div>
+          <DateInput value={deactivationDate} onChange={v => setDeactivationDate(nextWeekday(v))} min={today} className="w-40" />
         </div>
       )}
 
       {/* Service list */}
       <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
         {/* Select All */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
-          <button
-            onClick={toggleAll}
-            className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-              allSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
-            }`}
-          >
+        <div
+          onClick={toggleAll}
+          className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+            allSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+          }`}>
             {allSelected && (
               <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
-          </button>
-          <span className="text-sm text-gray-700">Select All</span>
+          </div>
+          <span className="text-sm text-gray-700 font-medium">Select All</span>
         </div>
 
         {activeServices.map(svc => {
           const Icon = svc.icon;
+          const isChecked = selected.has(svc.id);
 
           return (
-            <div key={svc.id} className="border-b border-gray-200 last:border-0">
+            <div
+              key={svc.id}
+              onClick={() => isCustomerVacation && toggleItem(svc.id)}
+              className={`border-b border-gray-200 last:border-0 transition-colors
+                ${isCustomerVacation ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'}`}
+            >
               <div className="flex items-center gap-3 px-4 py-3">
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  isChecked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+                } ${!isCustomerVacation ? 'opacity-40' : ''}`}>
+                  {isChecked && (
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
                 <Icon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span className="text-sm text-gray-900 flex-1">{svc.name}</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">
+                <span className={`text-sm flex-1 ${isChecked ? 'text-gray-900' : 'text-gray-400'}`}>{svc.name}</span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
                   Active
                 </span>
               </div>
@@ -155,7 +176,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
                   <div className="relative group">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      Deactivation date takes X amount of days
+                      Business days only. Same-day deactivation is available.
                       <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                     </div>
                   </div>
@@ -194,7 +215,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
           Back
         </button>
         <button
-          onClick={() => onDeactivate(deactivationDate)}
+          onClick={() => onDeactivate(deactivationDate, [...selected])}
           disabled={!canDeactivate}
           className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all ${
             canDeactivate

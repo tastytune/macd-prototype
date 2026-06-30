@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
+import { Breadcrumb } from './Breadcrumb';
 
 interface MoveServicesProps {
   action: MACDAction | null;
@@ -43,6 +44,7 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
         <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
+      <Breadcrumb steps={['Select account', 'Destination', 'Services', 'Schedule', 'Review order']} currentIndex={1} />
 
       {/* Form card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-8">
@@ -63,7 +65,7 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
             />
           </div>
 
-          {/* City + State */}
+          {/* City + State + ZIP */}
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm text-gray-700 mb-1.5">City</label>
@@ -75,7 +77,7 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <div className="w-40">
+            <div className="w-32">
               <label className="block text-sm text-gray-700 mb-1.5">State</label>
               <select
                 value={state}
@@ -85,19 +87,17 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
                 {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-          </div>
-
-          {/* ZIP */}
-          <div className="w-48">
-            <label className="block text-sm text-gray-700 mb-1.5">ZIP code</label>
-            <input
-              type="text"
-              value={zip}
-              onChange={e => { setZip(e.target.value); setServiceabilityChecked(false); }}
-              placeholder="62701"
-              maxLength={10}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="w-36">
+              <label className="block text-sm text-gray-700 mb-1.5">ZIP code</label>
+              <input
+                type="text"
+                value={zip}
+                onChange={e => { setZip(e.target.value); setServiceabilityChecked(false); }}
+                placeholder="62701"
+                maxLength={10}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
         </div>
 
