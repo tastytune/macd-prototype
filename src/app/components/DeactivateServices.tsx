@@ -10,7 +10,7 @@ interface DeactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   onBack: () => void;
-  onDeactivate: (date: string, selectedIds: string[]) => void;
+  onDeactivate: (date: string, selectedIds: string[], reason: string) => void;
 }
 
 const activeServices = [
@@ -215,7 +215,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
           Back
         </button>
         <button
-          onClick={() => onDeactivate(deactivationDate, [...selected])}
+          onClick={() => onDeactivate(deactivationDate, [...selected], reason)}
           disabled={!canDeactivate}
           className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all ${
             canDeactivate

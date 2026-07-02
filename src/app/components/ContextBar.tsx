@@ -25,24 +25,24 @@ interface ContextBarProps {
 export function ContextBar({ action, selectedSA }: ContextBarProps) {
   if (!action) return null;
   return (
-    <p className="text-gray-600 flex items-center gap-2 whitespace-nowrap mb-8 overflow-hidden text-ellipsis">
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 ${actionBadgeStyle[action]}`}>
+    <div className="mb-8 flex items-center gap-2 min-w-0 overflow-hidden text-gray-600">
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${actionBadgeStyle[action]}`}>
         {actionLabel[action]}
       </span>
-      <span className="text-gray-400 shrink-0">·</span>
-      <span className="text-gray-600 font-bold shrink-0">Robert Johnson</span>
+      <span className="text-gray-400 flex-shrink-0">·</span>
+      <span className="font-bold flex-shrink-0">Robert Johnson</span>
       {selectedSA && (
         <>
-          <span className="text-gray-400 shrink-0">·</span>
-          <span className="font-medium text-gray-700 shrink-0">{selectedSA.name}</span>
+          <span className="text-gray-400 flex-shrink-0">·</span>
+          <span className="font-medium text-gray-700 flex-shrink-0">{selectedSA.name}</span>
           {selectedSA.address && (
             <>
-              <span className="text-gray-400 shrink-0">·</span>
-              <span className="text-gray-600 font-bold shrink-0">{selectedSA.address}</span>
+              <span className="text-gray-400 flex-shrink-0">·</span>
+              <span className="text-gray-500 truncate min-w-0">{selectedSA.address}</span>
             </>
           )}
         </>
       )}
-    </p>
+    </div>
   );
 }

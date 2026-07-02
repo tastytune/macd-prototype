@@ -1,10 +1,9 @@
-import { Trash2, Info, ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
+import { Trash2, Info, ChevronDown, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState } from 'react';
 import type { OrderItem, Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
-import { DateInput } from './DateInput';
 import { Breadcrumb } from './Breadcrumb';
 
 interface Step2Props {
@@ -55,11 +54,23 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
   };
 
   // Calculate charges
-  const totalMonthlyCharges = totalActiveMonthlyCharges; // Total of ALL active services ($165.48)
+  const totalMonthlyCharges = totalActiveMonthlyCharges;
   const disconnectingServiceCharges = orderItems.reduce((sum, item) => sum + (item.monthlyCharge * item.quantity), 0);
-  
-  // Calculate remaining monthly charges after disconnection
   const remainingMonthlyCharges = totalActiveMonthlyCharges - disconnectingServiceCharges;
+
+  // Derive the services that remain active after disconnection (for the tooltip)
+  const disconnectedServiceIds = new Set(orderItems.map(item => item.serviceId));
+  const priceAffectedProducts: string[] = [];
+  if (!disconnectedServiceIds.has('internet')) {
+    priceAffectedProducts.push('Residential Internet', 'Service Assurance');
+    if (selectedSA?.id === 'sa-00912') priceAffectedProducts.push('Elite Wi-Fi');
+  }
+  if (selectedSA?.id === 'sa-00912' && !disconnectedServiceIds.has('tv')) {
+    priceAffectedProducts.push('iTV Preferred');
+  }
+  if (selectedSA?.id === 'sa-01047' && !disconnectedServiceIds.has('phone')) {
+    priceAffectedProducts.push('Phone bundle');
+  }
   
   // Proration calculation (simplified - assuming 15 days remaining in cycle)
   const daysRemaining = 15;
@@ -73,7 +84,9 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
   const finalTotal = disconnectingServiceCharges - prorationCredit + oneTimeDisconnectCharge + earlyTerminationFee - equipmentCredit;
 
   const formatDisconnectionDate = (dateString: string) => {
+    if (!dateString) return '—';
     const date = new Date(dateString + 'T00:00:00');
+    if (isNaN(date.getTime())) return '—';
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
@@ -93,26 +106,13 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
 
       {/* Unified Service Being Disconnected */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div className="p-6 pb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 text-[20px] whitespace-nowrap shrink-0">
-              Requested Disconnection Date<span className="text-red-600 ml-1">*</span>
-              <div className="relative group">
-                <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  Disconnection might take X and Z amount of days.
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                </div>
-              </div>
-            </label>
-            <DateInput
-              value={disconnectionDate}
-              onChange={onDisconnectionDateChange}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-40"
-            />
+
+        {disconnectionDate && (
+          <div className="px-6 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 text-sm text-gray-600">
+            <span className="font-medium text-gray-700">Requested Disconnection Date:</span>
+            <span>{formatDisconnectionDate(disconnectionDate)}</span>
           </div>
-        </div>
+        )}
 
         {orderItems.length === 0 ? (
           <div className="p-12 text-center">
@@ -133,7 +133,6 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
                       Item Description
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Quantity
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Monthly Charge
@@ -232,15 +231,44 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-700">Current monthly charges</span>
-              <span className="text-gray-900">${orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0).toFixed(2)}</span>
+              <span className="text-gray-900">${totalMonthlyCharges.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500">Services being disconnected</span>
+              <span className="text-red-600">-${disconnectingServiceCharges.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Difference */}
           <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
-            <span className="font-medium text-gray-700">Difference</span>
+            <span className="font-medium text-gray-700 flex items-center gap-1.5">
+              Difference
+              <div className="relative group/diff">
+                <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
+                  {priceAffectedProducts.length > 0 && (
+                    <>
+                      <p className="font-semibold mb-1">Price-Affected Products:</p>
+                      <p className="text-gray-300 mb-2">These products will not be disconnected but are included in the order for <span className="font-semibold text-white">pricing recalculation.</span></p>
+                      <ul className="space-y-1">
+                        {priceAffectedProducts.map(name => (
+                          <li key={name} className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+                            {name}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {priceAffectedProducts.length === 0 && (
+                    <p>Monthly savings from disconnecting these services.</p>
+                  )}
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                </div>
+              </div>
+            </span>
             <span className="text-base font-bold text-red-600">
-              -${orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0).toFixed(2)}
+              -${disconnectingServiceCharges.toFixed(2)}
             </span>
           </div>
 
@@ -249,48 +277,9 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-gray-900">Remaining Charges</span>
               <span className="text-xl font-medium text-gray-900">
-                {(() => {
-                  const totalMonthlyCharges = orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0);
-                  
-                  // Calculate proration based on disconnection date
-                  const disconnectDate = new Date(disconnectionDate);
-                  const year = disconnectDate.getFullYear();
-                  const month = disconnectDate.getMonth();
-                  
-                  // Get the first day of the billing period (1st of the month)
-                  const billingStart = new Date(year, month, 1);
-                  
-                  // Get the last day of the billing period (last day of the month)
-                  const billingEnd = new Date(year, month + 1, 0);
-                  
-                  // Calculate total days in the billing period
-                  const totalDaysInPeriod = billingEnd.getDate();
-                  
-                  // Calculate days used (from 1st to disconnection date)
-                  const daysUsed = disconnectDate.getDate();
-                  
-                  // Calculate proration factor
-                  const prorationFactor = daysUsed / totalDaysInPeriod;
-                  
-                  // Apply proration to monthly charges
-                  const proratedCharges = totalMonthlyCharges * prorationFactor;
-                  
-                  const equipmentCredit = orderItems.some(item => item.serviceId === 'internet') ? 50.00 : 0;
-                  const finalTotal = proratedCharges - equipmentCredit;
-                  return finalTotal > 0 ? `$${finalTotal.toFixed(2)}` : '$0.00';
-                })()}
+                ${remainingMonthlyCharges.toFixed(2)}
               </span>
             </div>
-            {(() => {
-              const totalMonthlyCharges = orderItems.reduce((total, item) => total + (item.quantity * item.monthlyCharge), 0);
-              const equipmentCredit = orderItems.some(item => item.serviceId === 'internet') ? 50.00 : 0;
-              const finalTotal = totalMonthlyCharges - equipmentCredit;
-              return finalTotal <= 0 && (
-                <p className="text-xs text-green-600 text-right">
-                  Credit on final bill
-                </p>
-              );
-            })()}
           </div>
 
           {/* Additional Info */}
@@ -304,7 +293,7 @@ export function Step2ReviewOrder({ orderItems, service, disconnectionDate, total
       <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mt-6">
         <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-red-700">
-          You are about to disconnect. This action cannot be undone.
+          You are about to disconnect{disconnectionDate ? ` on ${formatDisconnectionDate(disconnectionDate)}` : ''}. This action cannot be undone.
         </p>
       </div>
 

@@ -29,7 +29,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src/app'),
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-dom/client', 'lucide-react'],
+  },
   server: {
+    warmup: {
+      clientFiles: ['./src/main.tsx', './src/app/App.tsx'],
+    },
     hmr: {
       host: 'localhost',
       protocol: 'ws',

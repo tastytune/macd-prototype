@@ -1,4 +1,4 @@
-import { Check, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Check, AlertTriangle, ChevronDown, Info } from 'lucide-react';
 import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -212,7 +212,16 @@ export function MoveServicesStep5({
                   <span className="text-xl font-medium text-gray-900">${newMRC.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Difference</span>
+                  <span className="text-gray-600 flex items-center gap-1.5">
+                    Difference
+                    <div className="relative group/diff">
+                      <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
+                        Net change in monthly recurring charges compared to your current plan.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                      </div>
+                    </div>
+                  </span>
                   <span className={`font-semibold ${
                     mrcDiff < 0 ? 'text-red-600'
                     : mrcDiff > 0 ? 'text-green-600'

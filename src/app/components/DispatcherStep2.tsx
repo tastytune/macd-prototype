@@ -13,13 +13,13 @@ interface DispatcherStep2Props {
 const serviceAccounts: Service[] = [
   {
     id: 'sa-00912',
-    name: 'SA-00912 · Primary residence',
+    name: 'SA-00912 · Primary',
     status: 'Active',
     address: '412 Oak Ave, Lincoln, NE 68501',
   },
   {
     id: 'sa-01047',
-    name: 'SA-01047 · Secondary property',
+    name: 'SA-01047 · Secondary',
     status: 'Active',
     address: '88 Maple St, Omaha, NE 68102',
   },
@@ -73,7 +73,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00391',
     label: 'BA-00391',
-    linkedSA: 'SA-00912 · Primary residence',
+    linkedSA: 'SA-00912 · Primary',
     detail: 'Primary billing · Monthly',
     amount: '$189.00/mo',
     status: 'Current',
@@ -82,7 +82,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00412',
     label: 'BA-00412',
-    linkedSA: 'SA-00912 · Primary residence',
+    linkedSA: 'SA-00912 · Primary',
     detail: 'Equipment lease · Monthly',
     amount: '$14.99/mo',
     status: 'Current',
@@ -91,7 +91,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00558',
     label: 'BA-00558',
-    linkedSA: 'SA-01047 · Secondary property',
+    linkedSA: 'SA-01047 · Secondary',
     detail: 'Primary billing · Monthly',
     amount: '$79.00/mo',
     status: 'Current',

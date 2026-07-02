@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, AlertTriangle } from 'lucide-react';
+import { ChevronDown, AlertTriangle, Info } from 'lucide-react';
 import type { Service, OrderItem } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -10,6 +10,7 @@ interface DeactivateReviewOrderProps {
   selectedSA?: Service | null;
   deactivationDate: string;
   selectedServiceIds?: string[];
+  deactivationReason?: string;
   orderItems: OrderItem[];
   onBack: () => void;
   onConfirm: () => void;
@@ -71,7 +72,7 @@ const exemptItems = [
   { description: 'Voicemail' },
 ];
 
-export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, selectedServiceIds, orderItems, onBack, onConfirm }: DeactivateReviewOrderProps) {
+export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, selectedServiceIds, deactivationReason = '', orderItems, onBack, onConfirm }: DeactivateReviewOrderProps) {
   const activeGroups = selectedServiceIds && selectedServiceIds.length > 0
     ? serviceGroups.filter(g => selectedServiceIds.some(id => SERVICE_ID_TO_GROUP[id] === g))
     : serviceGroups;
@@ -96,7 +97,8 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
     sum + (serviceLineItems[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
   );
   const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
-  const deactivationFee = deactivationFeeApplied ? 10.00 : 0;
+  const baseFee = deactivationReason === 'NPD' ? 30.00 : 10.00;
+  const deactivationFee = deactivationFeeApplied ? baseFee : 0;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');
   const daysUsed = dateObj.getDate();
@@ -233,12 +235,21 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                       <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${deactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
                     </button>
                   </div>
-                  <span className={deactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$10.00/mo</span>
+                  <span className={deactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>${baseFee.toFixed(2)}/mo</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
-                <span className="font-medium text-gray-700">Difference</span>
+                <span className="font-medium text-gray-700 flex items-center gap-1.5">
+                  Difference
+                  <div className="relative group/diff">
+                    <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
+                      Net change in monthly recurring charges. Fees may reduce the net savings.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                    </div>
+                  </div>
+                </span>
                 <span className="text-base font-bold text-red-600">-${(deactivatedMRC - deactivationFee).toFixed(2)}</span>
               </div>
 

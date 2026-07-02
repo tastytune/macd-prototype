@@ -1,5 +1,6 @@
-import { Wifi, Phone, Tv, MonitorPlay, ChevronRight, ChevronDown, Anchor, Trash2, AlertCircle } from 'lucide-react';
+import { Wifi, Phone, Tv, MonitorPlay, ChevronRight, ChevronDown, Anchor, Trash2, AlertCircle, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
+import { DateInput } from './DateInput';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -10,9 +11,18 @@ import hboLogo from 'figma:asset/8c729044885a4bab439320b910fb1e838b9186b5.png';
 import showtimeLogo from 'figma:asset/e20d776efc891e951b92d58092d597a8a750aac0.png';
 import starzLogo from 'figma:asset/a5513f252498124c13ee55ac36f45597dfc9a4e8.png';
 import sportsTierLogo from 'figma:asset/6944db11e4b77188d75287c86024872fff886b94.png';
+import fanaticLogo from '../../assets/fanatic-logo.svg';
+
+function nextWeekday(iso: string): string {
+  const d = new Date(iso + 'T12:00:00');
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() + 2);
+  if (dow === 0) d.setDate(d.getDate() + 1);
+  return d.toISOString().split('T')[0];
+}
 
 interface AssetViewerProps {
-  onNext?: (selectedServices: Service[], selectedChildItems: string[]) => void;
+  onNext?: (selectedServices: Service[], selectedChildItems: string[], disconnectionDate: string) => void;
   onBack?: () => void;
   action?: MACDAction | null;
   selectedSA?: Service | null;
@@ -22,47 +32,56 @@ interface AssetViewerProps {
   onCommentsChange?: (comments: string) => void;
 }
 
-const services: Service[] = [
-  {
-    id: 'internet',
-    name: 'Residential Internet',
-    status: 'Active',
-    children: [
-      { id: 'internet-assurance', name: 'Service Assurance', status: 'Active' },
-      { id: 'internet-elitewifi', name: 'Elite Wi-fi', status: 'Active' }
-    ]
-  },
-  {
-    id: 'phone',
-    name: 'Phone',
-    status: 'Active',
-    children: [
-      { id: 'phone-callwaiting', name: 'Call Waiting', status: 'Active' },
-      { id: 'phone-callerid', name: 'Caller ID', status: 'Active' },
-      { id: 'phone-voice', name: 'Voice', status: 'Active' },
-      { id: 'phone-voicemail', name: 'Voice Mail', status: 'Active' },
-      { id: 'phone-directory', name: 'Directory Listing', status: 'Active' },
-      { id: 'phone-longdistance', name: 'Long Distance', status: 'Active' }
-    ]
-  },
-  {
-    id: 'tv',
-    name: 'iTV Extra',
-    status: 'Active',
-    children: [
-      { id: 'tv-broadcaster', name: 'Broadcaster Fee', status: 'Active' },
-      { id: 'tv-connectivity', name: 'Connectivity Fee', status: 'Active' },
-      { id: 'tv-music', name: 'Digital Music Channel', status: 'Active' },
-      { id: 'tv-dvr', name: 'DVR Hours', status: 'Active' },
-      { id: 'tv-streams', name: 'Number Of Streams', status: 'Active' },
-      { id: 'tv-cinemax', name: 'Cinemax', status: 'Active' },
-      { id: 'tv-hbo', name: 'HBO', status: 'Active' },
-      { id: 'tv-showtime', name: 'Showtime', status: 'Active' },
-      { id: 'tv-starz', name: 'Starz / Encore', status: 'Active' },
-      { id: 'tv-sports', name: 'Sports Tier', status: 'Active' }
-    ]
-  }
-];
+const SA_SERVICES: Record<string, Service[]> = {
+  'sa-00912': [
+    {
+      id: 'internet',
+      name: 'Residential Internet',
+      status: 'Active',
+      children: [
+        { id: 'internet-assurance', name: 'Service Assurance', status: 'Active' },
+        { id: 'internet-elitewifi', name: 'Elite Wi-fi', status: 'Active' },
+      ]
+    },
+    {
+      id: 'tv',
+      name: 'iTV Preferred',
+      status: 'Active',
+      children: [
+        { id: 'tv-broadcaster', name: 'Broadcaster Fee', status: 'Active' },
+        { id: 'tv-connectivity', name: 'Connectivity Fee', status: 'Active' },
+        { id: 'tv-music', name: 'Digital Music Channel', status: 'Active' },
+        { id: 'tv-dvr', name: 'DVR Hours', status: 'Active' },
+        { id: 'tv-streams', name: 'Number Of Streams', status: 'Active' },
+        { id: 'tv-cinemax', name: 'Cinemax', status: 'Active' },
+        { id: 'tv-fanatic', name: 'FANatic', status: 'Active' },
+      ]
+    },
+  ],
+  'sa-01047': [
+    {
+      id: 'internet',
+      name: 'Residential Internet',
+      status: 'Active',
+      children: [
+        { id: 'internet-assurance', name: 'Service Assurance', status: 'Active' },
+      ]
+    },
+    {
+      id: 'phone',
+      name: 'Phone bundle',
+      status: 'Active',
+      children: [
+        { id: 'phone-callwaiting', name: 'Call Waiting', status: 'Active' },
+        { id: 'phone-callerid', name: 'Caller ID', status: 'Active' },
+        { id: 'phone-voice', name: 'Voice', status: 'Active' },
+        { id: 'phone-voicemail', name: 'Voice Mail', status: 'Active' },
+        { id: 'phone-directory', name: 'Directory Listing', status: 'Active' },
+        { id: 'phone-longdistance', name: 'Long Distance', status: 'Active' },
+      ]
+    },
+  ],
+};
 
 const getServiceIcon = (serviceId: string) => {
   switch (serviceId) {
@@ -80,6 +99,16 @@ const getServiceIcon = (serviceId: string) => {
 };
 
 export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionReason = '', disconnectionComments = '', onReasonChange, onCommentsChange }: AssetViewerProps) {
+  const services = SA_SERVICES[selectedSA?.id ?? ''] ?? SA_SERVICES['sa-00912'];
+  const dependentServiceNames = services.filter(s => s.id !== 'internet').map(s => s.name).join(' and ');
+
+  const today = new Date().toISOString().split('T')[0];
+  const defaultDate = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    return nextWeekday(d.toISOString().split('T')[0]);
+  })();
+  const [disconnectionDate, setDisconnectionDate] = useState(defaultDate);
+
   const [expanded, setExpanded] = useState<string[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
@@ -92,15 +121,16 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
   };
 
   const toggleServiceSelection = (serviceId: string) => {
+    const allIds = services.map(s => s.id);
     if (selectedServices.includes(serviceId)) {
       if (serviceId === 'internet') {
-        setSelectedServices(selectedServices.filter(id => id !== 'internet' && id !== 'phone' && id !== 'tv'));
+        setSelectedServices(selectedServices.filter(id => !allIds.includes(id)));
       } else {
         setSelectedServices(selectedServices.filter(id => id !== serviceId));
       }
     } else {
       if (serviceId === 'internet') {
-        setSelectedServices([...selectedServices, 'internet', 'phone', 'tv'].filter((id, i, arr) => arr.indexOf(id) === i));
+        setSelectedServices([...selectedServices, ...allIds].filter((id, i, arr) => arr.indexOf(id) === i));
       } else {
         setSelectedServices([...selectedServices, serviceId]);
       }
@@ -116,17 +146,33 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
   const handleNext = () => {
     if (onNext && selectedServices.length > 0) {
       const selected = services.filter(s => selectedServices.includes(s.id));
-      onNext(selected, []);
+      onNext(selected, [], disconnectionDate);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-12">
+    <div className="max-w-3xl mx-auto px-8 py-12">
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">Active Services</h1>
         <ContextBar action={action ?? null} selectedSA={selectedSA} />
       </div>
       <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={1} />
+
+      {onNext && (
+        <div className="mb-6 flex items-center gap-3">
+          <label className="text-gray-600 flex items-center gap-1.5 whitespace-nowrap font-medium">
+            Requested Disconnection Date<span className="text-red-600 ml-1">*</span>
+            <div className="relative group">
+              <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                Business days only. Same-day disconnection is not available.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+              </div>
+            </div>
+          </label>
+          <DateInput value={disconnectionDate} onChange={v => setDisconnectionDate(nextWeekday(v))} min={today} className="w-40" />
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="overflow-hidden">
@@ -151,14 +197,11 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
             </thead>
             <tbody className="divide-y divide-gray-200">
               {services.flatMap((service) => {
+                const isAutoSelected = selectedServices.includes('internet') && service.id !== 'internet';
                 const mainRow = (
-                  <tr 
+                  <tr
                     key={service.id}
-                    className={`hover:bg-gray-50 transition-colors ${
-                      selectedServices.includes('internet') && (service.id === 'phone' || service.id === 'tv') 
-                        ? 'border-l-4 border-amber-400' 
-                        : ''
-                    }`}
+                    className={`hover:bg-gray-50 transition-colors ${isAutoSelected ? 'border-l-4 border-amber-400' : ''}`}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -166,11 +209,9 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
                           type="checkbox"
                           checked={selectedServices.includes(service.id)}
                           onChange={() => toggleServiceSelection(service.id)}
-                          disabled={selectedServices.includes('internet') && (service.id === 'phone' || service.id === 'tv')}
+                          disabled={isAutoSelected}
                           className={`w-4 h-4 border-2 border-gray-400 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 ${
-                            selectedServices.includes('internet') && (service.id === 'phone' || service.id === 'tv')
-                              ? 'cursor-not-allowed opacity-50'
-                              : 'cursor-pointer'
+                            isAutoSelected ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                           }`}
                         />
                         {service.children && service.children.length > 0 && (
@@ -191,18 +232,18 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
                         {getServiceIcon(service.id)}
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-900">{service.id === 'phone' ? 'Phone bundle' : service.name}</span>
-                            {selectedServices.includes('internet') && (service.id === 'phone' || service.id === 'tv') && (
+                            <span className="text-gray-900">{service.name}</span>
+                            {isAutoSelected && (
                               <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
                                 <AlertCircle className="w-3 h-3" />
                                 Auto-selected
                               </span>
                             )}
                           </div>
-                          {service.id === 'internet' && selectedServices.includes('internet') && (
+                          {service.id === 'internet' && selectedServices.includes('internet') && dependentServiceNames && (
                             <span className="text-xs text-amber-700 mt-1 flex items-center gap-1">
                               <AlertCircle className="w-3 h-3" />
-                              Disconnecting Internet will also disconnect Phone and TV services
+                              Disconnecting Internet will also disconnect {dependentServiceNames}
                             </span>
                           )}
                         </div>
@@ -223,7 +264,9 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
                         <thead>
                           <tr className="border-b border-gray-200">
                             <th className="px-6 py-2 text-left text-xs font-medium text-gray-600 text-[14px]">Item</th>
-                            <th className="px-6 py-2 text-center text-xs font-medium text-gray-600 text-[14px]">Quantity</th>
+                            {service.id !== 'internet' && service.id !== 'phone' && (
+                              <th className="px-6 py-2 text-center text-xs font-medium text-gray-600 text-[14px]">Quantity</th>
+                            )}
                             <th className="px-6 py-2 text-right text-xs font-medium text-gray-600 text-[14px]">Recurring Charge</th>
                           </tr>
                         </thead>
@@ -251,18 +294,23 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
                                   {child.id === 'tv-sports' && (
                                     <img src={sportsTierLogo} alt="Sports Tier Logo" className="w-12 h-12" />
                                   )}
+                                  {child.id === 'tv-fanatic' && (
+                                    <img src={fanaticLogo} alt="FANatic Logo" className="w-12 h-12" />
+                                  )}
                                   {child.id === 'internet-support' ? 'Tech Home Support – Existing customers' :
                                    child.id === 'phone-directory' ? 'Directory Listing (Unlisted)' :
                                    child.id === 'phone-longdistance' ? 'Long Distance (Unlimited)' :
                                    child.name}
                                 </div>
                               </td>
-                              <td className={`px-6 py-3 text-center text-sm text-gray-700`}>
-                                {(() => {
-                                  const quantity = child.id === 'phone-longdistance' ? 1 : child.id === 'tv-dvr' ? 50 : child.id.includes('additional') || child.id === 'tv-streams' ? 3 : 1;
-                                  return quantity > 1 ? quantity : '';
-                                })()}
-                              </td>
+                              {service.id !== 'internet' && service.id !== 'phone' && (
+                                <td className={`px-6 py-3 text-center text-sm text-gray-700`}>
+                                  {(() => {
+                                    const quantity = child.id === 'phone-longdistance' ? 1 : child.id === 'tv-dvr' ? 50 : child.id.includes('additional') || child.id === 'tv-streams' ? 3 : 1;
+                                    return quantity > 1 ? quantity : '';
+                                  })()}
+                                </td>
+                              )}
                               <td className={`px-6 py-3 text-right text-sm text-gray-700`}>
                                 {child.id === 'internet-elitewifi' ? '$12.00' :
                                  child.id === 'tv-connectivity' ? '$0.13' :
@@ -278,6 +326,7 @@ export function AssetViewer({ onNext, onBack, action, selectedSA, disconnectionR
                                  child.id === 'tv-broadcaster' ? '$35.94' :
                                  child.id === 'tv-music' ? '$0.00' :
                                  child.id === 'tv-cinemax' ? '$12.95' :
+                                 child.id === 'tv-fanatic' ? '$5.99' :
                                  child.id === 'tv-hbo' ? '$18.95' :
                                  child.id === 'tv-showtime' ? '$19.95' :
                                  child.id === 'tv-starz' ? '$12.95' :

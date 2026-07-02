@@ -121,6 +121,7 @@ function App() {
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
+  const [deactivateReason, setDeactivateReason] = useState<string>('');
   const [disconnectionReason, setDisconnectionReason] = useState<string>('');
   const [disconnectionComments, setDisconnectionComments] = useState<string>('');
   const [moveScenario, setMoveScenario] = useState<string>('M01');
@@ -146,10 +147,12 @@ function App() {
   const [moveTimeSlot, setMoveTimeSlot] = useState<string>('');
 
   const calculateTotalActiveMonthlyCharges = () => {
-    const internetTotal = 12.99 + 0.00 + 3.50;
-    const phoneTotal = 25.00 + 0.00 + 3.00 + 8.00 + 6.00 + 7.00;
-    const tvTotal = (3 * 5.00) + 10.00 + 20.00 + 12.00 + 0.00 + 9.99 + 15.00 + 18.00;
-    return internetTotal + phoneTotal + tvTotal;
+    const internetTotal = 12.99 + 3.50;
+    const phoneTotal = 25.00 + 3.00 + 8.00 + 6.00 + 7.00;
+    const tvTotal = (3 * 5.00) + 10.00 + 20.00 + 12.00 + 9.99 + 15.00 + 18.00;
+    const saId = selectedSA?.id ?? '';
+    if (saId === 'sa-01047') return internetTotal + phoneTotal; // Internet + Phone
+    return internetTotal + tvTotal; // Internet + iTV (sa-00912 / default)
   };
 
   const generateOrderItemsForService = (service: Service): OrderItem[] => {
@@ -259,7 +262,7 @@ function App() {
 
   // ── Existing flow handlers ──────────────────────
 
-  const handleNext = (services: Service[], childItemIds: string[]) => {
+  const handleNext = (services: Service[], childItemIds: string[], disconnectionDate: string) => {
     setSelectedService(services[0]);
 
     const childItems: SelectedChildItem[] = [];
@@ -278,10 +281,7 @@ function App() {
       }
     });
     setSelectedChildItems(childItems);
-
-    const date = new Date();
-    date.setDate(date.getDate() + 7);
-    setDisconnectionDate(date.toISOString().split('T')[0]);
+    setDisconnectionDate(disconnectionDate);
 
     let allItems: OrderItem[] = [];
     if (childItemIds.length > 0) {
@@ -293,7 +293,6 @@ function App() {
     }
 
     setOrderItems(allItems);
-    setDisconnectionDate('');
     setCurrentStep('step2');
   };
 
@@ -433,9 +432,10 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onDeactivate={(date, ids) => {
+              onDeactivate={(date, ids, reason) => {
                 setDisconnectionDate(date);
                 setDeactivateSelectedIds(ids);
+                setDeactivateReason(reason);
                 setCurrentStep('deactivate-review');
               }}
             />
@@ -459,6 +459,7 @@ function App() {
                 selectedSA={selectedSA}
                 deactivationDate={disconnectionDate}
                 selectedServiceIds={deactivateSelectedIds}
+                deactivationReason={deactivateReason}
                 orderItems={orderItems}
                 onBack={() => setCurrentStep('deactivate-services')}
                 onConfirm={handleConfirmSubmit}
