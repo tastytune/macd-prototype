@@ -51,7 +51,7 @@ const serviceGroups = Object.keys(serviceLineItems);
 
 const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: number }[]> = {
   'ba-00391': [
-    { description: 'Internet 2 Gig',           monthlyCharge: 124.95 },
+    { description: 'Internet 2 Gbps',           monthlyCharge: 124.95 },
     { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
     { description: 'iTV Preferred',             monthlyCharge:  79.95 },
     { description: 'Cinemax',                   monthlyCharge:  12.99 },
@@ -97,7 +97,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
     sum + (serviceLineItems[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
   );
   const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
-  const baseFee = deactivationReason === 'NPD' ? 30.00 : 10.00;
+  const baseFee = deactivationReason === 'NPD' ? 10.00 : 30.00;
   const deactivationFee = deactivationFeeApplied ? baseFee : 0;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');

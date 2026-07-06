@@ -37,7 +37,8 @@ const SERVICE_TYPES = [
 ];
 
 export function ChangeServiceType({ selectedSA, onBack, onNext }: ChangeServiceTypeProps) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const isPhoneStandalone = selectedSA?.id === 'sa-02031';
+  const [selected, setSelected] = useState<string | null>(isPhoneStandalone ? 'phone' : null);
 
   const saName = selectedSA?.name ?? 'SA-00912 · Primary residence';
 

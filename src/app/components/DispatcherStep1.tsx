@@ -95,7 +95,7 @@ const actions: {
   {
     id: 'move',
     label: 'Move',
-    description: 'Transfer services to a new address. Supports M01 / M02 / M03.',
+    description: 'Transfer services to a new address.',
     icon: MovePinsIcon,
     iconColor: 'text-[#800080]',
     iconBg: 'bg-[#f3e8f3]',

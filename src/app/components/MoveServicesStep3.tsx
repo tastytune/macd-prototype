@@ -20,8 +20,8 @@ const TV_ADDONS = [
 ];
 
 const M04_OFFERS = [
-  { id: 'm04-1gig', speed: '1', unit: 'Gig',  price: 49.95,  technology: 'Fiber' },
-  { id: 'm04-2gig', speed: '2', unit: 'Gig',  price: 109.95, technology: 'Fiber' },
+  { id: 'm04-1gig', speed: '1', unit: 'Gbps',  price: 49.95,  technology: 'Fiber' },
+  { id: 'm04-2gig', speed: '2', unit: 'Gbps',  price: 109.95, technology: 'Fiber' },
 ];
 
 interface MoveServicesStep3Props {
@@ -41,7 +41,7 @@ interface MoveServiceItem {
 
 const SA_SERVICES: Record<string, MoveServiceItem[]> = {
   'sa-00912': [
-    { id: 'internet', name: 'Internet 2Gig',  detail: 'Symmetric · Bundle primary · Price lock 14 mo.', price: 124.95, summaryLabel: 'Internet 2Gig' },
+    { id: 'internet', name: 'Internet 2Gbps',  detail: 'Symmetric · Bundle primary · Price lock 14 mo.', price: 124.95, summaryLabel: 'Internet 2Gbps' },
     { id: 'itv',      name: 'iTV Preferred',  detail: 'TV 150+ Channels · Bundle component',            price: 79.95,  summaryLabel: 'iTV Preferred'  },
     { id: 'cinemax',  name: 'Cinemax',        detail: 'TV add-on · Bundle component',                   price: 12.99,  summaryLabel: 'Cinemax'        },
     { id: 'fanatic',  name: 'FANatic',        detail: 'TV add-on · Bundle component',                   price: 5.99,   summaryLabel: 'FANatic'        },
@@ -56,12 +56,12 @@ const DEFAULT_SERVICES = SA_SERVICES['sa-00912'];
 
 const COAX_OPTIONS: MoveServiceItem[] = [
   { id: 'internet-coax-200', name: 'Internet 200 Mbps', detail: 'Coax (HFC) · Max speed available at destination',  price: 79.95,  summaryLabel: 'Internet 200 Mbps' },
-  { id: 'internet-coax-1g',  name: 'Internet 1 Gig',   detail: 'Coax (HFC) · Best available speed at destination', price: 99.95,  summaryLabel: 'Internet 1 Gig'    },
+  { id: 'internet-coax-1g',  name: 'Internet 1 Gbps',   detail: 'Coax (HFC) · Best available speed at destination', price: 99.95,  summaryLabel: 'Internet 1 Gbps'    },
 ];
 
 const FIBER_OPTIONS: MoveServiceItem[] = [
-  { id: 'internet-fiber-1g', name: 'Internet 1 Gig',  detail: 'Fiber · Symmetric · Available at destination',      price: 99.95,  summaryLabel: 'Internet 1 Gig'  },
-  { id: 'internet-fiber-2g', name: 'Internet 2 Gig',  detail: 'Fiber · Symmetric · Best speed at destination',     price: 124.95, summaryLabel: 'Internet 2 Gig'  },
+  { id: 'internet-fiber-1g', name: 'Internet 1 Gbps',  detail: 'Fiber · Symmetric · Available at destination',      price: 99.95,  summaryLabel: 'Internet 1 Gbps'  },
+  { id: 'internet-fiber-2g', name: 'Internet 2 Gbps',  detail: 'Fiber · Symmetric · Best speed at destination',     price: 124.95, summaryLabel: 'Internet 2 Gbps'  },
 ];
 
 const TV_IDS = ['itv', 'cinemax', 'fanatic'];
@@ -192,7 +192,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
               </div>
               {selectedOffer && (
                 <div className="flex justify-between text-sm pl-2">
-                  <span className="text-gray-400">{selectedOffer.speed} Gig Internet</span>
+                  <span className="text-gray-400">{selectedOffer.speed} Gbps Internet</span>
                   <span className="text-gray-500">${selectedOffer.price.toFixed(2)}</span>
                 </div>
               )}
@@ -298,11 +298,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                         ? 'border-[#800080] bg-[#faf0fa]'
                         : 'border-gray-200 bg-white hover:border-[#d9a0d9] hover:bg-[#faf0fa]/40'}`}
                   >
-                    <div className="flex justify-center mb-3">
-                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#f3e8f3] text-[#800080] border border-[#d9a0d9]">
-                        Offer Migration
-                      </span>
-                    </div>
+
                     <div className={`text-5xl font-black mb-1 ${isSelected ? 'text-[#800080]' : 'text-gray-900'}`}>{offer.speed}</div>
                     <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isSelected ? 'text-[#800080]' : 'text-gray-500'}`}>{offer.unit}</div>
                     <div className={`text-2xl font-bold mb-1 ${isSelected ? 'text-[#600060]' : 'text-gray-900'}`}>
@@ -446,7 +442,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
       ? SERVICES.find(s => s.id === 'internet')
       : SERVICES.find(s => s.id === 'internet-200m');
     const currentSpeed = isFiberSA ? '2' : '200';
-    const currentUnit  = isFiberSA ? 'Gig' : 'Mbps';
+    const currentUnit  = isFiberSA ? 'Gbps' : 'Mbps';
     const currentPrice = currentInternetSvc?.price ?? (isFiberSA ? 124.95 : 69.95);
     const notAvailableLabel = isFiberSA ? 'Not available at destination' : 'Being replaced by Fiber';
     const replacementBadge  = isFiberSA ? 'Coax replacement' : 'Fiber upgrade';
@@ -521,7 +517,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
               {replacementOptions.map(opt => {
                 const isSelected = selected.has(opt.id);
                 const speedVal = opt.id.includes('200') ? '200' : opt.id.includes('1g') ? '1' : '2';
-                const unitVal  = opt.id.includes('200') ? 'Mbps' : 'Gig';
+                const unitVal  = opt.id.includes('200') ? 'Mbps' : 'Gbps';
                 return (
                   <div
                     key={opt.id}
@@ -582,7 +578,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                 </div>
 
                 {!tvEnabled && (
-                  <p className="text-xs text-gray-400 mb-4">Television requires Internet 1 Gig Coax.</p>
+                  <p className="text-xs text-gray-400 mb-4">Television requires Internet 1 Gbps Coax.</p>
                 )}
 
                 <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">TV Add-ons</p>

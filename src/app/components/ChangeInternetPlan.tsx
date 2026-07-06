@@ -18,14 +18,15 @@ interface ChangeInternetPlanProps {
 
 const PLANS = [
   { id: '200mbps', speed: '200', unit: 'Mbps', price: 55.95 },
-  { id: '1gig',   speed: '1',   unit: 'Gig',  price: 99.95 },
-  { id: '2gig',   speed: '2',   unit: 'Gig',  price: 124.95 },
+  { id: '1gig',   speed: '1',   unit: 'Gbps',  price: 99.95 },
+  { id: '2gig',   speed: '2',   unit: 'Gbps',  price: 124.95 },
 ];
 
 // Maps SA id → current internet plan id
 const SA_INTERNET_PLAN: Record<string, string> = {
   'sa-00912': '2gig',
   'sa-01047': '200mbps',
+  'sa-02031': 'none',
 };
 
 // SAs that have an active Price Lock promotion
@@ -43,11 +44,11 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
   );
 
   const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
-  const currentPlan = PLANS.find(p => p.id === currentPlanId)!;
+  const currentPlan = PLANS.find(p => p.id === currentPlanId) ?? null;
   const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : undefined;
   const planLabel = activePlan
     ? `Internet ${activePlan.speed} ${activePlan.unit}`
-    : `Internet ${currentPlan.speed} ${currentPlan.unit}`;
+    : currentPlan ? `Internet ${currentPlan.speed} ${currentPlan.unit}` : 'Internet';
 
   // Compute upgrade/downgrade locally so promos show before the user clicks Continue
   const currentPlanIdx = PLANS.findIndex(p => p.id === currentPlanId);

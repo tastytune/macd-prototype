@@ -20,7 +20,7 @@ interface MoveServicesStep5Props {
 // Original services active at the origin address (used to compute "Disconnecting")
 const SA_BASE_SERVICES: Record<string, { id: string; name: string; price: number }[]> = {
   'sa-00912': [
-    { id: 'internet', name: 'Internet 2Gig', price: 124.95 },
+    { id: 'internet', name: 'Internet 2Gbps', price: 124.95 },
     { id: 'itv',      name: 'iTV Preferred', price: 79.95  },
     { id: 'cinemax',  name: 'Cinemax',       price: 12.99  },
     { id: 'fanatic',  name: 'FANatic',       price: 5.99   },
@@ -33,16 +33,16 @@ const SA_BASE_SERVICES: Record<string, { id: string; name: string; price: number
 
 // Full catalog to resolve any selected service ID → name + price
 const SERVICE_CATALOG: { id: string; name: string; price: number }[] = [
-  { id: 'internet',          name: 'Internet 2Gig',           price: 124.95 },
+  { id: 'internet',          name: 'Internet 2Gbps',           price: 124.95 },
   { id: 'itv',               name: 'iTV Preferred',           price: 79.95  },
   { id: 'cinemax',           name: 'Cinemax',                 price: 12.99  },
   { id: 'fanatic',           name: 'FANatic',                 price: 5.99   },
   { id: 'internet-coax-200', name: 'Internet 200 Mbps',       price: 79.95  },
-  { id: 'internet-coax-1g',  name: 'Internet 1 Gig',         price: 99.95  },
+  { id: 'internet-coax-1g',  name: 'Internet 1 Gbps',         price: 99.95  },
   { id: 'internet-200m',     name: 'Internet 200M',           price: 69.95  },
   { id: 'phone-bundle',      name: 'Phone Bundle',            price: 29.95  },
-  { id: 'm04-1gig',          name: 'Internet 1 Gig (Offer)',  price: 49.95  },
-  { id: 'm04-2gig',          name: 'Internet 2 Gig (Offer)',  price: 109.95 },
+  { id: 'm04-1gig',          name: 'Internet 1 Gbps (Offer)',  price: 49.95  },
+  { id: 'm04-2gig',          name: 'Internet 2 Gbps (Offer)',  price: 109.95 },
   { id: 'itv-75',            name: 'iTV Essentials',          price: 49.95  },
   { id: 'itv-150',           name: 'iTV Preferred',           price: 79.95  },
   { id: 'itv-250',           name: 'iTV Extra',               price: 109.95 },

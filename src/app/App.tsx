@@ -53,7 +53,7 @@ export interface CartLine {
 
 const SA_INITIAL_CART: Record<string, CartLine[]> = {
   'sa-00912': [
-    { label: 'Internet 2 Gig',         price: 124.95, group: 'internet'    },
+    { label: 'Internet 2 Gbps',         price: 124.95, group: 'internet'    },
     { label: 'Whole Home Wi-Fi',        price:   5.95, group: 'internet'    },
     { label: 'iTV Preferred',           price:  79.95, group: 'television'  },
     { label: 'Cinemax',                 price:  12.99, group: 'television'  },
@@ -63,6 +63,9 @@ const SA_INITIAL_CART: Record<string, CartLine[]> = {
     { label: 'Internet 200 Mbps',       price:  55.95, group: 'internet'    },
     { label: 'Whole Home Wi-Fi',        price:   5.95, group: 'internet'    },
     { label: 'Unlimited Local Calling', price:  15.95, group: 'phone'       },
+  ],
+  'sa-02031': [
+    { label: 'Phone Standalone',        price:  17.50, group: 'phone'       },
   ],
 };
 
@@ -135,6 +138,7 @@ function App() {
   const toggleChangePromo = (id: string) => setChangeSelectedPromos(prev => {
     const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next;
   });
+  const PHONE_STANDALONE_SAS = new Set(['sa-02031']);
   const SA_INET_PLAN: Record<string, string> = { 'sa-00912': '2gig', 'sa-01047': '200mbps' };
   const PLAN_IDX: Record<string, number> = { '200mbps': 0, '1gig': 1, '2gig': 2 };
   const SA_HAS_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
@@ -635,6 +639,7 @@ function App() {
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
+              isPhoneStandalone={PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '')}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f4c2a"/>
+      <stop offset="100%" style="stop-color:#1a6b3a"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg)"/>
+  <!-- Soccer ball -->
+  <circle cx="100" cy="80" r="32" fill="white" opacity="0.95"/>
+  <path d="M100 50 L112 70 L100 65 L88 70 Z" fill="#1a3a1a"/>
+  <path d="M88 70 L100 65 L112 70 L116 88 L100 95 L84 88 Z" fill="#2d5a2d" opacity="0.15"/>
+  <path d="M100 65 L112 70 L116 88" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+  <path d="M100 65 L88 70 L84 88" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+  <path d="M84 88 L100 95 L116 88" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+  <circle cx="100" cy="80" r="32" fill="none" stroke="white" stroke-width="1" opacity="0.3"/>
+  <!-- Text -->
+  <text x="100" y="138" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">SPORT</text>
+  <text x="100" y="158" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#7ecfa0" text-anchor="middle" letter-spacing="3">TIER</text>
+</svg>

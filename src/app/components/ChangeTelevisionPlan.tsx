@@ -32,13 +32,13 @@ const SA_TV_PLAN: Record<string, string> = {
 // Plans that can be selected per SA (non-selectable = disabled)
 const SA_TV_SELECTABLE: Record<string, string[]> = {
   'sa-00912': ['75plus', '250plus'],          // 150+ is current → disabled
-  'sa-01047': ['75plus'],                     // 200 Mbps tier only unlocks 75+
+  'sa-01047': ['75plus', '150plus', '250plus'],
 };
 
 // Whether add-ons are available per SA
 const SA_TV_ADDONS_ENABLED: Record<string, boolean> = {
   'sa-00912': true,
-  'sa-01047': false,
+  'sa-01047': true,
 };
 
 // Add-ons currently active per SA
@@ -48,11 +48,12 @@ const SA_TV_ACTIVE_ADDONS: Record<string, string[]> = {
 };
 
 const ADD_ONS = [
-  { id: 'fanatic',  name: 'FANatic',      price: 5.99,  src: '/fanatic.png'  },
-  { id: 'cinemax',  name: 'Cinemax',      price: 12.99, src: '/cinemax.png'  },
-  { id: 'hbo',      name: 'HBO',          price: 14.99, src: '/hbo.png'      },
-  { id: 'starz',    name: 'STARZ/Encore', price: 8.99,  src: '/starz.png'    },
-  { id: 'showtime', name: 'Showtime',     price: 10.99, src: '/showtime.png' },
+  { id: 'sport-tier', name: 'Sport Tier',   price: 9.99,  src: '/sport-tier.svg', plans: ['250plus'] },
+  { id: 'fanatic',    name: 'FANatic',      price: 5.99,  src: '/fanatic.png',    plans: ['150plus'] },
+  { id: 'cinemax',    name: 'Cinemax',      price: 12.99, src: '/cinemax.png',    plans: ['150plus', '250plus'] },
+  { id: 'hbo',        name: 'HBO',          price: 14.99, src: '/hbo.png',        plans: ['150plus', '250plus'] },
+  { id: 'starz',      name: 'STARZ/Encore', price: 8.99,  src: '/starz.png',      plans: ['150plus', '250plus'] },
+  { id: 'showtime',   name: 'Showtime',     price: 10.99, src: '/showtime.png',   plans: ['150plus', '250plus'] },
 ];
 
 function ChannelTile({ name, src, selected, onToggle, disabled, active }: {
@@ -86,7 +87,12 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   const currentPlanId = SA_TV_PLAN[selectedSA?.id ?? ''] ?? null;
   const higherInternetSelected = selectedInternetPlanId === '1gig' || selectedInternetPlanId === '2gig';
   const selectablePlanIds = (higherInternetSelected ? PLANS.map(p => p.id) : (SA_TV_SELECTABLE[selectedSA?.id ?? ''] ?? PLANS.map(p => p.id))).filter(id => id !== currentPlanId);
-  const addOnsEnabled = higherInternetSelected ? true : (SA_TV_ADDONS_ENABLED[selectedSA?.id ?? ''] ?? true);
+  const effectivePlanId = selectedPlan ?? currentPlanId;
+  const planSupportsAddOns = effectivePlanId === '150plus' || effectivePlanId === '250plus';
+  const addOnsEnabled = planSupportsAddOns && (higherInternetSelected ? true : (SA_TV_ADDONS_ENABLED[selectedSA?.id ?? ''] ?? true));
+  const visibleAddOns = effectivePlanId === '250plus'
+    ? ADD_ONS.filter(a => a.plans.includes('250plus'))
+    : ADD_ONS.filter(a => a.plans.includes('150plus'));
 
   const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : undefined;
 
@@ -131,7 +137,6 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 mb-5">Select a new plan to change your current TV service</p>
 
           {/* Plan cards */}
           <div className="flex gap-4 mb-10">
@@ -205,7 +210,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
               Digital Music channels are included with your selected plan. Enhance your channel lineup with the following add-ons:
             </p>
             <div className="grid grid-cols-5 gap-4">
-              {ADD_ONS.map(addOn => (
+              {visibleAddOns.map(addOn => (
                 <div key={addOn.id} className="flex flex-col items-center gap-2">
                   <div className="w-full">
                     <ChannelTile

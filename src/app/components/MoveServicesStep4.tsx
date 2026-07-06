@@ -17,7 +17,7 @@ interface MoveServicesStep4Props {
 // Original services active before the move (to compute originalMRC)
 const SA_BASE_SERVICES: Record<string, { id: string; summaryLabel: string; price: number }[]> = {
   'sa-00912': [
-    { id: 'internet', summaryLabel: 'Internet 2Gig', price: 124.95 },
+    { id: 'internet', summaryLabel: 'Internet 2Gbps', price: 124.95 },
     { id: 'itv',      summaryLabel: 'iTV Preferred',  price: 79.95  },
     { id: 'cinemax',  summaryLabel: 'Cinemax',       price: 12.99  },
     { id: 'fanatic',  summaryLabel: 'FANatic',        price: 5.99   },
@@ -30,16 +30,16 @@ const SA_BASE_SERVICES: Record<string, { id: string; summaryLabel: string; price
 
 // Full catalog to resolve any selected service ID
 const SERVICE_CATALOG: { id: string; summaryLabel: string; price: number }[] = [
-  { id: 'internet',          summaryLabel: 'Internet 2Gig',           price: 124.95 },
+  { id: 'internet',          summaryLabel: 'Internet 2Gbps',           price: 124.95 },
   { id: 'itv',               summaryLabel: 'iTV Preferred',           price: 79.95  },
   { id: 'cinemax',           summaryLabel: 'Cinemax',                 price: 12.99  },
   { id: 'fanatic',           summaryLabel: 'FANatic',                 price: 5.99   },
   { id: 'internet-coax-200', summaryLabel: 'Internet 200 Mbps',       price: 79.95  },
-  { id: 'internet-coax-1g',  summaryLabel: 'Internet 1 Gig',         price: 99.95  },
+  { id: 'internet-coax-1g',  summaryLabel: 'Internet 1 Gbps',         price: 99.95  },
   { id: 'internet-200m',     summaryLabel: 'Internet 200M',           price: 69.95  },
   { id: 'phone-bundle',      summaryLabel: 'Phone Bundle',            price: 29.95  },
-  { id: 'm04-1gig',          summaryLabel: 'Internet 1 Gig (Offer)',  price: 49.95  },
-  { id: 'm04-2gig',          summaryLabel: 'Internet 2 Gig (Offer)',  price: 109.95 },
+  { id: 'm04-1gig',          summaryLabel: 'Internet 1 Gbps (Offer)',  price: 49.95  },
+  { id: 'm04-2gig',          summaryLabel: 'Internet 2 Gbps (Offer)',  price: 109.95 },
   { id: 'itv-75',            summaryLabel: 'iTV Essentials',          price: 49.95  },
   { id: 'itv-150',           summaryLabel: 'iTV Preferred',           price: 79.95  },
   { id: 'itv-250',           summaryLabel: 'iTV Extra',               price: 109.95 },

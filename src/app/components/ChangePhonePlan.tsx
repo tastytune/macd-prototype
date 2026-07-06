@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, AlertTriangle } from 'lucide-react';
+import { MapPin, AlertTriangle, Info } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
@@ -10,6 +10,7 @@ interface ChangePhonePlanProps {
   previousLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
+  isPhoneStandalone?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -18,8 +19,6 @@ interface ChangePhonePlanProps {
 }
 
 const PLANS = [
-  { id: 'local',        title: 'Unlimited', subtitle: 'Local Calling',        price: 15.95, topPick: false },
-  { id: 'local-ld',     title: 'Unlimited', subtitle: 'Local & Long Distance', price: 21.95, topPick: true  },
   { id: 'phone-bundle', title: 'Phone Bundle', subtitle: '',                   price: 17.50, topPick: false },
 ];
 
@@ -32,20 +31,48 @@ interface PhoneBundleFeature {
   manageable: FeatureManageable;
   attributeOptions?: string[];
   attributePrices?: Record<string, number>;
+  attributeDisplayPrices?: Record<string, string>;
   defaultAttribute?: string;
 }
 
+const LONG_DISTANCE_BUNDLE: PhoneBundleFeature = {
+  id: 'long-distance', name: 'Long Distance', basePrice: 0, manageable: 'attribute',
+  attributeOptions: ['120 minutes', 'Unlimited'],
+  attributePrices:  { '120 minutes': 0, Unlimited: 1.70 },
+  attributeDisplayPrices: { '120 minutes': '$17.50/mo', Unlimited: '$19.20/mo' },
+  defaultAttribute: '120 minutes',
+};
+
+const LONG_DISTANCE_STANDALONE: PhoneBundleFeature = {
+  id: 'long-distance', name: 'Long Distance', basePrice: 0, manageable: 'attribute',
+  attributeOptions: ['Unlimited', 'Simplicity', 'Simplicity Gold', 'Simplicity Platinum'],
+  attributePrices:  { Unlimited: 10.99, Simplicity: 0, 'Simplicity Gold': 3.95, 'Simplicity Platinum': 5.95 },
+  defaultAttribute: 'Unlimited',
+};
+
+const CALL_WAITING_STANDALONE: PhoneBundleFeature = {
+  id: 'call-waiting', name: 'Call Waiting', basePrice: 2.99, manageable: 'removable',
+};
+
+const CALLER_ID_STANDALONE: PhoneBundleFeature = {
+  id: 'caller-id', name: 'Caller ID', basePrice: 5.99, manageable: 'removable',
+};
+
+const VOICEMAIL_STANDALONE: PhoneBundleFeature = {
+  id: 'voicemail', name: 'Voicemail', basePrice: 4.95, manageable: 'removable',
+};
+
 const PHONE_BUNDLE_FEATURES: PhoneBundleFeature[] = [
-  { id: 'long-distance',     name: 'Long Distance',           basePrice: 2.50, manageable: 'fixed' },
-  { id: 'call-waiting',      name: 'Call Waiting',            basePrice: 0,    manageable: 'fixed' },
-  { id: 'caller-id',         name: 'Caller ID',               basePrice: 0,    manageable: 'fixed' },
+  LONG_DISTANCE_BUNDLE,
   {
     id: 'directory-listing', name: 'Directory Listing',       basePrice: 0,    manageable: 'attribute',
-    attributeOptions: ['Listed', 'Non-Published'],
-    attributePrices:  { Listed: 0, 'Non-Published': 2.50 },
-    defaultAttribute: 'Listed',
+    attributeOptions: ['Published', 'Unpublished', 'Unlisted'],
+    attributePrices:  { Published: 0, Unpublished: 2.99, Unlisted: 2.99 },
+    defaultAttribute: 'Published',
   },
-  { id: 'voicemail',         name: 'Voicemail Access Number', basePrice: 0,    manageable: 'removable' },
+  { id: 'call-waiting',      name: 'Call Waiting',            basePrice: 0,    manageable: 'fixed' },
+  { id: 'caller-id',         name: 'Caller ID',               basePrice: 0,    manageable: 'fixed' },
+  { id: 'voicemail',         name: 'Voicemail', basePrice: 0,    manageable: 'fixed' },
 ];
 
 const PHONE_BUNDLE_BASE = 17.50;
@@ -54,20 +81,37 @@ const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
 
-export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
-  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Listed' });
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': '120 minutes' });
+
+  const features = PHONE_BUNDLE_FEATURES.map(f => {
+    if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;
+    if (f.id === 'call-waiting' && isPhoneStandalone) return CALL_WAITING_STANDALONE;
+    if (f.id === 'caller-id' && isPhoneStandalone) return CALLER_ID_STANDALONE;
+    if (f.id === 'voicemail' && isPhoneStandalone) return VOICEMAIL_STANDALONE;
+    return f;
+  });
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
   const isBundle      = selectedPlan === 'phone-bundle';
 
-  const directoryPriceAdj = (() => {
-    const f = PHONE_BUNDLE_FEATURES.find(f => f.id === 'directory-listing');
-    return f?.attributePrices?.[attributeValues['directory-listing'] ?? (f.defaultAttribute ?? '')] ?? 0;
-  })();
-  const phoneBundleEffectivePrice = PHONE_BUNDLE_BASE + directoryPriceAdj;
+  const attrPriceAdj = features
+    .filter(f => f.manageable === 'attribute')
+    .reduce((sum, f) => {
+      const val = attributeValues[f.id] ?? f.defaultAttribute ?? '';
+      return sum + (f.attributePrices?.[val] ?? 0);
+    }, 0);
+  const removableBaseTotal = features
+    .filter(f => f.manageable === 'removable')
+    .reduce((sum, f) => sum + f.basePrice, 0);
+  const removedFeaturesAdj = [...removedFeatures].reduce((sum, id) => {
+    const f = features.find(f => f.id === id);
+    return sum + (f?.basePrice ?? 0);
+  }, 0);
+  const phoneBundleEffectivePrice = PHONE_BUNDLE_BASE + attrPriceAdj + removableBaseTotal - removedFeaturesAdj;
 
   const toggleRemoveFeature = (id: string) => {
     setRemovedFeatures(prev => {
@@ -79,12 +123,13 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
   const handlePlanClick = (plan: typeof PLANS[0]) => {
     if (plan.id === currentPlanId) return;
+    if (isPhoneStandalone) return;
     const next = selectedPlan === plan.id ? null : plan.id;
     setSelectedPlan(next);
     if (next !== 'phone-bundle') {
       setFeaturesExpanded(false);
       setRemovedFeatures(new Set());
-      setAttributeValues({ 'directory-listing': 'Listed' });
+      setAttributeValues({ 'directory-listing': 'Published', 'long-distance': '120 minutes' });
     }
   };
 
@@ -93,20 +138,27 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   /* ── Order Summary line computation ── */
   const buildSummaryLines = (): CartLine[] => {
     if (!selectedPlan || !activePlan) return [];
-    const effectivePrice = isBundle ? phoneBundleEffectivePrice : activePlan.price;
-    const label = isBundle ? 'Phone Bundle' : [activePlan.title, activePlan.subtitle].filter(Boolean).join(' ');
-    const main: CartLine = { label, price: effectivePrice, group: 'phone' };
+    const label = isBundle
+      ? (isPhoneStandalone ? 'Phone Standalone' : 'Phone Bundle')
+      : [activePlan.title, activePlan.subtitle].filter(Boolean).join(' ');
+    // Main line = base + removable adj only (attrs shown as sub-items to avoid double-counting)
+    const baseForSummary = isBundle
+      ? PHONE_BUNDLE_BASE + removableBaseTotal - removedFeaturesAdj
+      : activePlan.price;
+    const main: CartLine = { label, price: baseForSummary, group: 'phone' };
     if (!isBundle) return [main];
     const mods: CartLine[] = [];
     removedFeatures.forEach(id => {
-      const f = PHONE_BUNDLE_FEATURES.find(f => f.id === id);
-      if (f) mods.push({ label: f.name, price: 0, group: 'phone-removed' });
+      const f = features.find(f => f.id === id);
+      if (f) mods.push({ label: f.name, price: f.basePrice, group: 'phone-removed' });
     });
-    PHONE_BUNDLE_FEATURES.filter(f => f.manageable === 'attribute').forEach(f => {
-      const val = attributeValues[f.id] ?? f.defaultAttribute;
-      if (val && val !== f.defaultAttribute) {
-        const adj = f.attributePrices?.[val] ?? 0;
-        mods.push({ label: `${f.name} → ${val}`, price: adj, group: 'phone-changed' });
+    features.filter(f => f.manageable === 'attribute').forEach(f => {
+      const val = attributeValues[f.id] ?? f.defaultAttribute ?? '';
+      const adj = f.attributePrices?.[val] ?? 0;
+      if (adj > 0) {
+        mods.push({ label: `${f.name} (${val})`, price: adj, group: 'phone-changed' });
+      } else if (val !== f.defaultAttribute) {
+        mods.push({ label: `${f.name} → ${val}`, price: 0, group: 'phone-changed' });
       }
     });
     return [main, ...mods];
@@ -116,7 +168,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">Change Phone Service</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">{isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Service'}</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
       <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
@@ -126,18 +178,22 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         {/* ── Left: plan cards ── */}
         <div className="flex-1 min-w-0">
 
-          {/* Skip Phone */}
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={onSkip}
-              className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
-            >
-              Skip Phone
-            </button>
-          </div>
+          {/* Skip Phone — only shown here when NOT using the inline layout (standalone or single-plan) */}
+          {!isPhoneStandalone && PLANS.filter(p => p.id !== 'phone-bundle').length > 0 && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onSkip}
+                className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
+              >
+                Skip Phone
+              </button>
+            </div>
+          )}
 
           {/* Plan cards — left 1/3 stacked + right 2/3 Phone Bundle */}
           {(() => {
+            const isSinglePlan = PLANS.filter(p => p.id !== 'phone-bundle').length === 0;
+            const hidePrice = isPhoneStandalone || isSinglePlan;
             const renderCard = (plan: typeof PLANS[0]) => {
               const isCurrent = plan.id === currentPlanId;
               const isSelected = selectedPlan === plan.id;
@@ -150,33 +206,37 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
                     ${isCurrent
                       ? 'border-gray-200 bg-gray-50 cursor-default'
+                      : isPhoneStandalone
+                        ? 'border-blue-500 bg-blue-50 cursor-default'
                       : isSelected
                         ? 'border-blue-500 bg-blue-50 cursor-pointer'
                         : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer'
                     }`}
                 >
-                  {isCurrent && (
-                    <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
+                  <div className={`text-3xl font-black mb-1 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                    {plan.id === 'phone-bundle' && isPhoneStandalone ? 'Phone Standalone' : (plan.subtitle || plan.title)}
+                  </div>
+
+                  {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
+                    <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
                       Active
                     </span>
                   )}
-
-                  <div className={`text-3xl font-black mb-1 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                    {plan.subtitle || plan.title}
-                  </div>
                   <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
                     {plan.subtitle ? plan.title : ''}
                   </div>
-                  <div className={`text-2xl font-bold mb-1 ${isCurrent ? 'text-gray-400' : 'text-gray-900'}`}>
-                    ${displayPrice.toFixed(2)}
-                    <span className="text-sm font-normal text-gray-400"> /month</span>
-                  </div>
+                  {!(plan.id === 'phone-bundle' && hidePrice) && (
+                    <div className={`text-2xl font-bold mb-1 ${isCurrent ? 'text-gray-400' : 'text-gray-900'}`}>
+                      ${displayPrice.toFixed(2)}
+                      <span className="text-sm font-normal text-gray-400"> /month</span>
+                    </div>
+                  )}
 
                   {/* Phone Bundle: feature list — controls inline when selected */}
                   {plan.id === 'phone-bundle' && (
                     <div className="my-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
                       <div className="space-y-3">
-                        {PHONE_BUNDLE_FEATURES.map(f => {
+                        {features.map(f => {
                           const isRemoved = removedFeatures.has(f.id);
                           const attrVal   = f.manageable === 'attribute' ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : null;
                           const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
@@ -185,22 +245,40 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                           return (
                             <div key={f.id} className="flex justify-between items-center gap-2">
                               {/* Name */}
-                              <span className={`text-sm flex-1 ${isCurrent ? 'text-gray-400' : isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                              <span className={`text-sm flex-1 flex items-center gap-1 ${isCurrent ? 'text-gray-400' : isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
                                 {f.name}
+                                {f.id === 'long-distance' && isPhoneStandalone && (
+                                  <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
+                                    <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
+                                      <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
+                                      </div>
+                                      <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
+                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                                    </div>
+                                  </span>
+                                )}
                               </span>
 
                               {/* Control (right side) */}
                               {isSelected && f.manageable === 'removable' ? (
-                                <label className="flex items-center gap-1.5 cursor-pointer select-none flex-shrink-0">
+                                <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                                  {f.basePrice > 0 && (
+                                    <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
+                                      +${f.basePrice.toFixed(2)}
+                                    </span>
+                                  )}
                                   <input
                                     type="checkbox"
-                                    checked={isRemoved}
+                                    checked={!isRemoved}
                                     onChange={() => toggleRemoveFeature(f.id)}
-                                    className="w-3.5 h-3.5 rounded accent-red-500"
+                                    className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
                                   />
-                                  <span className={`text-sm font-medium ${isRemoved ? 'text-red-600' : 'text-gray-500'}`}>
-                                    {isRemoved ? 'Will be removed' : 'Remove'}
-                                  </span>
                                 </label>
                               ) : isSelected && f.manageable === 'attribute' ? (
                                 <select
@@ -210,7 +288,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                                 >
                                   {f.attributeOptions?.map(opt => (
                                     <option key={opt} value={opt}>
-                                      {opt}{f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
+                                      {opt}{f.attributeDisplayPrices?.[opt]
+                                        ? `  ${f.attributeDisplayPrices[opt]}`
+                                        : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
                                     </option>
                                   ))}
                                 </select>
@@ -223,17 +303,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                           );
                         })}
 
-                        {isSelected && removedFeatures.size > 0 && (
-                          <div className="flex items-start gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 mt-1">
-                            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                            <span>Removing this feature will affect your Phone Bundle pricing.</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
 
-                  {isCurrent ? (
+                  {!isPhoneStandalone && (isCurrent ? (
                     <div className="mt-auto pt-6">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
                       <div className="w-full py-1.5 rounded-[10px] bg-gray-100 text-sm font-semibold text-gray-400 uppercase tracking-wide cursor-default">
@@ -241,22 +315,60 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-auto pt-6">
-                      <div className={`w-full py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
+                    <div className="mt-auto pt-6 flex justify-center">
+                      <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
                         ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
                         {isSelected ? 'Selected' : 'Select'}
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               );
             };
 
+            if (isPhoneStandalone) {
+              return (
+                <div className="flex items-start gap-6 mb-10">
+                  <div style={{ flex: '0 0 65%' }}>
+                    {PLANS.filter(p => p.id === 'phone-bundle').map(plan => renderCard(plan))}
+                  </div>
+                  <div className="ml-auto pt-0">
+                    <button
+                      onClick={onSkip}
+                      className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
+                    >
+                      Skip Phone
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            // Single-plan layout: only phone-bundle, no other plans
+            const otherPlans = PLANS.filter(p => p.id !== 'phone-bundle');
+            if (otherPlans.length === 0) {
+              return (
+                <div className="flex items-start gap-6 mb-10">
+                  <div style={{ flex: '0 0 65%' }}>
+                    {PLANS.filter(p => p.id === 'phone-bundle').map(plan => renderCard(plan))}
+                  </div>
+                  <div className="ml-auto pt-0">
+                    <button
+                      onClick={onSkip}
+                      className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
+                    >
+                      Skip Phone
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div className="flex gap-6 mb-10 items-stretch">
-                {/* Left 1/3: Unlimited plans stacked */}
+                {/* Left 1/3: other plans stacked */}
                 <div className="flex flex-col gap-4" style={{ flex: '0 0 33%' }}>
-                  {PLANS.filter(p => p.id !== 'phone-bundle').map(plan => (
+                  {otherPlans.map(plan => (
                     <div key={plan.id} className="flex-1 flex flex-col">{renderCard(plan)}</div>
                   ))}
                 </div>
@@ -335,7 +447,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     {phoneRemovedLines.map((line, i) => (
                       <div key={`rem-${i}`} className="flex justify-between items-center text-xs pl-4 border-l-2 border-red-200">
                         <span className="text-gray-400 line-through">{line.label}</span>
-                        <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-semibold border border-red-200">Removed</span>
+                        <span className="font-medium text-red-500">−${line.price.toFixed(2)}</span>
                       </div>
                     ))}
                     {phoneChangedLines.map((line, i) => (

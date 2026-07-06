@@ -32,7 +32,7 @@ type GroupKey = 'internet' | 'television' | 'phone';
 const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: string; monthlyCharge: number }[]>>> = {
   'sa-00912': {
     internet: [
-      { description: 'Internet 2 Gig',    monthlyCharge: 124.95 },
+      { description: 'Internet 2 Gbps',    monthlyCharge: 124.95 },
       { description: 'Whole Home Wi-Fi',  monthlyCharge: 5.95   },
     ],
     television: [

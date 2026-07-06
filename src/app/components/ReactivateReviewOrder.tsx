@@ -59,6 +59,10 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
     sum + serviceLineItems[group].reduce((s, item) => s + item.monthlyCharge, 0), 0
   );
 
+  const [reactivationFeeApplied, setReactivationFeeApplied] = useState(true);
+  const reactivationFee = reactivationFeeApplied ? 30.00 : 0;
+  const totalWithFee = totalMonthly + reactivationFee;
+
   return (
     <div>
       <div className="mb-8">
@@ -143,6 +147,18 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
                   <span className="text-gray-700">Monthly charges</span>
                   <span className="text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Reactivation fees</span>
+                    <button
+                      onClick={() => setReactivationFeeApplied(v => !v)}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${reactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${reactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  <span className={reactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$30.00/mo</span>
+                </div>
               </div>
 
               <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
@@ -162,7 +178,7 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
               <div className="pt-4 border-t-2 border-gray-300">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900">Total Monthly</span>
-                  <span className="text-xl font-medium text-gray-900">${totalMonthly.toFixed(2)}</span>
+                  <span className="text-xl font-medium text-gray-900">${totalWithFee.toFixed(2)}</span>
                 </div>
               </div>
 
