@@ -121,6 +121,7 @@ function App() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedSA, setSelectedSA] = useState<Service | null>(null);
   const [reactivationDate, setReactivationDate] = useState<string>('');
+  const [reactivationReason, setReactivationReason] = useState<string>('');
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
@@ -393,7 +394,7 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onReactivate={(date) => { setReactivationDate(date); setCurrentStep('reactivate-review'); }}
+              onReactivate={(date, reason) => { setReactivationDate(date); setReactivationReason(reason); setCurrentStep('reactivate-review'); }}
             />
           </motion.div>
         )}
@@ -414,6 +415,7 @@ function App() {
                 action={selectedAction}
                 selectedSA={selectedSA}
                 reactivationDate={reactivationDate}
+                reactivationReason={reactivationReason}
                 orderItems={orderItems}
                 onBack={() => setCurrentStep('reactivate-services')}
                 onConfirm={handleConfirmSubmit}

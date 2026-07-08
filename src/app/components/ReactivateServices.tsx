@@ -10,7 +10,7 @@ interface ReactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   onBack: () => void;
-  onReactivate: (date: string) => void;
+  onReactivate: (date: string, reason: string) => void;
 }
 
 const deactivatedServices = [
@@ -27,21 +27,11 @@ const reactivationReasons = [
   'Operator Initiated',
 ];
 
-function addBusinessDays(from: Date, days: number): string {
-  const date = new Date(from);
-  let added = 0;
-  while (added < days) {
-    date.setDate(date.getDate() + 1);
-    const dow = date.getDay();
-    if (dow !== 0 && dow !== 6) added++;
-  }
-  return date.toISOString().split('T')[0];
-}
 
 export function ReactivateServices({ action, selectedSA, onBack, onReactivate }: ReactivateServicesProps) {
   const todayDate = new Date();
   const today = todayDate.toISOString().split('T')[0];
-  const [reactivationDate, setReactivationDate] = useState(() => addBusinessDays(todayDate, 2));
+  const [reactivationDate, setReactivationDate] = useState(today);
   const [selected, setSelected] = useState<Set<string>>(new Set(deactivatedServices.map(s => s.id)));
   const [reason, setReason] = useState('');
   const [comments, setComments] = useState('');
@@ -123,7 +113,7 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
               <div className="relative group">
                 <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  Reactivation takes X amount of days.
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                 </div>
               </div>
@@ -154,7 +144,7 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
           Back
         </button>
         <button
-          onClick={() => onReactivate(reactivationDate)}
+          onClick={() => onReactivate(reactivationDate, reason)}
           disabled={!canReactivate}
           className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all ${
             canReactivate

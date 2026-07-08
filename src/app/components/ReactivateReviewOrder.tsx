@@ -5,10 +5,17 @@ import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
 import { Breadcrumb } from './Breadcrumb';
 
+const REASONS_WITH_FEE = new Set([
+  'Fully Paid — Account balance cleared in full',
+  'Partial Pay — A portion of the balance has been paid',
+  'Payment Arrangement — A payment plan has been agreed upon',
+]);
+
 interface ReactivateReviewOrderProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   reactivationDate: string;
+  reactivationReason?: string;
   orderItems: OrderItem[];
   onBack: () => void;
   onConfirm: () => void;
@@ -41,7 +48,7 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
 
 const serviceGroups = Object.keys(serviceLineItems);
 
-export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, orderItems, onBack, onConfirm }: ReactivateReviewOrderProps) {
+export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, reactivationReason, orderItems, onBack, onConfirm }: ReactivateReviewOrderProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set(serviceGroups));
 
   const toggle = (name: string) => {
@@ -59,6 +66,7 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
     sum + serviceLineItems[group].reduce((s, item) => s + item.monthlyCharge, 0), 0
   );
 
+  const feeEligible = REASONS_WITH_FEE.has(reactivationReason ?? '');
   const [reactivationFeeApplied, setReactivationFeeApplied] = useState(true);
   const reactivationFee = reactivationFeeApplied ? 30.00 : 0;
   const totalWithFee = totalMonthly + reactivationFee;
@@ -142,22 +150,11 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
                 <p className="text-xs text-gray-600 mt-1">Reactivation: {formatDate(reactivationDate)}</p>
               </div>
 
+              {/* Monthly recurring charges */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">Monthly charges</span>
                   <span className="text-gray-900">${totalMonthly.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-700">Reactivation fees</span>
-                    <button
-                      onClick={() => setReactivationFeeApplied(v => !v)}
-                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${reactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${reactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
-                    </button>
-                  </div>
-                  <span className={reactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$30.00/mo</span>
                 </div>
               </div>
 
@@ -175,11 +172,26 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
                 <span className="text-base font-bold text-green-600">+${totalMonthly.toFixed(2)}</span>
               </div>
 
-              <div className="pt-4 border-t-2 border-gray-300">
+              <div className="pt-4 border-t-2 border-gray-300 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900">Total Monthly</span>
-                  <span className="text-xl font-medium text-gray-900">${totalWithFee.toFixed(2)}</span>
+                  <span className="text-xl font-medium text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
+                {/* One-time fee — only for balance-related reasons */}
+                {feeEligible && (
+                  <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Reactivation fee (one-time)</span>
+                      <button
+                        onClick={() => setReactivationFeeApplied(v => !v)}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${reactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${reactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    <span className={reactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$30.00</span>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -191,7 +203,7 @@ export function ReactivateReviewOrder({ action, selectedSA, reactivationDate, or
       <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mt-6">
         <AlertTriangle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-green-700">
-          The user is about to reactivate products and its related features on <strong>{formatDate(reactivationDate)}</strong>. This action can not be undone.
+          You're about to reactivate these products and their related features on <strong>{formatDate(reactivationDate)}</strong>. This can't be undone.
         </p>
       </div>
 

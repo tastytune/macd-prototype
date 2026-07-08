@@ -24,7 +24,7 @@ interface Step5Props {
   timeSlot?: string;
 }
 
-const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; servicesList: string }> = {
+const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; bodyFull?: string; servicesList: string }> = {
   disconnect: {
     title: 'Disconnect Request Created',
     boldWord: 'disconnection',
@@ -33,8 +33,9 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
   reactivate: {
     title: 'Reactivation Request Created',
-    boldWord: 'reactivation',
-    bodyRest: ' order request has been successfully created with reference number:',
+    boldWord: '',
+    bodyRest: '',
+    bodyFull: 'Reactivation request created. Reference number:',
     servicesList: 'Services to Be Reactivated',
   },
   deactivate: {
@@ -99,7 +100,10 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
         {/* Important Notice */}
         <div className="mb-6">
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-gray-700 font-normal">Your <strong>{copy.boldWord}</strong>{copy.bodyRest}</p>
+                {copy.bodyFull
+                  ? <p className="text-gray-700 font-normal">{copy.bodyFull}</p>
+                  : <p className="text-gray-700 font-normal">Your <strong>{copy.boldWord}</strong>{copy.bodyRest}</p>
+                }
                 <a href="https://salesforce.com/order/SF-2024-001234" target="_blank" rel="noopener noreferrer" className="block text-center text-blue-600 hover:text-blue-800 underline font-extralight text-xl pt-5">SF-2024-001234</a>
           </div>
         </div>
