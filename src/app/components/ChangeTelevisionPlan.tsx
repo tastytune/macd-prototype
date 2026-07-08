@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, AlertTriangle } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
@@ -148,7 +148,23 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
               return (
                 <div
                   key={plan.id}
-                  onClick={() => { if (isSelectable) setSelectedPlan(isSelected ? null : plan.id); }}
+                  onClick={() => {
+                    if (!isSelectable) return;
+                    if (isSelected) {
+                      setSelectedPlan(null);
+                      setSelectedAddOns(new Set(activeAddOnIds));
+                    } else {
+                      setSelectedPlan(plan.id);
+                      setSelectedAddOns(prev => {
+                        const next = new Set(prev);
+                        [...next].forEach(id => {
+                          const a = ADD_ONS.find(x => x.id === id);
+                          if (a && !a.plans.includes(plan.id)) next.delete(id);
+                        });
+                        return next;
+                      });
+                    }
+                  }}
                   className={`flex-1 rounded-2xl border-2 p-6 text-center transition-all
                     ${!isSelectable
                       ? 'border-gray-200 bg-gray-50 cursor-default'
@@ -200,6 +216,21 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
               );
             })}
           </div>
+
+          {/* Warning: active add-ons lost on plan switch */}
+          {(() => {
+            const lost = selectedPlan
+              ? activeAddOnIds.map(id => ADD_ONS.find(a => a.id === id)!).filter(a => a && !a.plans.includes(selectedPlan))
+              : [];
+            return lost.length > 0 ? (
+              <div className="flex items-start gap-3 p-3.5 mb-6 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  <strong>{lost.map(a => a.name).join(', ')}</strong> {lost.length === 1 ? 'is' : 'are'} not available with {PLANS.find(p => p.id === selectedPlan)?.name} and will be removed from your plan.
+                </p>
+              </div>
+            ) : null;
+          })()}
 
           {/* Channel add-ons */}
           <div className="mb-10">
