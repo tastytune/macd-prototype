@@ -241,7 +241,9 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
               Digital Music channels are included with your selected plan. Enhance your channel lineup with the following add-ons:
             </p>
             <div className="grid grid-cols-5 gap-4">
-              {visibleAddOns.map(addOn => (
+              {visibleAddOns.map(addOn => {
+                const isLosingToDowngrade = selectedPlan === '75plus' && activeAddOnIds.includes(addOn.id);
+                return (
                 <div key={addOn.id} className="flex flex-col items-center gap-2">
                   <div className="w-full">
                     <ChannelTile
@@ -254,21 +256,24 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     />
                   </div>
                   <span className={`text-xs font-semibold text-center
-                    ${!addOnsEnabled
-                      ? 'text-gray-400'
-                      : activeAddOnIds.includes(addOn.id)
-                        ? selectedAddOns.has(addOn.id)
-                          ? 'text-green-700 bg-green-100 border border-green-200 rounded-full px-2 py-0.5'
-                          : 'text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5'
-                        : 'text-gray-700'
+                    ${isLosingToDowngrade
+                      ? 'text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5'
+                      : !addOnsEnabled
+                        ? 'text-gray-400'
+                        : activeAddOnIds.includes(addOn.id)
+                          ? selectedAddOns.has(addOn.id)
+                            ? 'text-green-700 bg-green-100 border border-green-200 rounded-full px-2 py-0.5'
+                            : 'text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5'
+                          : 'text-gray-700'
                     }`}>
                     {addOn.name}
                   </span>
-                  <span className={`text-xs font-semibold ${addOnsEnabled ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-semibold ${addOnsEnabled || isLosingToDowngrade ? 'text-blue-600' : 'text-gray-400'}`}>
                     ${addOn.price.toFixed(2)}/mo
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
