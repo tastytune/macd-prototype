@@ -89,7 +89,8 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   const selectablePlanIds = (higherInternetSelected ? PLANS.map(p => p.id) : (SA_TV_SELECTABLE[selectedSA?.id ?? ''] ?? PLANS.map(p => p.id))).filter(id => id !== currentPlanId);
   const effectivePlanId = selectedPlan ?? currentPlanId;
   const planSupportsAddOns = effectivePlanId === '150plus' || effectivePlanId === '250plus';
-  const addOnsEnabled = planSupportsAddOns && (higherInternetSelected ? true : (SA_TV_ADDONS_ENABLED[selectedSA?.id ?? ''] ?? true));
+  const saSupportsAddOns = higherInternetSelected ? true : (SA_TV_ADDONS_ENABLED[selectedSA?.id ?? ''] ?? true);
+  const addOnsEnabled = planSupportsAddOns && saSupportsAddOns;
   const visibleAddOns = effectivePlanId === '250plus'
     ? ADD_ONS.filter(a => a.plans.includes('250plus'))
     : ADD_ONS.filter(a => a.plans.includes('150plus'));
@@ -251,7 +252,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                       src={addOn.src}
                       selected={selectedAddOns.has(addOn.id)}
                       onToggle={() => toggleAddOn(addOn.id)}
-                      disabled={!addOnsEnabled}
+                      disabled={!saSupportsAddOns}
                       active={activeAddOnIds.includes(addOn.id)}
                     />
                   </div>
@@ -268,7 +269,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     }`}>
                     {addOn.name}
                   </span>
-                  <span className={`text-xs font-semibold ${addOnsEnabled || isLosingToDowngrade ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-semibold ${saSupportsAddOns ? 'text-blue-600' : 'text-gray-400'}`}>
                     ${addOn.price.toFixed(2)}/mo
                   </span>
                 </div>
