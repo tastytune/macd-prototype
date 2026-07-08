@@ -219,7 +219,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
           {/* Warning: active add-ons lost on plan switch */}
           {(() => {
-            const lost = selectedPlan
+            const lost = selectedPlan === '250plus'
               ? activeAddOnIds.map(id => ADD_ONS.find(a => a.id === id)!).filter(a => a && !a.plans.includes(selectedPlan))
               : [];
             return lost.length > 0 ? (
