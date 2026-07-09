@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wifi, Phone, Tv, HelpCircle } from 'lucide-react';
+import { Wifi, Phone, Tv, HelpCircle, Package } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -9,11 +9,26 @@ import { Breadcrumb } from './Breadcrumb';
 interface DeactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
+  baId?: string;
   onBack: () => void;
   onDeactivate: (date: string, selectedIds: string[], reason: string) => void;
 }
 
-const activeServices = [
+const BA_SERVICES: Record<string, { id: string; name: string; icon: React.ElementType }[]> = {
+  'ba-00391': [
+    { id: 'internet', name: 'Residential Internet', icon: Wifi },
+    { id: 'tv',       name: 'iTV Preferred',        icon: Tv  },
+  ],
+  'ba-00412': [
+    { id: 'equipment', name: 'Equipment Lease', icon: Package },
+  ],
+  'ba-00558': [
+    { id: 'internet', name: 'Residential Internet', icon: Wifi  },
+    { id: 'phone',    name: 'Phone Bundle',          icon: Phone },
+  ],
+};
+
+const DEFAULT_SERVICES = [
   { id: 'internet', name: 'Residential Internet', icon: Wifi },
   { id: 'phone',    name: 'Phone bundle',          icon: Phone },
   { id: 'tv',       name: 'iTV Extra',             icon: Tv },
@@ -28,12 +43,14 @@ function nextWeekday(iso: string): string {
   return d.toISOString().split('T')[0];
 }
 
-export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }: DeactivateServicesProps) {
+export function DeactivateServices({ action, selectedSA, baId, onBack, onDeactivate }: DeactivateServicesProps) {
+  const services = (baId && BA_SERVICES[baId]) ? BA_SERVICES[baId] : DEFAULT_SERVICES;
+
   const todayDate = new Date();
   const today = todayDate.toISOString().split('T')[0];
   const vacationDefaultDate = nextWeekday(today);
   const [deactivationDate, setDeactivationDate] = useState(() => nextWeekday(today));
-  const [selected, setSelected] = useState<Set<string>>(new Set(activeServices.map(s => s.id)));
+  const [selected, setSelected] = useState<Set<string>>(new Set(services.map(s => s.id)));
   const [reason, setReason] = useState('NPD');
 
   const isCustomerVacation = reason === 'Customer-Initiated Vacation';
@@ -41,9 +58,8 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
   const handleReasonChange = (value: string) => {
     setReason(value);
     setDeactivationDate(value === 'Customer-Initiated Vacation' ? vacationDefaultDate : nextWeekday(today));
-    // NPD / Operator Initiated: reset to all selected
     if (value !== 'Customer-Initiated Vacation') {
-      setSelected(new Set(activeServices.map(s => s.id)));
+      setSelected(new Set(services.map(s => s.id)));
     }
   };
   const [vacationReturnDate, setVacationReturnDate] = useState('');
@@ -51,11 +67,11 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
 
   const deactivationReasons = ['NPD', 'Customer-Initiated Vacation', 'Operator Initiated'];
 
-  const allSelected = selected.size === activeServices.length;
+  const allSelected = selected.size === services.length;
   const someSelected = selected.size > 0 && !allSelected;
 
   const toggleAll = () => {
-    setSelected(allSelected ? new Set() : new Set(activeServices.map(s => s.id)));
+    setSelected(allSelected ? new Set() : new Set(services.map(s => s.id)));
   };
 
   const toggleItem = (id: string) => {
@@ -118,7 +134,7 @@ export function DeactivateServices({ action, selectedSA, onBack, onDeactivate }:
           <span className="text-sm text-gray-700 font-medium">Select All</span>
         </div>
 
-        {activeServices.map(svc => {
+        {services.map(svc => {
           const Icon = svc.icon;
           const isChecked = selected.has(svc.id);
 

@@ -393,6 +393,7 @@ function App() {
             <ReactivateServices
               action={selectedAction}
               selectedSA={selectedSA}
+              baId={orderItems[0]?.serviceId}
               onBack={() => setCurrentStep('dispatcher-step2')}
               onReactivate={(date, reason) => { setReactivationDate(date); setReactivationReason(reason); setCurrentStep('reactivate-review'); }}
             />
@@ -437,6 +438,7 @@ function App() {
             <DeactivateServices
               action={selectedAction}
               selectedSA={selectedSA}
+              baId={orderItems[0]?.serviceId}
               onBack={() => setCurrentStep('dispatcher-step2')}
               onDeactivate={(date, ids, reason) => {
                 setDisconnectionDate(date);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wifi, Phone, Tv, HelpCircle } from 'lucide-react';
+import { Wifi, Phone, Tv, HelpCircle, Package } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -9,11 +9,26 @@ import { Breadcrumb } from './Breadcrumb';
 interface ReactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
+  baId?: string;
   onBack: () => void;
   onReactivate: (date: string, reason: string) => void;
 }
 
-const deactivatedServices = [
+const BA_SERVICES: Record<string, { id: string; name: string; icon: React.ElementType }[]> = {
+  'ba-00391': [
+    { id: 'internet', name: 'Residential Internet', icon: Wifi },
+    { id: 'tv',       name: 'iTV Preferred',        icon: Tv  },
+  ],
+  'ba-00412': [
+    { id: 'equipment', name: 'Equipment Lease', icon: Package },
+  ],
+  'ba-00558': [
+    { id: 'internet', name: 'Residential Internet', icon: Wifi  },
+    { id: 'phone',    name: 'Phone Bundle',          icon: Phone },
+  ],
+};
+
+const DEFAULT_SERVICES = [
   { id: 'internet', name: 'Residential Internet', icon: Wifi },
   { id: 'phone',    name: 'Phone bundle',          icon: Phone },
   { id: 'tv',       name: 'iTV Extra',             icon: Tv },
@@ -28,18 +43,20 @@ const reactivationReasons = [
 ];
 
 
-export function ReactivateServices({ action, selectedSA, onBack, onReactivate }: ReactivateServicesProps) {
+export function ReactivateServices({ action, selectedSA, baId, onBack, onReactivate }: ReactivateServicesProps) {
+  const services = (baId && BA_SERVICES[baId]) ? BA_SERVICES[baId] : DEFAULT_SERVICES;
+
   const todayDate = new Date();
   const today = todayDate.toISOString().split('T')[0];
   const [reactivationDate, setReactivationDate] = useState(today);
-  const [selected, setSelected] = useState<Set<string>>(new Set(deactivatedServices.map(s => s.id)));
+  const [selected, setSelected] = useState<Set<string>>(new Set(services.map(s => s.id)));
   const [reason, setReason] = useState('');
   const [comments, setComments] = useState('');
 
-  const allSelected = selected.size === deactivatedServices.length;
+  const allSelected = selected.size === services.length;
 
   const toggleAll = () => {
-    setSelected(allSelected ? new Set() : new Set(deactivatedServices.map(s => s.id)));
+    setSelected(allSelected ? new Set() : new Set(services.map(s => s.id)));
   };
 
   const canReactivate = selected.size > 0 && reason !== '';
@@ -71,7 +88,7 @@ export function ReactivateServices({ action, selectedSA, onBack, onReactivate }:
           <span className="text-sm text-gray-700">Select All</span>
         </div>
 
-        {deactivatedServices.map(svc => {
+        {services.map(svc => {
           const Icon = svc.icon;
 
           return (
