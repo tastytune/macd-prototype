@@ -91,7 +91,7 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Primary billing · Monthly',
     amount: '$189.00/mo',
     status: 'Current',
-    deactivated: true,
+    deactivated: false,
   },
   {
     id: 'ba-00412',
@@ -217,7 +217,8 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
             {billingAccounts.map(ba => {
               const isSelected = selectedBA === ba.id;
               const isReactivate = action === 'reactivate';
-              const isDisabled = isReactivate && !ba.deactivated;
+              const isDeactivate = action === 'deactivate';
+              const isDisabled = (isReactivate && !ba.deactivated) || (isDeactivate && ba.deactivated);
               return (
                 <button
                   key={ba.id}
@@ -255,17 +256,15 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-900">{isReactivate && ba.deactivated ? '$10.00/mo' : ba.amount}</span>
-                    {isReactivate ? (
-                      ba.deactivated ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                          Deactivated
-                        </span>
-                      ) : (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
-                          Active
-                        </span>
-                      )
+                    <span className="text-sm font-semibold text-gray-900">{ba.deactivated ? '—' : ba.amount}</span>
+                    {ba.deactivated ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                        Deactivated
+                      </span>
+                    ) : isReactivate ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
+                        Active
+                      </span>
                     ) : (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium
                         ${ba.status === 'Current' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
