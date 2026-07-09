@@ -10,6 +10,9 @@ interface DeactivateServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   baId?: string;
+  initialDate?: string;
+  initialSelectedIds?: string[];
+  initialReason?: string;
   onBack: () => void;
   onDeactivate: (date: string, selectedIds: string[], reason: string) => void;
 }
@@ -43,15 +46,19 @@ function nextWeekday(iso: string): string {
   return d.toISOString().split('T')[0];
 }
 
-export function DeactivateServices({ action, selectedSA, baId, onBack, onDeactivate }: DeactivateServicesProps) {
+export function DeactivateServices({ action, selectedSA, baId, initialDate, initialSelectedIds, initialReason, onBack, onDeactivate }: DeactivateServicesProps) {
   const services = (baId && BA_SERVICES[baId]) ? BA_SERVICES[baId] : DEFAULT_SERVICES;
 
   const todayDate = new Date();
   const today = todayDate.toISOString().split('T')[0];
   const vacationDefaultDate = nextWeekday(today);
-  const [deactivationDate, setDeactivationDate] = useState(() => nextWeekday(today));
-  const [selected, setSelected] = useState<Set<string>>(new Set(services.map(s => s.id)));
-  const [reason, setReason] = useState('NPD');
+  const [deactivationDate, setDeactivationDate] = useState(() => initialDate ?? nextWeekday(today));
+  const [selected, setSelected] = useState<Set<string>>(
+    initialSelectedIds && initialSelectedIds.length > 0
+      ? new Set(initialSelectedIds)
+      : new Set(services.map(s => s.id))
+  );
+  const [reason, setReason] = useState(initialReason ?? 'NPD');
 
   const isCustomerVacation = reason === 'Customer-Initiated Vacation';
 

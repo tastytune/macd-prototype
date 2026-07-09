@@ -5,6 +5,7 @@ import { ContextBar } from './ContextBar';
 
 interface DispatcherStep2Props {
   action: MACDAction;
+  initialSelectedBA?: string;
   onNext: (selectedServices: Service[], selectedChildItems: string[]) => void;
   onBack: () => void;
 }
@@ -133,7 +134,7 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
 };
 
-export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props) {
+export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {
   const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'change';
   const activeServiceAccounts = action === 'change' ? changeServiceAccounts : serviceAccounts;
 
@@ -141,7 +142,7 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);
 
   // BA radio selection (Deactivate/Reactivate) — single select
-  const [selectedBA, setSelectedBA] = useState<string>(billingAccounts[0].id);
+  const [selectedBA, setSelectedBA] = useState<string>(initialSelectedBA ?? billingAccounts[0].id);
 
   const handleNext = () => {
     if (isServiceAccountAction) {

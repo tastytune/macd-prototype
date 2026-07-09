@@ -122,6 +122,7 @@ function App() {
   const [selectedSA, setSelectedSA] = useState<Service | null>(null);
   const [reactivationDate, setReactivationDate] = useState<string>('');
   const [reactivationReason, setReactivationReason] = useState<string>('');
+  const [selectedBAId, setSelectedBAId] = useState<string>('');
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
@@ -245,6 +246,7 @@ function App() {
       const baService: Service = { id: 'billing', name: baLabel || 'Billing accounts', status: 'Active' };
       setSelectedSA(baService);
       setSelectedService(baService);
+      setSelectedBAId(childItemIds[0] ?? '');
       setCurrentStep('reactivate-services');
     } else {
       // Deactivate: go to deactivate-services step
@@ -252,6 +254,7 @@ function App() {
       const baService: Service = { id: 'billing', name: baLabel || 'Billing accounts', status: 'Active' };
       setSelectedSA(baService);
       setSelectedService(baService);
+      setSelectedBAId(childItemIds[0] ?? '');
       const baOrderItems: OrderItem[] = childItemIds.map((baId, i) => ({
         id: String(i + 100),
         serviceId: baId,
@@ -360,6 +363,7 @@ function App() {
           >
             <DispatcherStep2
               action={selectedAction}
+              initialSelectedBA={selectedBAId || undefined}
               onNext={handleDispatcherAccounts}
               onBack={() => setCurrentStep('dispatcher-step1')}
             />
@@ -439,6 +443,9 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               baId={orderItems[0]?.serviceId}
+              initialDate={disconnectionDate || undefined}
+              initialSelectedIds={deactivateSelectedIds.length > 0 ? deactivateSelectedIds : undefined}
+              initialReason={deactivateReason || undefined}
               onBack={() => setCurrentStep('dispatcher-step2')}
               onDeactivate={(date, ids, reason) => {
                 setDisconnectionDate(date);
