@@ -38,7 +38,7 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
     { description: 'Number Of Streams',     monthlyCharge: 5.00  },
     { description: 'Streaming Devices',     monthlyCharge: 10.00 },
     { description: 'DVR Hours',             monthlyCharge: 20.00 },
-    { description: 'Broadcaster Fee',       monthlyCharge: 12.00 },
+    { description: 'Broadcaster Fee',       monthlyCharge: 35.94 },
     { description: 'Connectivity Fee',      monthlyCharge: 0.13  },
     { description: 'Digital Music Channel', monthlyCharge: 0.00  },
     { description: 'Cinemax',              monthlyCharge: 15.00 },
