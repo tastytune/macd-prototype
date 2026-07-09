@@ -261,7 +261,7 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
                     <span className="text-sm font-semibold text-gray-900">
-                      {(isDeactivate && ba.deactivateDisabled) || (isReactivate && !ba.reactivateDisabled) ? '—' : ba.amount}
+                      {(isDeactivate && ba.deactivateDisabled) || (isReactivate && !ba.reactivateDisabled) ? '$10.00/mo' : ba.amount}
                     </span>
                     {isDeactivate ? (
                       ba.deactivateDisabled ? (
