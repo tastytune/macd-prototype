@@ -103,7 +103,7 @@ const billingAccounts: BillingAccount[] = [
     amount: '$14.99/mo',
     status: 'Current',
     deactivateDisabled: true,  // already deactivated
-    reactivateDisabled: false,
+    reactivateDisabled: true,  // already active
   },
   {
     id: 'ba-00558',
@@ -113,7 +113,7 @@ const billingAccounts: BillingAccount[] = [
     amount: '$79.00/mo',
     status: 'Current',
     deactivateDisabled: false,
-    reactivateDisabled: true,  // already active
+    reactivateDisabled: false, // deactivated → selectable
   },
 ];
 
