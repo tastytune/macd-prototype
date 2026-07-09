@@ -262,7 +262,16 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
 
               <div className="pt-4 border-t-2 border-gray-300">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">Remaining Charges</span>
+                  <span className="font-medium text-gray-900 flex items-center gap-1.5">
+                    Remaining Charges
+                    <div className="relative group/rem">
+                      <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/rem:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
+                        Amount owed for the days already consumed in the current billing cycle, plus the deactivation fee.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                      </div>
+                    </div>
+                  </span>
                   <span className="text-xl font-medium text-gray-900">${proratedTotal.toFixed(2)}</span>
                 </div>
               </div>
