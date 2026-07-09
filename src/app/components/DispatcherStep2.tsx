@@ -80,7 +80,8 @@ interface BillingAccount {
   detail: string;
   amount: string;
   status: 'Current' | 'Past due';
-  deactivated: boolean;
+  deactivateDisabled: boolean; // already deactivated → can't deactivate again
+  reactivateDisabled: boolean; // already active    → can't reactivate
 }
 
 const billingAccounts: BillingAccount[] = [
@@ -91,7 +92,8 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Primary billing · Monthly',
     amount: '$189.00/mo',
     status: 'Current',
-    deactivated: false,
+    deactivateDisabled: false,
+    reactivateDisabled: false,
   },
   {
     id: 'ba-00412',
@@ -100,7 +102,8 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Equipment lease · Monthly',
     amount: '$14.99/mo',
     status: 'Current',
-    deactivated: true,
+    deactivateDisabled: true,  // already deactivated
+    reactivateDisabled: false,
   },
   {
     id: 'ba-00558',
@@ -109,7 +112,8 @@ const billingAccounts: BillingAccount[] = [
     detail: 'Primary billing · Monthly',
     amount: '$79.00/mo',
     status: 'Current',
-    deactivated: false,
+    deactivateDisabled: false,
+    reactivateDisabled: true,  // already active
   },
 ];
 
@@ -218,7 +222,7 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
               const isSelected = selectedBA === ba.id;
               const isReactivate = action === 'reactivate';
               const isDeactivate = action === 'deactivate';
-              const isDisabled = (isReactivate && !ba.deactivated) || (isDeactivate && ba.deactivated);
+              const isDisabled = (isReactivate && ba.reactivateDisabled) || (isDeactivate && ba.deactivateDisabled);
               return (
                 <button
                   key={ba.id}
@@ -256,21 +260,31 @@ export function DispatcherStep2({ action, onNext, onBack }: DispatcherStep2Props
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-sm font-semibold text-gray-900">{ba.deactivated ? '—' : ba.amount}</span>
-                    {ba.deactivated ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                        Deactivated
-                      </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {(isDeactivate && ba.deactivateDisabled) || (isReactivate && !ba.reactivateDisabled) ? '—' : ba.amount}
+                    </span>
+                    {isDeactivate ? (
+                      ba.deactivateDisabled ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                          Deactivated
+                        </span>
+                      ) : (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium
+                          ${ba.status === 'Current' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                          {ba.status}
+                        </span>
+                      )
                     ) : isReactivate ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
-                        Active
-                      </span>
-                    ) : (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-                        ${ba.status === 'Current' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-                        {ba.status}
-                      </span>
-                    )}
+                      ba.reactivateDisabled ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                          Deactivated
+                        </span>
+                      )
+                    ) : null}
                   </div>
                 </button>
               );
