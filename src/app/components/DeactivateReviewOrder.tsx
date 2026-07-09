@@ -39,9 +39,9 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
     { description: 'Number Of Streams',    monthlyCharge: 5.00  },
     { description: 'Streaming Devices',    monthlyCharge: 10.00 },
     { description: 'DVR Hours',            monthlyCharge: 20.00 },
-    { description: 'Broadcaster Fee',      monthlyCharge: 12.00 },
-    { description: 'Connectivity Fee',     monthlyCharge: 0.00  },
-    { description: 'Digital Music Channel',monthlyCharge: 9.99  },
+    { description: 'Broadcaster Fee',      monthlyCharge: 35.94 },
+    { description: 'Connectivity Fee',     monthlyCharge: 0.13  },
+    { description: 'Digital Music Channel',monthlyCharge: 0.00  },
     { description: 'Cinemax',             monthlyCharge: 15.00 },
     { description: 'HBO',                 monthlyCharge: 18.00 },
   ],
@@ -97,7 +97,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
     sum + (serviceLineItems[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
   );
   const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
-  const baseFee = deactivationReason === 'NPD' ? 10.00 : 30.00;
+  const baseFee = 10.00;
   const deactivationFee = deactivationFeeApplied ? baseFee : 0;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');
