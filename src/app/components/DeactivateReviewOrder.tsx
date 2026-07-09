@@ -49,21 +49,21 @@ const serviceLineItems: Record<string, { description: string; monthlyCharge: num
 
 const serviceGroups = Object.keys(serviceLineItems);
 
-const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: number }[]> = {
+const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: number; serviceId: string }[]> = {
   'ba-00391': [
-    { description: 'Internet 2 Gbps',           monthlyCharge: 124.95 },
-    { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
-    { description: 'iTV Preferred',             monthlyCharge:  79.95 },
-    { description: 'Cinemax',                   monthlyCharge:  12.99 },
-    { description: 'FANatic',                   monthlyCharge:   5.99 },
+    { description: 'Internet 2 Gbps',          monthlyCharge: 124.95, serviceId: 'internet' },
+    { description: 'Whole Home Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
+    { description: 'iTV Preferred',            monthlyCharge:  79.95, serviceId: 'tv'       },
+    { description: 'Cinemax',                  monthlyCharge:  12.99, serviceId: 'tv'       },
+    { description: 'FANatic',                  monthlyCharge:   5.99, serviceId: 'tv'       },
   ],
   'ba-00412': [
-    { description: 'Equipment lease',           monthlyCharge:  14.99 },
+    { description: 'Equipment lease',          monthlyCharge:  14.99, serviceId: 'internet' },
   ],
   'ba-00558': [
-    { description: 'Internet 200 Mbps',         monthlyCharge:  55.95 },
-    { description: 'Whole Home Wi-Fi',          monthlyCharge:   5.95 },
-    { description: 'Unlimited Local Calling',   monthlyCharge:  15.95 },
+    { description: 'Internet 200 Mbps',        monthlyCharge:  55.95, serviceId: 'internet' },
+    { description: 'Whole Home Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
+    { description: 'Unlimited Local Calling',  monthlyCharge:  15.95, serviceId: 'phone'    },
   ],
 };
 
@@ -93,9 +93,13 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
   const baId = orderItems[0]?.serviceId ?? '';
   const activeServices = BA_ACTIVE_PLANS[baId] ?? [];
   const totalMonthly = activeServices.reduce((sum, s) => sum + s.monthlyCharge, 0);
-  const deactivatedMRC = activeGroups.reduce((sum, g) =>
-    sum + (serviceLineItems[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
-  );
+
+  const isDeactivating = (serviceId: string) =>
+    !selectedServiceIds || selectedServiceIds.length === 0 || selectedServiceIds.includes(serviceId);
+
+  const deactivatedMRC = activeServices
+    .filter(s => isDeactivating(s.serviceId))
+    .reduce((sum, s) => sum + s.monthlyCharge, 0);
   const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
   const baseFee = 10.00;
   const deactivationFee = deactivationFeeApplied ? baseFee : 0;
@@ -210,12 +214,15 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
               <div className="pb-4 mb-4 border-b border-gray-200">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Active Services</p>
                 <div className="space-y-1.5">
-                  {activeServices.map((svc, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                      <span className="text-gray-600">{svc.description}</span>
-                      <span className="text-gray-900">${svc.monthlyCharge.toFixed(2)}</span>
-                    </div>
-                  ))}
+                  {activeServices.map((svc, i) => {
+                    const removing = isDeactivating(svc.serviceId);
+                    return (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className={removing ? 'text-gray-400 line-through' : 'text-gray-600'}>{svc.description}</span>
+                        <span className={removing ? 'text-gray-400 line-through' : 'text-gray-900'}>${svc.monthlyCharge.toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-gray-500 mt-3">Deactivation: {formatDate(deactivationDate)}</p>
               </div>
