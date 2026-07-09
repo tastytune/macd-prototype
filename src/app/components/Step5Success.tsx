@@ -192,7 +192,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-amber-800">
-                  The customer will receive a confirmation via their preferred contact method with the details of this request, including the scheduled deactivation date and affected services.
+                  The customer will receive a confirmation via email with the details of this request, including the scheduled deactivation date and affected services.
                 </p>
               </div>
             </div>
