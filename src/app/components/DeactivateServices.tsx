@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wifi, Phone, Tv, HelpCircle, Package } from 'lucide-react';
+import { Wifi, Phone, Tv, HelpCircle, Package, AlertCircle } from 'lucide-react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -37,12 +37,16 @@ const DEFAULT_SERVICES = [
   { id: 'tv',       name: 'iTV Extra',             icon: Tv },
 ];
 
+// Selecting a driver service auto-selects all listed dependents
+const DRIVES: Record<string, string[]> = {
+  'internet': ['tv', 'phone'],
+};
 
 function nextWeekday(iso: string): string {
   const d = new Date(iso + 'T12:00:00');
   const dow = d.getDay();
-  if (dow === 6) d.setDate(d.getDate() + 2); // Sat → Mon
-  if (dow === 0) d.setDate(d.getDate() + 1); // Sun → Mon
+  if (dow === 6) d.setDate(d.getDate() + 2);
+  if (dow === 0) d.setDate(d.getDate() + 1);
   return d.toISOString().split('T')[0];
 }
 
@@ -53,11 +57,29 @@ export function DeactivateServices({ action, selectedSA, baId, initialDate, init
   const today = todayDate.toISOString().split('T')[0];
   const vacationDefaultDate = nextWeekday(today);
   const [deactivationDate, setDeactivationDate] = useState(() => initialDate ?? nextWeekday(today));
-  const [selected, setSelected] = useState<Set<string>>(
-    initialSelectedIds && initialSelectedIds.length > 0
+
+  const [manualSelected, setManualSelected] = useState<Set<string>>(() => {
+    const initial: Set<string> = initialSelectedIds && initialSelectedIds.length > 0
       ? new Set(initialSelectedIds)
-      : new Set(services.map(s => s.id))
-  );
+      : new Set(services.map(s => s.id));
+    // Strip items that will be auto-derived so they don't appear in both sets
+    for (const [driver, deps] of Object.entries(DRIVES)) {
+      if (initial.has(driver)) {
+        deps.forEach(d => { if (services.find(s => s.id === d)) initial.delete(d); });
+      }
+    }
+    return initial;
+  });
+
+  // Derive auto-selected services (driven by a manually selected driver)
+  const autoSelected = new Set<string>();
+  for (const [driver, deps] of Object.entries(DRIVES)) {
+    if (manualSelected.has(driver)) {
+      deps.forEach(d => { if (services.find(s => s.id === d)) autoSelected.add(d); });
+    }
+  }
+  const selected = new Set([...manualSelected, ...autoSelected]);
+
   const [reason, setReason] = useState(initialReason ?? 'NPD');
 
   const isCustomerVacation = reason === 'Customer-Initiated Vacation';
@@ -66,7 +88,7 @@ export function DeactivateServices({ action, selectedSA, baId, initialDate, init
     setReason(value);
     setDeactivationDate(value === 'Customer-Initiated Vacation' ? vacationDefaultDate : nextWeekday(today));
     if (value !== 'Customer-Initiated Vacation') {
-      setSelected(new Set(services.map(s => s.id)));
+      setManualSelected(new Set(services.map(s => s.id)));
     }
   };
   const [vacationReturnDate, setVacationReturnDate] = useState('');
@@ -75,27 +97,21 @@ export function DeactivateServices({ action, selectedSA, baId, initialDate, init
   const deactivationReasons = ['NPD', 'Customer-Initiated Vacation', 'Operator Initiated'];
 
   const allSelected = selected.size === services.length;
-  const someSelected = selected.size > 0 && !allSelected;
 
   const toggleAll = () => {
-    setSelected(allSelected ? new Set() : new Set(services.map(s => s.id)));
+    setManualSelected(allSelected ? new Set() : new Set(services.map(s => s.id)));
   };
 
   const toggleItem = (id: string) => {
-    setSelected(prev => {
+    if (autoSelected.has(id)) return;
+    setManualSelected(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
 
-
   const canDeactivate = selected.size > 0 && reason !== '';
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  };
 
   return (
     <div className="max-w-3xl mx-auto px-8 py-12">
@@ -144,26 +160,50 @@ export function DeactivateServices({ action, selectedSA, baId, initialDate, init
         {services.map(svc => {
           const Icon = svc.icon;
           const isChecked = selected.has(svc.id);
+          const isAutoSel = autoSelected.has(svc.id);
+          // Driven services present in this BA
+          const drivenInBA = (DRIVES[svc.id] ?? []).filter(d => services.find(s => s.id === d));
+          const showWarning = isCustomerVacation && drivenInBA.length > 0 && manualSelected.has(svc.id);
+          const showAutoTag = isCustomerVacation && isAutoSel;
+          const canToggle = isCustomerVacation && !isAutoSel;
 
           return (
             <div
               key={svc.id}
-              onClick={() => isCustomerVacation && toggleItem(svc.id)}
+              onClick={() => canToggle && toggleItem(svc.id)}
               className={`border-b border-gray-200 last:border-0 transition-colors
-                ${isCustomerVacation ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'}`}
+                ${showAutoTag ? 'border-l-4 border-l-amber-400' : ''}
+                ${canToggle ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'}`}
             >
               <div className="flex items-center gap-3 px-4 py-3">
                 <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                  isChecked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
-                } ${!isCustomerVacation ? 'opacity-40' : ''}`}>
+                  isChecked
+                    ? (showAutoTag ? 'bg-amber-200 border-amber-300' : 'bg-blue-600 border-blue-600')
+                    : 'border-gray-300 bg-white'
+                } ${(!isCustomerVacation || isAutoSel) ? 'opacity-40' : ''}`}>
                   {isChecked && (
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <svg className={`w-2.5 h-2.5 ${showAutoTag ? 'text-amber-700' : 'text-white'}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </div>
                 <Icon className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span className={`text-sm flex-1 ${isChecked ? 'text-gray-900' : 'text-gray-400'}`}>{svc.name}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${isChecked ? 'text-gray-900' : 'text-gray-400'}`}>{svc.name}</span>
+                    {showAutoTag && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Auto-selected
+                      </span>
+                    )}
+                  </div>
+                  {showWarning && (
+                    <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                      Disconnecting {svc.name} will also disconnect {drivenInBA.map(d => services.find(s => s.id === d)?.name ?? d).join(' and ')}
+                    </p>
+                  )}
+                </div>
                 <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-green-50 text-green-700">
                   Active
                 </span>

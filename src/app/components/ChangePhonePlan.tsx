@@ -213,18 +213,20 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                         : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer'
                     }`}
                 >
-                  <div className={`text-3xl font-black mb-1 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+                  <div className={`text-3xl font-black mb-3 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
                     {plan.id === 'phone-bundle' && isPhoneStandalone ? 'Phone Standalone' : (plan.subtitle || plan.title)}
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
-                    <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
+                    <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
                       Active
                     </span>
                   )}
-                  <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
-                    {plan.subtitle ? plan.title : ''}
-                  </div>
+                  {plan.subtitle && (
+                    <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
+                      {plan.title}
+                    </div>
+                  )}
                   {!(plan.id === 'phone-bundle' && hidePrice) && (
                     <div className={`text-2xl font-bold mb-1 ${isCurrent ? 'text-gray-400' : 'text-gray-900'}`}>
                       ${displayPrice.toFixed(2)}
@@ -234,7 +236,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
                   {/* Phone Bundle: feature list — controls inline when selected */}
                   {plan.id === 'phone-bundle' && (
-                    <div className="my-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
+                    <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
                       <div className="space-y-3">
                         {features.map(f => {
                           const isRemoved = removedFeatures.has(f.id);

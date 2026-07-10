@@ -63,7 +63,7 @@ const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: numb
   'ba-00558': [
     { description: 'Internet 200 Mbps',        monthlyCharge:  55.95, serviceId: 'internet' },
     { description: 'Whole Home Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
-    { description: 'Unlimited Local Calling',  monthlyCharge:  15.95, serviceId: 'phone'    },
+    { description: 'Phone Bundle',             monthlyCharge:  15.95, serviceId: 'phone'    },
   ],
 };
 
