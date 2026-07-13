@@ -134,10 +134,15 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     {isCurrent && (
                       <>
                         {isMove2 ? (
-                          <span className={`inline-block text-xs font-semibold rounded-full px-2.5 py-0.5 border transition-colors
-                            ${selectedPlan ? 'text-gray-400 bg-gray-100 border-gray-200' : 'text-purple-700 bg-purple-100 border-purple-200'}`}>
-                            <span style={selectedPlan ? { textDecoration: 'line-through' } : {}}>Move</span>
-                          </span>
+                          selectedPlan ? (
+                            <span className="inline-block text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5">
+                              <span style={{ textDecoration: 'line-through' }}>Move</span>
+                            </span>
+                          ) : (
+                            <span className="inline-block text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5">
+                              Move
+                            </span>
+                          )
                         ) : (
                           <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
                             Active
@@ -183,10 +188,21 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   {isCurrent ? (
                     <div className="mt-5">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      <div className={`w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default transition-colors
-                        ${isMove2 ? (selectedPlan ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-600') : 'bg-gray-100 text-gray-400'}`}>
-                        {isMove2 ? <span style={selectedPlan ? { textDecoration: 'line-through' } : {}}>Moving</span> : 'Your Current Plan'}
-                      </div>
+                      {isMove2 ? (
+                        selectedPlan ? (
+                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                            <span style={{ textDecoration: 'line-through' }}>Moving</span>
+                          </div>
+                        ) : (
+                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
+                            Moving
+                          </div>
+                        )
+                      ) : (
+                        <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                          Your Current Plan
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className={`mt-5 w-full py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors

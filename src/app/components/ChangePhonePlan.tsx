@@ -224,12 +224,21 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
-                    <span className={`self-center text-xs font-semibold rounded-full px-2.5 py-0.5 mb-2 border transition-colors
-                      ${isMove2 && isCurrent
-                        ? (selectedPlan && selectedPlan !== currentPlanId ? 'text-gray-400 bg-gray-100 border-gray-200' : 'text-purple-700 bg-purple-100 border-purple-200')
-                        : 'text-green-700 bg-green-100 border-green-200'}`}>
-                      {isMove2 && isCurrent ? <span style={selectedPlan && selectedPlan !== currentPlanId ? { textDecoration: 'line-through' } : {}}>Move</span> : 'Active'}
-                    </span>
+                    isMove2 && isCurrent ? (
+                      (selectedPlan && selectedPlan !== currentPlanId) ? (
+                        <span className="self-center text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5 mb-2">
+                          <span style={{ textDecoration: 'line-through' }}>Move</span>
+                        </span>
+                      ) : (
+                        <span className="self-center text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5 mb-2">
+                          Move
+                        </span>
+                      )
+                    ) : (
+                      <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
+                        Active
+                      </span>
+                    )
                   )}
                   {plan.subtitle && (
                     <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
@@ -321,10 +330,21 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   {!isPhoneStandalone && (isCurrent ? (
                     <div className="mt-auto pt-6">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      <div className={`w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default transition-colors
-                        ${isMove2 ? (selectedPlan && selectedPlan !== currentPlanId ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-600') : 'bg-gray-100 text-gray-400'}`}>
-                        {isMove2 ? <span style={selectedPlan && selectedPlan !== currentPlanId ? { textDecoration: 'line-through' } : {}}>Moving</span> : 'Your Current Plan'}
-                      </div>
+                      {isMove2 ? (
+                        (selectedPlan && selectedPlan !== currentPlanId) ? (
+                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                            <span style={{ textDecoration: 'line-through' }}>Moving</span>
+                          </div>
+                        ) : (
+                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
+                            Moving
+                          </div>
+                        )
+                      ) : (
+                        <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                          Your Current Plan
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="mt-auto pt-6 flex justify-center">
