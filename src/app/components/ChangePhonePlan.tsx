@@ -226,7 +226,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
                     <span className={`self-center text-xs font-semibold rounded-full px-2.5 py-0.5 mb-2 border
                       ${isMove2 && isCurrent ? 'text-purple-700 bg-purple-100 border-purple-200' : 'text-green-700 bg-green-100 border-green-200'}`}>
-                      {isMove2 && isCurrent ? 'Move' : 'Active'}
+                      {isMove2 && isCurrent ? <span className={selectedPlan && selectedPlan !== currentPlanId ? 'line-through decoration-purple-400' : ''}>Move</span> : 'Active'}
                     </span>
                   )}
                   {plan.subtitle && (
