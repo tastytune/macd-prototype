@@ -181,8 +181,10 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     }`}
                 >
                   {isCurrent && (
-                    <span className={`inline-block text-xs font-semibold rounded-full px-2.5 py-0.5 mb-3 border
-                      ${isMove2 ? 'text-purple-700 bg-purple-100 border-purple-200' : 'text-green-700 bg-green-100 border-green-200'}`}>
+                    <span className={`inline-block text-xs font-semibold rounded-full px-2.5 py-0.5 mb-3 border transition-colors
+                      ${isMove2
+                        ? (selectedPlan ? 'text-gray-400 bg-gray-100 border-gray-200' : 'text-purple-700 bg-purple-100 border-purple-200')
+                        : 'text-green-700 bg-green-100 border-green-200'}`}>
                       {isMove2 ? <span style={selectedPlan ? { textDecoration: 'line-through' } : {}}>Move</span> : 'Active'}
                     </span>
                   )}
@@ -207,9 +209,9 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
                   {!isSelectable ? (
                     <div className="mt-5">
-                      <div className={`w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default
-                        ${isCurrent && isMove2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
-                        {isCurrent ? (isMove2 ? 'Moving' : 'Your Current Plan') : 'Not Available'}
+                      <div className={`w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default transition-colors
+                        ${isCurrent && isMove2 && !selectedPlan ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
+                        {isCurrent ? (isMove2 ? <span style={selectedPlan ? { textDecoration: 'line-through' } : {}}>Moving</span> : 'Your Current Plan') : 'Not Available'}
                       </div>
                     </div>
                   ) : (

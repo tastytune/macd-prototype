@@ -224,8 +224,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
-                    <span className={`self-center text-xs font-semibold rounded-full px-2.5 py-0.5 mb-2 border
-                      ${isMove2 && isCurrent ? 'text-purple-700 bg-purple-100 border-purple-200' : 'text-green-700 bg-green-100 border-green-200'}`}>
+                    <span className={`self-center text-xs font-semibold rounded-full px-2.5 py-0.5 mb-2 border transition-colors
+                      ${isMove2 && isCurrent
+                        ? (selectedPlan && selectedPlan !== currentPlanId ? 'text-gray-400 bg-gray-100 border-gray-200' : 'text-purple-700 bg-purple-100 border-purple-200')
+                        : 'text-green-700 bg-green-100 border-green-200'}`}>
                       {isMove2 && isCurrent ? <span style={selectedPlan && selectedPlan !== currentPlanId ? { textDecoration: 'line-through' } : {}}>Move</span> : 'Active'}
                     </span>
                   )}
@@ -319,9 +321,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   {!isPhoneStandalone && (isCurrent ? (
                     <div className="mt-auto pt-6">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      <div className={`w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default
-                        ${isMove2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
-                        {isMove2 ? 'Moving' : 'Your Current Plan'}
+                      <div className={`w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default transition-colors
+                        ${isMove2 ? (selectedPlan && selectedPlan !== currentPlanId ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-600') : 'bg-gray-100 text-gray-400'}`}>
+                        {isMove2 ? <span style={selectedPlan && selectedPlan !== currentPlanId ? { textDecoration: 'line-through' } : {}}>Moving</span> : 'Your Current Plan'}
                       </div>
                     </div>
                   ) : (
