@@ -216,7 +216,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       </span>
                     )}
 
-                    <span className="text-sm text-gray-500">— ${addOn.price.toFixed(2)}/each</span>
+                    <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/each</span>
                     <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
                   </button>
                 );
@@ -290,12 +290,14 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   .filter(a => a && !oldAddOnLabelSet.has(a.label));
                 const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
 
-                if (selectedPlan && activePlan) {
+                const effectivePlan = activePlan ?? currentPlan;
+
+                if (effectivePlan && (planChanged || addOnsChanged) && previousLines.length > 0) {
                   const keptAddOnTotal = oldInternetAddOnLines
                     .filter(l => { const a = ADD_ONS.find(x => x.label === l.label); return a ? selectedAddOns.has(a.id) : false; })
                     .reduce((s, l) => s + l.price, 0);
                   const newAddOnTotal = newlyAddedAddOns.reduce((s, a) => s + a.price, 0);
-                  const fullTotal = nonInternetLines.reduce((s, l) => s + l.price, 0) + activePlan.price + keptAddOnTotal + newAddOnTotal;
+                  const fullTotal = nonInternetLines.reduce((s, l) => s + l.price, 0) + effectivePlan.price + keptAddOnTotal + newAddOnTotal;
 
                   return (
                     <div className="space-y-2 mb-3">
@@ -306,11 +308,11 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                           <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
                         </div>
                       ))}
-                      {/* Old internet plan – struck through */}
+                      {/* Old internet plan – struck if changed, normal if not */}
                       {oldInternetPlanLines.map((line, i) => (
                         <div key={`op-${i}`} className="flex justify-between text-sm">
-                          <span className="text-gray-400 line-through">{line.label}</span>
-                          <span className="text-gray-400 line-through">${line.price.toFixed(2)}</span>
+                          <span className={planChanged ? 'text-gray-400 line-through' : 'text-gray-600'}>{line.label}</span>
+                          <span className={planChanged ? 'text-gray-400 line-through' : 'font-medium text-gray-900'}>${line.price.toFixed(2)}</span>
                         </div>
                       ))}
                       {/* Old add-ons – struck if deselected, normal if kept */}
@@ -324,11 +326,13 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                           </div>
                         );
                       })}
-                      {/* New internet plan */}
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Internet {activePlan.speed} {activePlan.unit}</span>
-                        <span className="font-medium text-gray-900">${activePlan.price.toFixed(2)}</span>
-                      </div>
+                      {/* New internet plan – only when plan actually changed */}
+                      {planChanged && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Internet {effectivePlan.speed} {effectivePlan.unit}</span>
+                          <span className="font-medium text-gray-900">${effectivePlan.price.toFixed(2)}</span>
+                        </div>
+                      )}
                       {/* Newly added add-ons */}
                       {newlyAddedAddOns.map(a => (
                         <div key={a.id} className="flex justify-between text-sm">

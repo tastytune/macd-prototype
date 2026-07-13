@@ -37,10 +37,10 @@ interface PhoneBundleFeature {
 
 const LONG_DISTANCE_BUNDLE: PhoneBundleFeature = {
   id: 'long-distance', name: 'Long Distance', basePrice: 0, manageable: 'attribute',
-  attributeOptions: ['120 minutes', 'Unlimited'],
+  attributeOptions: ['Unlimited', '120 minutes'],
   attributePrices:  { '120 minutes': 0, Unlimited: 1.70 },
   attributeDisplayPrices: { '120 minutes': '$17.50/mo', Unlimited: '$19.20/mo' },
-  defaultAttribute: '120 minutes',
+  defaultAttribute: 'Unlimited',
 };
 
 const LONG_DISTANCE_STANDALONE: PhoneBundleFeature = {
@@ -84,7 +84,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
 export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
-  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': '120 minutes' });
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
 
   const features = PHONE_BUNDLE_FEATURES.map(f => {
     if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;

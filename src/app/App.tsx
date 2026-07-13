@@ -10,6 +10,7 @@ import { ReactivateReviewOrder } from './components/ReactivateReviewOrder';
 import { DeactivateServices } from './components/DeactivateServices';
 import { DeactivateReviewOrder } from './components/DeactivateReviewOrder';
 import { MoveServices } from './components/MoveServices';
+import { MoveServiceType } from './components/MoveServiceType';
 import { MoveServicesStep3 } from './components/MoveServicesStep3';
 import { MoveServicesStep4 } from './components/MoveServicesStep4';
 import { MoveServicesStep5 } from './components/MoveServicesStep5';
@@ -111,7 +112,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -497,12 +498,31 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onMove={(address, scenario) => { setMoveDestinationAddress(address); setMoveScenario(scenario || 'M01'); setCurrentStep('move-services-step3'); }}
+              onMove={(address, scenario) => { setMoveDestinationAddress(address); setMoveScenario(scenario || 'M01'); setCurrentStep('move-service-type'); }}
             />
           </motion.div>
         )}
 
-        {/* ── Move Services Step 3: Services selection ── */}
+        {/* ── Move: What would you like to move? ── */}
+        {currentStep === 'move-service-type' && (
+          <motion.div
+            key="move-service-type"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <MoveServiceType
+              action={selectedAction}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('move-services')}
+              onNext={(ids) => { setMoveSelectedServiceIds(ids); setCurrentStep('move-dates'); }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Move Services Step 3: Services selection (M03/M04 legacy) ── */}
         {currentStep === 'move-services-step3' && (
           <motion.div
             key="move-services-step3"

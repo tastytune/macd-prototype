@@ -1,4 +1,4 @@
-import { Lock, AlertTriangle } from 'lucide-react';
+import { Lock, AlertTriangle, Wifi, Tv, Phone, Film, Star, Package } from 'lucide-react';
 import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -67,6 +67,21 @@ const FIBER_OPTIONS: MoveServiceItem[] = [
 const TV_IDS = ['itv', 'cinemax', 'fanatic'];
 const COAX_IDS  = new Set(COAX_OPTIONS.map(o => o.id));
 const FIBER_IDS = new Set(FIBER_OPTIONS.map(o => o.id));
+
+/* ── Service icon map (for M01/M02 checkbox-card grid) ── */
+const SERVICE_ICONS: Record<string, { icon: React.ElementType; iconBg: string; iconColor: string }> = {
+  'internet':           { icon: Wifi,    iconBg: 'bg-blue-100',   iconColor: 'text-blue-600'   },
+  'internet-200m':      { icon: Wifi,    iconBg: 'bg-blue-100',   iconColor: 'text-blue-600'   },
+  'internet-coax-200':  { icon: Wifi,    iconBg: 'bg-orange-100', iconColor: 'text-orange-600' },
+  'internet-coax-1g':   { icon: Wifi,    iconBg: 'bg-orange-100', iconColor: 'text-orange-600' },
+  'internet-fiber-1g':  { icon: Wifi,    iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
+  'internet-fiber-2g':  { icon: Wifi,    iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
+  'itv':                { icon: Tv,      iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  'cinemax':            { icon: Film,    iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  'fanatic':            { icon: Star,    iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  'phone-bundle':       { icon: Phone,   iconBg: 'bg-green-100',  iconColor: 'text-green-600'  },
+};
+const DEFAULT_SVC_ICON = { icon: Package, iconBg: 'bg-gray-100', iconColor: 'text-gray-500' };
 
 /* ── Shared card button ── */
 function PlanButton({ isSelected, isCurrent, label = 'Select', selectedLabel = 'Selected', currentLabel = 'Your Current Plan', theme = 'purple' }: {
@@ -752,51 +767,65 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
 
         <div className="flex gap-8">
 
-          {/* Left: service cards */}
+          {/* Left: service cards — checkbox-card pattern (same style as Change › Service type) */}
           <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Current services</p>
-            <div className="flex flex-col gap-3">
-              {effectiveServices.filter(s => !COAX_IDS.has(s.id)).map(svc => {
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Current services</p>
+            <div className="grid grid-cols-2 gap-0 rounded-2xl border border-gray-200 overflow-hidden">
+              {effectiveServices.filter(s => !COAX_IDS.has(s.id)).map((svc, i, arr) => {
                 const isTV = TV_IDS.includes(svc.id) && isFiberSA;
                 const isDisabled = isTV && !tvEnabled;
                 const isChecked = selected.has(svc.id) && !isDisabled;
+                const iconDef = SERVICE_ICONS[svc.id] ?? DEFAULT_SVC_ICON;
+                const Icon = iconDef.icon;
+                const hasRightBorder = i % 2 === 0 && i + 1 < arr.length;
+                const hasTopBorder = i >= 2;
+                const hasPriceLock = svc.id === 'internet';
+
                 return (
                   <button
                     key={svc.id}
                     onClick={() => !isDisabled && toggle(svc.id)}
                     disabled={isDisabled}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all w-full
+                    className={`flex flex-col gap-4 p-6 text-left transition-all
+                      ${hasRightBorder ? 'border-r border-gray-200' : ''}
+                      ${hasTopBorder ? 'border-t border-gray-200' : ''}
                       ${isDisabled
-                        ? 'border-gray-200 bg-gray-50 opacity-40 cursor-not-allowed'
+                        ? 'bg-gray-50 opacity-40 cursor-not-allowed'
                         : isChecked
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'bg-blue-50 ring-2 ring-inset ring-blue-500'
+                          : 'bg-white hover:bg-gray-50'
                       }`}
                   >
-                    <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center
-                      ${isChecked && !isDisabled ? 'bg-blue-600 border-2 border-blue-600' : 'border-2 border-gray-300 bg-white'}`}>
-                      {isChecked && !isDisabled && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
+                    {/* Icon */}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${isDisabled ? 'bg-gray-100' : iconDef.iconBg}`}>
+                      <Icon className={`w-6 h-6 ${isDisabled ? 'text-gray-400' : iconDef.iconColor}`} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold text-gray-900">{svc.name}</p>
-                        <p className="text-sm font-medium text-gray-700 ml-4 flex-shrink-0">${svc.price.toFixed(2)}/mo</p>
-                      </div>
-                      <p className="text-xs text-gray-500">{svc.detail}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f3e8f3] text-[#800080]">
-                          → Move
-                        </span>
-                        {svc.id === 'internet' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                    {/* Content */}
+                    <div className="flex-1">
+                      <p className="text-lg font-semibold text-gray-900 mb-1">{svc.name}</p>
+                      <p className="text-xs text-gray-500 leading-relaxed mb-3">{svc.detail}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-gray-700">${svc.price.toFixed(2)}/mo</span>
+                        {isChecked && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f3e8f3] text-[#800080]">
+                            → Move
+                          </span>
+                        )}
+                        {hasPriceLock && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
                             Price Lock
                           </span>
                         )}
                       </div>
+                    </div>
+                    {/* Checkbox indicator (square = multi-select) */}
+                    <div className={`self-end w-4 h-4 rounded border-2 flex items-center justify-center mt-auto
+                      ${isChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
+                      {isChecked && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
                     </div>
                   </button>
                 );
