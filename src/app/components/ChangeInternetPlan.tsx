@@ -121,6 +121,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                 <div
                   key={plan.id}
                   onClick={() => { if (!isCurrent) setSelectedPlan(isSelected ? null : plan.id); }}
+                  style={isMove2 && isCurrent && selectedPlan ? { opacity: 0.45, transition: 'opacity 0.2s' } : {}}
                   className={`flex-1 rounded-2xl border-2 p-6 text-center transition-all
                     ${isCurrent
                       ? 'border-gray-200 bg-gray-50 cursor-default'
