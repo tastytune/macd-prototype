@@ -46,6 +46,8 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
   const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
   const currentPlan = PLANS.find(p => p.id === currentPlanId) ?? null;
+  // In Move 2, 2Gbps (fiber-only) is not available at coax destinations
+  const visiblePlans = isMove2 ? PLANS.filter(p => p.id !== '2gig') : PLANS;
   const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : undefined;
   const planLabel = activePlan
     ? `Internet ${activePlan.speed} ${activePlan.unit}`
@@ -114,14 +116,13 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
           {/* Plan cards */}
           <div className="flex gap-4 mb-10">
-            {PLANS.map(plan => {
+            {visiblePlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               const isSelected = selectedPlan === plan.id;
               return (
                 <div
                   key={plan.id}
                   onClick={() => { if (!isCurrent) setSelectedPlan(isSelected ? null : plan.id); }}
-                  style={isMove2 && isCurrent && selectedPlan ? { opacity: 0.45, transition: 'opacity 0.2s' } : {}}
                   className={`flex-1 rounded-2xl border-2 p-6 text-center transition-all
                     ${isCurrent
                       ? 'border-gray-200 bg-gray-50 cursor-default'
