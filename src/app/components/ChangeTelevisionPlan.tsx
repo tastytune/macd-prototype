@@ -252,7 +252,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                       src={addOn.src}
                       selected={selectedAddOns.has(addOn.id)}
                       onToggle={() => toggleAddOn(addOn.id)}
-                      disabled={!saSupportsAddOns}
+                      disabled={!addOnsEnabled}
                       active={activeAddOnIds.includes(addOn.id)}
                     />
                   </div>
@@ -269,7 +269,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     }`}>
                     {addOn.name}
                   </span>
-                  <span className={`text-xs font-semibold ${saSupportsAddOns ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-semibold ${addOnsEnabled ? 'text-blue-600' : 'text-gray-400'}`}>
                     ${addOn.price.toFixed(2)}/mo
                   </span>
                 </div>
