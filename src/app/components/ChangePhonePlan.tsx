@@ -46,9 +46,9 @@ const LONG_DISTANCE_BUNDLE: PhoneBundleFeature = {
 
 const LONG_DISTANCE_STANDALONE: PhoneBundleFeature = {
   id: 'long-distance', name: 'Long Distance', basePrice: 0, manageable: 'attribute',
-  attributeOptions: ['Unlimited', 'Simplicity', 'Simplicity Gold', 'Simplicity Platinum'],
+  attributeOptions: ['Simplicity', 'Simplicity Gold', 'Simplicity Platinum', 'Unlimited'],
   attributePrices:  { Unlimited: 10.99, Simplicity: 0, 'Simplicity Gold': 3.95, 'Simplicity Platinum': 5.95 },
-  defaultAttribute: 'Unlimited',
+  defaultAttribute: 'Simplicity',
 };
 
 const CALL_WAITING_STANDALONE: PhoneBundleFeature = {
@@ -85,7 +85,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
 export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
-  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited' });
 
   const features = PHONE_BUNDLE_FEATURES.map(f => {
     if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;
