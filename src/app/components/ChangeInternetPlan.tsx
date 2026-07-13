@@ -23,6 +23,12 @@ const PLANS = [
   { id: '2gig',   speed: '2',   unit: 'Gbps',  price: 124.95 },
 ];
 
+// Coax prices for Move 2 (technology change — fiber 2Gbps unavailable at coax destination)
+const COAX_PLANS = [
+  { id: '200mbps', speed: '200', unit: 'Mbps', price: 79.95 },
+  { id: '1gig',   speed: '1',   unit: 'Gbps',  price: 99.95 },
+];
+
 // Maps SA id → current internet plan id
 const SA_INTERNET_PLAN: Record<string, string> = {
   'sa-00912': '2gig',
@@ -46,9 +52,9 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
   const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
   const currentPlan = PLANS.find(p => p.id === currentPlanId) ?? null;
-  // In Move 2, 2Gbps (fiber-only) is not available at coax destinations
-  const visiblePlans = isMove2 ? PLANS.filter(p => p.id !== '2gig') : PLANS;
-  const activePlan = selectedPlan ? PLANS.find(p => p.id === selectedPlan) : undefined;
+  // In Move 2, use coax plans (technology change — different pricing, 2Gbps unavailable)
+  const visiblePlans = isMove2 ? COAX_PLANS : PLANS;
+  const activePlan = selectedPlan ? visiblePlans.find(p => p.id === selectedPlan) : undefined;
   const planLabel = activePlan
     ? `Internet ${activePlan.speed} ${activePlan.unit}`
     : currentPlan ? `Internet ${currentPlan.speed} ${currentPlan.unit}` : 'Internet';
@@ -119,6 +125,45 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
             {visiblePlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               const isSelected = selectedPlan === plan.id;
+
+              if (isMove2) {
+                return (
+                  <div
+                    key={plan.id}
+                    onClick={() => setSelectedPlan(isSelected ? null : plan.id)}
+                    className={`flex-1 rounded-2xl border-2 p-6 text-center flex flex-col cursor-pointer transition-all
+                      ${isSelected
+                        ? 'border-orange-400 bg-orange-50'
+                        : 'border-gray-200 bg-white hover:border-orange-300 hover:bg-orange-50/40'
+                      }`}
+                  >
+                    <div className="flex justify-center mb-3">
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border
+                        ${isSelected
+                          ? 'bg-orange-100 text-orange-700 border-orange-300'
+                          : 'bg-orange-50 text-orange-600 border-orange-200'
+                        }`}>
+                        Coax replacement
+                      </span>
+                    </div>
+                    <div className={`text-6xl font-bold leading-none mb-1 ${isSelected ? 'text-orange-600' : 'text-gray-900'}`}>
+                      {plan.speed}
+                    </div>
+                    <div className={`text-base font-medium mb-4 ${isSelected ? 'text-orange-500' : 'text-gray-500'}`}>
+                      {plan.unit}
+                    </div>
+                    <div className={`text-lg font-bold mb-1 ${isSelected ? 'text-orange-700' : 'text-gray-900'}`}>
+                      ${plan.price.toFixed(2)}
+                      <span className="text-sm font-normal text-gray-400"> /month</span>
+                    </div>
+                    <div className={`mt-5 w-full py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors
+                      ${isSelected ? 'bg-orange-600 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'}`}>
+                      {isSelected ? 'Selected' : 'Select'}
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={plan.id}
@@ -135,22 +180,10 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   <div className="h-7 flex items-center justify-center gap-1.5 mb-3">
                     {isCurrent && (
                       <>
-                        {isMove2 ? (
-                          selectedPlan ? (
-                            <span className="inline-block text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5">
-                              <span style={{ textDecoration: 'line-through' }}>Move</span>
-                            </span>
-                          ) : (
-                            <span className="inline-block text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5">
-                              Move
-                            </span>
-                          )
-                        ) : (
-                          <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
-                            Active
-                          </span>
-                        )}
-                        {!isMove2 && SA_PRICE_LOCK.has(selectedSA?.id ?? '') && !selectedPlan && (
+                        <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
+                          Active
+                        </span>
+                        {SA_PRICE_LOCK.has(selectedSA?.id ?? '') && !selectedPlan && (
                           <span className="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-2.5 py-0.5">
                             Price Lock
                           </span>
@@ -190,21 +223,9 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   {isCurrent ? (
                     <div className="mt-5">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      {isMove2 ? (
-                        selectedPlan ? (
-                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
-                            <span style={{ textDecoration: 'line-through' }}>Moving</span>
-                          </div>
-                        ) : (
-                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
-                            Moving
-                          </div>
-                        )
-                      ) : (
-                        <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
-                          Your Current Plan
-                        </div>
-                      )}
+                      <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                        Your Current Plan
+                      </div>
                     </div>
                   ) : (
                     <div className={`mt-5 w-full py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors
@@ -267,7 +288,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
             <button
               onClick={() => {
                 if (!canContinue) return;
-                const planToSubmit = planChanged ? PLANS.find(p => p.id === selectedPlan)! : currentPlan;
+                const planToSubmit = planChanged ? visiblePlans.find(p => p.id === selectedPlan)! : currentPlan;
                 const lines: CartLine[] = [
                   { label: `Internet ${planToSubmit.speed} ${planToSubmit.unit}`, price: planToSubmit.price, group: 'internet' },
                   ...[...selectedAddOns].map(id => {
