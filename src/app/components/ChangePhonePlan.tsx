@@ -224,8 +224,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
-                    <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
-                      Active
+                    <span className={`self-center text-xs font-semibold rounded-full px-2.5 py-0.5 mb-2 border
+                      ${isMove2 && isCurrent ? 'text-purple-700 bg-purple-100 border-purple-200' : 'text-green-700 bg-green-100 border-green-200'}`}>
+                      {isMove2 && isCurrent ? 'Move' : 'Active'}
                     </span>
                   )}
                   {plan.subtitle && (
@@ -318,8 +319,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   {!isPhoneStandalone && (isCurrent ? (
                     <div className="mt-auto pt-6">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      <div className="w-full py-1.5 rounded-[10px] bg-gray-100 text-sm font-semibold text-gray-400 uppercase tracking-wide cursor-default">
-                        Your Current Plan
+                      <div className={`w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default
+                        ${isMove2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
+                        {isMove2 ? 'Moving' : 'Your Current Plan'}
                       </div>
                     </div>
                   ) : (

@@ -181,8 +181,9 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     }`}
                 >
                   {isCurrent && (
-                    <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
-                      Active
+                    <span className={`inline-block text-xs font-semibold rounded-full px-2.5 py-0.5 mb-3 border
+                      ${isMove2 ? 'text-purple-700 bg-purple-100 border-purple-200' : 'text-green-700 bg-green-100 border-green-200'}`}>
+                      {isMove2 ? 'Move' : 'Active'}
                     </span>
                   )}
 
@@ -206,8 +207,9 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
                   {!isSelectable ? (
                     <div className="mt-5">
-                      <div className="w-full py-2 rounded-lg bg-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide cursor-default">
-                        {isCurrent ? 'Your Current Plan' : 'Not Available'}
+                      <div className={`w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default
+                        ${isCurrent && isMove2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-400'}`}>
+                        {isCurrent ? (isMove2 ? 'Moving' : 'Your Current Plan') : 'Not Available'}
                       </div>
                     </div>
                   ) : (
