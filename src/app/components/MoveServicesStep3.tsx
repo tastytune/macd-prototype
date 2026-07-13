@@ -507,26 +507,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
           <div className="flex-1 min-w-0">
 
             {/* Internet cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6 items-stretch">
-
-              {/* Current internet — disabled */}
-              <div className="rounded-2xl border-2 border-gray-200 bg-gray-50 p-6 text-center flex flex-col opacity-50 cursor-not-allowed">
-                <div className="flex justify-center mb-3">
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200">Active</span>
-                </div>
-                <div className="text-5xl font-black mb-1 text-gray-300">{currentSpeed}</div>
-                <div className="text-sm font-semibold uppercase tracking-widest mb-5 text-gray-400">{currentUnit}</div>
-                <div className="text-2xl font-bold mb-1 text-gray-400">
-                  ${currentPrice.toFixed(2)}
-                  <span className="text-sm font-normal text-gray-400"> /month</span>
-                </div>
-                <div className="mt-auto pt-6">
-                  <p className="text-xs text-gray-400 mb-2">{notAvailableLabel}</p>
-                  <div className="w-full py-1.5 rounded-[10px] bg-gray-100 text-sm font-semibold text-gray-400 uppercase tracking-wide cursor-not-allowed">
-                    Not Available
-                  </div>
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-4 mb-6 items-stretch">
 
               {/* Replacement options */}
               {replacementOptions.map(opt => {
