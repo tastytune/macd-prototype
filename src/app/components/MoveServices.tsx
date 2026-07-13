@@ -8,6 +8,7 @@ import { Breadcrumb } from './Breadcrumb';
 interface MoveServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
+  isMove2?: boolean;
   onBack: () => void;
   onMove: (address: string, scenario: string) => void;
 }
@@ -26,7 +27,7 @@ const US_STATES = [
   'VA','WA','WV','WI','WY',
 ];
 
-export function MoveServices({ action, selectedSA, onBack, onMove }: MoveServicesProps) {
+export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMove }: MoveServicesProps) {
   const [scenario, setScenario] = useState('');
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
@@ -44,7 +45,12 @@ export function MoveServices({ action, selectedSA, onBack, onMove }: MoveService
         <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Destination', 'Services', 'Schedule', 'Review order']} currentIndex={1} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Destination', 'Services', 'Schedule', 'Review order']}
+        currentIndex={1}
+      />
 
       {/* Form card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-8">

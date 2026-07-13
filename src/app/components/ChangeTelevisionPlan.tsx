@@ -11,6 +11,7 @@ interface ChangeTelevisionPlanProps {
   previousLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
+  isMove2?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -78,7 +79,7 @@ function ChannelTile({ name, src, selected, onToggle, disabled, active }: {
   );
 }
 
-export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
+export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
@@ -121,7 +122,12 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
         <h1 className="text-3xl text-gray-900 mb-2">Change Television Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 3 : 2}
+      />
 
       <div className="flex gap-8 items-start">
 

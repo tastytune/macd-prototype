@@ -10,6 +10,7 @@ interface ChangePhonePlanProps {
   previousLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
+  isMove2?: boolean;
   isPhoneStandalone?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -81,7 +82,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
 
-export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
@@ -171,7 +172,12 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         <h1 className="text-3xl text-gray-900 mb-2">{isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Service'}</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 3 : 2}
+      />
 
       <div className="flex gap-8 items-start">
 

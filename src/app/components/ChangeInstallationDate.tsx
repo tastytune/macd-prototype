@@ -11,6 +11,7 @@ interface ChangeInstallationDateProps {
   cartLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
+  isMove2?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -45,7 +46,7 @@ function formatDateValue(date: Date) {
   return date.toISOString().split('T')[0];
 }
 
-export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
+export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
   const weekdays = getNextWeekdays(3);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
@@ -75,7 +76,12 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
         <h1 className="text-3xl text-gray-900 mb-2">Change Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={3} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 4 : 3}
+      />
 
       <div className="flex gap-8 items-start">
 

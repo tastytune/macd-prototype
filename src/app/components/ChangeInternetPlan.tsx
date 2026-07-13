@@ -9,6 +9,7 @@ interface ChangeInternetPlanProps {
   selectedSA?: Service | null;
   previousLines?: CartLine[];
   isDowngrade?: boolean;
+  isMove2?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -37,7 +38,7 @@ const ADD_ONS = [
   { id: 'service-assurance', label: 'Service Assurance', price: 3.49, isCurrentlyActive: false },
 ];
 
-export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(
     new Set(ADD_ONS.filter(a => a.isCurrentlyActive).map(a => a.id))
@@ -89,7 +90,12 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
         <h1 className="text-3xl text-gray-900 mb-2">Change Internet Service</h1>
         <ContextBar action="change" selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={2} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 3 : 2}
+      />
 
       <div className="flex gap-8 items-start">
 

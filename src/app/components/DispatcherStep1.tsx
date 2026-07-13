@@ -18,7 +18,7 @@ function MovePinsIcon({ className }: { className?: string }) {
   );
 }
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
@@ -104,6 +104,20 @@ const actions: {
     radioDot: 'bg-[#800080]',
     radioRing: 'border-[#800080]',
     labelColor: 'text-[#800080]',
+    fullWidth: true,
+  },
+  {
+    id: 'move2',
+    label: 'Move 2',
+    description: 'Transfer services to a new address with full plan selection — same as Change with a Destination step.',
+    icon: MovePinsIcon,
+    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-50',
+    selectedBorder: 'border-blue-500',
+    selectedBg: 'bg-blue-50',
+    radioDot: 'bg-blue-500',
+    radioRing: 'border-blue-500',
+    labelColor: 'text-blue-700',
     fullWidth: true,
   },
 ];

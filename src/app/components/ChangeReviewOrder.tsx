@@ -14,6 +14,7 @@ interface ChangeReviewOrderProps {
   cartLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
+  isMove2?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -73,7 +74,7 @@ const GROUP_LABEL: Record<GroupKey, string> = {
 
 const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 
-export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
+export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
   const activeGroups = GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
@@ -104,7 +105,12 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         <h1 className="text-3xl text-gray-900 mb-2">Review Order</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={4} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 5 : 4}
+      />
 
       <div className="flex gap-6 items-start">
 

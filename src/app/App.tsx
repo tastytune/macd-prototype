@@ -232,6 +232,13 @@ function App() {
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
       setCurrentStep('move-services');
+    } else if (selectedAction === 'move2') {
+      setSelectedSA(services[0]);
+      setSelectedService(services[0]);
+      setChangeCartLines(SA_INITIAL_CART[services[0].id] ?? []);
+      setChangeInternetPlanId('');
+      setChangeSelectedPromos(new Set());
+      setCurrentStep('move-services');
     } else if (selectedAction === 'change') {
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
@@ -497,8 +504,13 @@ function App() {
             <MoveServices
               action={selectedAction}
               selectedSA={selectedSA}
+              isMove2={selectedAction === 'move2'}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onMove={(address, scenario) => { setMoveDestinationAddress(address); setMoveScenario(scenario || 'M01'); setCurrentStep('move-service-type'); }}
+              onMove={(address, scenario) => {
+                setMoveDestinationAddress(address);
+                setMoveScenario(scenario || 'M01');
+                setCurrentStep(selectedAction === 'move2' ? 'change-service-type' : 'move-service-type');
+              }}
             />
           </motion.div>
         )}
@@ -597,7 +609,8 @@ function App() {
           >
             <ChangeServiceType
               selectedSA={selectedSA}
-              onBack={() => setCurrentStep('dispatcher-step2')}
+              isMove2={selectedAction === 'move2'}
+              onBack={() => setCurrentStep(selectedAction === 'move2' ? 'move-services' : 'dispatcher-step2')}
               onNext={(serviceType) => {
                 if (serviceType === 'television') setCurrentStep('change-television-plan');
                 else if (serviceType === 'phone') setCurrentStep('change-phone-plan');
@@ -621,6 +634,7 @@ function App() {
               selectedSA={selectedSA}
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
+              isMove2={selectedAction === 'move2'}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-service-type')}
@@ -646,6 +660,7 @@ function App() {
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
+              isMove2={selectedAction === 'move2'}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-internet-plan')}
@@ -670,6 +685,7 @@ function App() {
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
+              isMove2={selectedAction === 'move2'}
               isPhoneStandalone={PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '')}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
@@ -695,6 +711,7 @@ function App() {
               cartLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
+              isMove2={selectedAction === 'move2'}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-phone-plan')}
@@ -724,6 +741,7 @@ function App() {
                 cartLines={changeCartLines}
                 isDowngrade={changeIsDowngrade}
                 isUpgrade={changeIsUpgrade}
+                isMove2={selectedAction === 'move2'}
                 selectedPromos={changeSelectedPromos}
                 onPromoToggle={toggleChangePromo}
                 onBack={() => setCurrentStep('change-installation-date')}

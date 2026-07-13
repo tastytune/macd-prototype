@@ -5,6 +5,7 @@ import { Breadcrumb } from './Breadcrumb';
 
 interface ChangeServiceTypeProps {
   selectedSA?: Service | null;
+  isMove2?: boolean;
   onBack: () => void;
   onNext: (serviceType: string) => void;
 }
@@ -36,7 +37,7 @@ const SERVICE_TYPES = [
   },
 ];
 
-export function ChangeServiceType({ selectedSA, onBack, onNext }: ChangeServiceTypeProps) {
+export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext }: ChangeServiceTypeProps) {
   const isPhoneStandalone = selectedSA?.id === 'sa-02031';
   const [selected, setSelected] = useState<string | null>(isPhoneStandalone ? 'phone' : null);
 
@@ -54,7 +55,12 @@ export function ChangeServiceType({ selectedSA, onBack, onNext }: ChangeServiceT
           Service account: <span className="font-medium text-gray-700">{saName}</span>
         </p>
       </div>
-      <Breadcrumb steps={['Select account', 'Service type', 'Plan', 'Installation', 'Review order']} currentIndex={1} />
+      <Breadcrumb
+        steps={isMove2
+          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+        currentIndex={isMove2 ? 2 : 1}
+      />
 
       {/* Service type cards */}
       <div className="grid grid-cols-3 gap-0 rounded-2xl border border-gray-200 overflow-hidden mb-10">
