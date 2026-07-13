@@ -135,7 +135,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       <>
                         {isMove2 ? (
                           <span className="inline-block text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5">
-                            <span className={selectedPlan ? 'line-through decoration-purple-400' : ''}>Move</span>
+                            <span style={selectedPlan ? { textDecoration: 'line-through' } : {}}>Move</span>
                           </span>
                         ) : (
                           <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
