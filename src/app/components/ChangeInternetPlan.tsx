@@ -45,7 +45,13 @@ const ADD_ONS = [
 ];
 
 export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
+    if (!isMove2) return null;
+    const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
+    if (planId === '2gig') return '1gig';       // closest coax equivalent
+    if (planId === '1gig' || planId === '200mbps') return planId;
+    return null;
+  });
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(
     new Set(ADD_ONS.filter(a => a.isCurrentlyActive).map(a => a.id))
   );
