@@ -130,7 +130,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     if (next !== 'phone-bundle') {
       setFeaturesExpanded(false);
       setRemovedFeatures(new Set());
-      setAttributeValues({ 'directory-listing': 'Published', 'long-distance': '120 minutes' });
+      setAttributeValues({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
     }
   };
 
