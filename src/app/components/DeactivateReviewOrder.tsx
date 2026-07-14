@@ -100,9 +100,10 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
   const deactivatedMRC = activeServices
     .filter(s => isDeactivating(s.serviceId))
     .reduce((sum, s) => sum + s.monthlyCharge, 0);
+  const showDeactivationFee = deactivationReason !== 'NPD';
   const [deactivationFeeApplied, setDeactivationFeeApplied] = useState(true);
   const baseFee = 10.00;
-  const deactivationFee = deactivationFeeApplied ? baseFee : 0;
+  const deactivationFee = showDeactivationFee && deactivationFeeApplied ? baseFee : 0;
 
   const dateObj = new Date(deactivationDate + 'T00:00:00');
   const daysUsed = dateObj.getDate();
@@ -232,18 +233,20 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                   <span className="text-gray-700">Current monthly charges</span>
                   <span className="text-gray-900">${totalMonthly.toFixed(2)}</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-700">Deactivation fees</span>
-                    <button
-                      onClick={() => setDeactivationFeeApplied(v => !v)}
-                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${deactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${deactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
-                    </button>
+                {showDeactivationFee && (
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Deactivation fees</span>
+                      <button
+                        onClick={() => setDeactivationFeeApplied(v => !v)}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${deactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${deactivationFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    <span className={deactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>${baseFee.toFixed(2)}/mo</span>
                   </div>
-                  <span className={deactivationFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>${baseFee.toFixed(2)}/mo</span>
-                </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
