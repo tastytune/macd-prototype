@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, AlertTriangle } from 'lucide-react';
+import { MapPin, AlertTriangle, Package } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
@@ -32,7 +32,7 @@ const SA_TV_PLAN: Record<string, string> = {
 
 // Plans that can be selected per SA (non-selectable = disabled)
 const SA_TV_SELECTABLE: Record<string, string[]> = {
-  'sa-00912': ['75plus', '250plus'],          // 150+ is current → disabled
+  'sa-00912': ['75plus', '250plus'],
   'sa-01047': ['75plus', '150plus', '250plus'],
 };
 
@@ -57,6 +57,24 @@ const ADD_ONS = [
   { id: 'showtime',   name: 'Showtime',     price: 10.99, src: '/showtime.png',   plans: ['150plus', '250plus'] },
 ];
 
+// ── Service Options ──────────────────────────────────────────────────────────
+const VIDEO_STREAM_PRICE_PER = 2.00;  // per additional stream above the 3 included
+
+const DVR_OPTIONS = [
+  { hours: 50,  price: 0     },
+  { hours: 100, price: 5.00  },
+  { hours: 200, price: 8.00  },
+  { hours: 300, price: 12.00 },
+];
+
+const SET_TOP_BOX_PRICE_PER = 5.00;  // per box + remote pair per month
+
+// Current service-option values per SA
+const SA_VIDEO_STREAMS: Record<string, number> = { 'sa-00912': 4, 'sa-01047': 3 };
+const SA_DVR_HOURS:     Record<string, number> = { 'sa-00912': 100, 'sa-01047': 50 };
+const SA_SET_TOP_BOXES: Record<string, number> = { 'sa-00912': 2, 'sa-01047': 0 };
+
+// ── UI helpers ───────────────────────────────────────────────────────────────
 function ChannelTile({ name, src, selected, onToggle, disabled, active }: {
   name: string; src: string; selected: boolean; onToggle: () => void; disabled?: boolean; active?: boolean;
 }) {
@@ -79,11 +97,36 @@ function ChannelTile({ name, src, selected, onToggle, disabled, active }: {
   );
 }
 
+function StepperButton({ onClick, disabled, children }: {
+  onClick: () => void; disabled: boolean; children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-9 h-9 rounded-full border-2 text-xl font-bold flex items-center justify-center transition-colors flex-shrink-0
+        ${disabled
+          ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+          : 'border-blue-500 text-blue-600 hover:bg-blue-50 active:bg-blue-100'}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set(activeAddOnIds));
+
+  // Service Options state
+  const initStreams = SA_VIDEO_STREAMS[saId] ?? 3;
+  const initDvr    = SA_DVR_HOURS[saId] ?? 50;
+  const initBoxes  = SA_SET_TOP_BOXES[saId] ?? 0;
+  const [videoStreams, setVideoStreams] = useState(initStreams);
+  const [dvrHours,    setDvrHours]    = useState(initDvr);
+  const [setTopBoxes, setSetTopBoxes]  = useState(initBoxes);
 
   const currentPlanId = SA_TV_PLAN[selectedSA?.id ?? ''] ?? null;
   const higherInternetSelected = selectedInternetPlanId === '1gig' || selectedInternetPlanId === '2gig';
@@ -102,7 +145,15 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   const addOnsChanged = selectedAddOns.size !== initialAddOnSet.size
     || [...selectedAddOns].some(id => !initialAddOnSet.has(id))
     || [...initialAddOnSet].some(id => !selectedAddOns.has(id));
-  const canContinue = !!selectedPlan || addOnsChanged;
+
+  // Service Options derived
+  const videoStreamPrice = Math.max(0, videoStreams - 3) * VIDEO_STREAM_PRICE_PER;
+  const dvrPrice         = DVR_OPTIONS.find(o => o.hours === dvrHours)?.price ?? 0;
+  const stbPrice         = setTopBoxes * SET_TOP_BOX_PRICE_PER;
+  const stbDelta         = setTopBoxes - initBoxes;
+  const serviceOptsChanged = videoStreams !== initStreams || dvrHours !== initDvr || setTopBoxes !== initBoxes;
+
+  const canContinue = !!selectedPlan || addOnsChanged || serviceOptsChanged;
 
   const toggleAddOn = (id: string) => {
     setSelectedAddOns(prev => {
@@ -114,6 +165,18 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
   const planLabel = activePlan ? activePlan.name : '';
+
+  // Build service-option CartLines (only non-zero cost items)
+  const buildServiceOptLines = (): CartLine[] => {
+    const lines: CartLine[] = [];
+    if (videoStreamPrice > 0)
+      lines.push({ label: `Video Streams (${videoStreams})`, price: videoStreamPrice, group: 'television' });
+    if (dvrPrice > 0)
+      lines.push({ label: `DVR Storage (${dvrHours} hrs)`, price: dvrPrice, group: 'television' });
+    if (stbPrice > 0)
+      lines.push({ label: `Set-Top Boxes + Remotes (${setTopBoxes})`, price: stbPrice, group: 'television' });
+    return lines;
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
@@ -131,7 +194,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
       <div className="flex gap-8 items-start">
 
-        {/* ── Left: plan selection + add-ons ── */}
+        {/* ── Left: plan selection + options + add-ons ── */}
         <div className="flex-1 min-w-0">
 
           {/* Skip TV */}
@@ -143,7 +206,6 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
               Skip TV
             </button>
           </div>
-
 
           {/* Plan cards */}
           <div className="flex gap-4 mb-10">
@@ -263,6 +325,109 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
             ) : null;
           })()}
 
+          {/* ── Service Options ── */}
+          <div className="mb-10">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Service Options</h3>
+            <p className="text-sm text-gray-500 mb-5">Adjust streams, DVR storage, and equipment for this account.</p>
+
+            <div className="space-y-4">
+
+              {/* Video Streams */}
+              <div className="flex items-center justify-between p-5 rounded-xl border border-gray-200 bg-white">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Video Streams</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    3 included · +${VIDEO_STREAM_PRICE_PER.toFixed(2)}/stream/mo for additional
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <StepperButton onClick={() => setVideoStreams(v => Math.max(3, v - 1))} disabled={videoStreams <= 3}>−</StepperButton>
+                  <div className="text-center w-14">
+                    <p className="text-2xl font-bold text-gray-900 leading-none">{videoStreams}</p>
+                    {videoStreamPrice > 0
+                      ? <p className="text-xs text-blue-600 font-semibold mt-0.5">+${videoStreamPrice.toFixed(2)}/mo</p>
+                      : <p className="text-xs text-green-600 font-medium mt-0.5">Included</p>
+                    }
+                  </div>
+                  <StepperButton onClick={() => setVideoStreams(v => Math.min(10, v + 1))} disabled={videoStreams >= 10}>+</StepperButton>
+                </div>
+              </div>
+
+              {/* DVR Storage */}
+              <div className="p-5 rounded-xl border border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">DVR Storage</p>
+                    <p className="text-xs text-gray-500 mt-0.5">50 hours included</p>
+                  </div>
+                  {dvrPrice > 0
+                    ? <span className="text-sm font-semibold text-blue-600">+${dvrPrice.toFixed(2)}/mo</span>
+                    : <span className="text-sm font-semibold text-green-600">Included</span>
+                  }
+                </div>
+                <div className="flex gap-2">
+                  {DVR_OPTIONS.map(opt => (
+                    <button
+                      key={opt.hours}
+                      onClick={() => setDvrHours(opt.hours)}
+                      className={`flex-1 py-2.5 rounded-lg text-center border transition-colors
+                        ${dvrHours === opt.hours
+                          ? 'bg-blue-600 border-blue-600 text-white'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                        }`}
+                    >
+                      <p className="text-sm font-semibold">{opt.hours} hrs</p>
+                      <p className={`text-xs mt-0.5 ${dvrHours === opt.hours ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {opt.price === 0 ? 'included' : `+$${opt.price.toFixed(2)}/mo`}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Set-Top Boxes + Remotes */}
+              <div className="p-5 rounded-xl border border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">Set-Top Boxes + Remotes</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      ${SET_TOP_BOX_PRICE_PER.toFixed(2)}/box/mo · none included
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <StepperButton onClick={() => setSetTopBoxes(v => Math.max(0, v - 1))} disabled={setTopBoxes <= 0}>−</StepperButton>
+                    <div className="text-center w-14">
+                      <p className="text-2xl font-bold text-gray-900 leading-none">{setTopBoxes}</p>
+                      {stbPrice > 0
+                        ? <p className="text-xs text-blue-600 font-semibold mt-0.5">+${stbPrice.toFixed(2)}/mo</p>
+                        : <p className="text-xs text-gray-400 font-medium mt-0.5">none</p>
+                      }
+                    </div>
+                    <StepperButton onClick={() => setSetTopBoxes(v => Math.min(10, v + 1))} disabled={setTopBoxes >= 10}>+</StepperButton>
+                  </div>
+                </div>
+
+                {stbDelta > 0 && (
+                  <div className="flex items-start gap-2 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Package className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-700">
+                      GPC will ship <strong>{stbDelta} Set-Top Box{stbDelta > 1 ? 'es' : ''} + Remote{stbDelta > 1 ? 's' : ''}</strong> to the service address.
+                    </p>
+                  </div>
+                )}
+                {stbDelta < 0 && (
+                  <div className="flex items-start gap-2 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700">
+                      The customer must return <strong>{Math.abs(stbDelta)} Set-Top Box{Math.abs(stbDelta) > 1 ? 'es' : ''} + Remote{Math.abs(stbDelta) > 1 ? 's' : ''}</strong> to GPC.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+
           {/* Channel add-ons */}
           <div className="mb-10">
             <h3 className={`text-base font-semibold mb-2 ${addOnsEnabled ? 'text-gray-900' : 'text-gray-400'}`}>
@@ -327,7 +492,8 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.name, price: a.price, group: 'television' as const };
                   }),
-                ] : [];
+                  ...buildServiceOptLines(),
+                ] : buildServiceOptLines();
                 const nonTvLines = previousLines.filter(l => l.group !== 'television');
                 onNext(selectedPlan ?? currentPlanId ?? '', [...selectedAddOns], [...nonTvLines, ...tvLines]);
               }}
@@ -368,14 +534,14 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                 const currentTvPlan = currentPlanId ? PLANS.find(p => p.id === currentPlanId) : undefined;
                 const displayPlan = activePlan ?? currentTvPlan;
 
-                // Lines kept/added (used for total)
                 const keptTvLines: CartLine[] = displayPlan ? [
                   { label: displayPlan.name, price: displayPlan.price, group: 'television' as const },
                   ...[...selectedAddOns].map(id => {
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.name, price: a.price, group: 'television' as const };
                   }),
-                ] : [];
+                  ...buildServiceOptLines(),
+                ] : buildServiceOptLines();
 
                 // Active add-ons that were deselected — show with strikethrough
                 const removedAddOns = activeAddOnIds
