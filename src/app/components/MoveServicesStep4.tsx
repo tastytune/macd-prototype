@@ -99,7 +99,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
     ? 'Min: 15 business days (technology change).'
     : 'Min: 10 business days (buried drop).';
 
-  const canProceed = billingEndDate !== '' && installationDate !== '';
+  const canProceed = billingEndDate !== '';
 
   const handleSlotClick = (date: Date, slotId: string) => {
     const dateStr = formatDateValue(date);
@@ -144,7 +144,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
               </div>
               <div>
                 <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
-                  Installation date (new address) <span className="text-red-500">*</span>
+                  Installation date (new address)
                   <div className="relative group">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">

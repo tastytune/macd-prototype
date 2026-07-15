@@ -65,7 +65,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
     setDateViaInput(true);
   };
 
-  const canContinue = selectedDate && selectedSlot;
+  const canContinue = !selectedDate || !!selectedSlot;
 
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
 
@@ -172,7 +172,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
           {/* Manual date input + slot picker stacked */}
           <div className="w-56 mb-6">
             <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5 whitespace-nowrap">
-              Preferred Installation Date <span className="text-red-500">*</span>
+              Preferred Installation Date
               <div className="relative group">
                 <Info className="w-3.5 h-3.5 text-gray-400 cursor-default" />
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal z-50">
