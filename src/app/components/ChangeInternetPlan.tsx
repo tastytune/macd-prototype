@@ -10,6 +10,7 @@ interface ChangeInternetPlanProps {
   previousLines?: CartLine[];
   isDowngrade?: boolean;
   isMove2?: boolean;
+  isCoaxMove?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -46,9 +47,9 @@ const ADD_ONS = [
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, isCurrentlyActive: false, group: 'tech-home' },
 ];
 
-export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isCoaxMove = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
-    if (!isMove2) return null;
+    if (!isMove2 || !isCoaxMove) return null;
     const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
     if (planId === '2gig') return '1gig';       // closest coax equivalent
     if (planId === '1gig' || planId === '200mbps') return planId;
@@ -60,8 +61,8 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
   const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
   const currentPlan = PLANS.find(p => p.id === currentPlanId) ?? null;
-  // In Move 2, use coax plans (technology change — different pricing, 2Gbps unavailable)
-  const visiblePlans = isMove2 ? COAX_PLANS : PLANS;
+  // M03 coax move: use coax plans (technology change, 2Gbps unavailable at coax destination)
+  const visiblePlans = (isMove2 && isCoaxMove) ? COAX_PLANS : PLANS;
   const activePlan = selectedPlan ? visiblePlans.find(p => p.id === selectedPlan) : undefined;
   const planLabel = activePlan
     ? `Internet ${activePlan.speed} ${activePlan.unit}`
@@ -142,7 +143,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
               const isCurrent = plan.id === currentPlanId;
               const isSelected = selectedPlan === plan.id;
 
-              if (isMove2) {
+              if (isMove2 && isCoaxMove) {
                 return (
                   <div
                     key={plan.id}

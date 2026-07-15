@@ -635,6 +635,7 @@ function App() {
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isMove2={selectedAction === 'move2'}
+              isCoaxMove={selectedAction === 'move2' && moveScenario === 'M03'}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-service-type')}
