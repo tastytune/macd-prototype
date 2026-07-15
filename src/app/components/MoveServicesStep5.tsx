@@ -1,4 +1,4 @@
-import { Check, AlertTriangle, ChevronDown, Info } from 'lucide-react';
+import { Check, AlertTriangle, ChevronDown, Info, CalendarCheck } from 'lucide-react';
 import { useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -239,8 +239,20 @@ export function MoveServicesStep5({
 
       </div>
 
+      {/* Installation confirmation banner */}
+      {installationDate && (
+        <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
+          <CalendarCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <p className="text-sm text-blue-800">
+            Installation scheduled for{' '}
+            <strong>{formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}</strong>
+            {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
+          </p>
+        </div>
+      )}
+
       {/* Warning banner */}
-      <div className="flex items-start gap-3 p-4 bg-[#faf0fa] border border-[#d9a0d9] rounded-lg mt-6">
+      <div className="flex items-start gap-3 p-4 bg-[#faf0fa] border border-[#d9a0d9] rounded-lg mt-3">
         <AlertTriangle className="w-4 h-4 text-[#800080] flex-shrink-0 mt-0.5" />
         <p className="text-sm text-[#800080]">
           The user is about to move services
