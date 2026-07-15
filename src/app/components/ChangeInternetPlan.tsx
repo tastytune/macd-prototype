@@ -193,14 +193,26 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer'
                     }`}
                 >
-                  {/* Fixed-height pill row so all cards align regardless of whether pills are shown */}
+                  {/* Fixed-height pill row */}
                   <div className="h-7 flex items-center justify-center gap-1.5 mb-3">
                     {isCurrent && (
                       <>
-                        <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
-                          Active
-                        </span>
-                        {SA_PRICE_LOCK.has(selectedSA?.id ?? '') && !selectedPlan && (
+                        {isMove2 ? (
+                          selectedPlan ? (
+                            <span className="inline-block text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5">
+                              <span style={{ textDecoration: 'line-through' }}>Move</span>
+                            </span>
+                          ) : (
+                            <span className="inline-block text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5">
+                              Move
+                            </span>
+                          )
+                        ) : (
+                          <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
+                            Active
+                          </span>
+                        )}
+                        {!isMove2 && SA_PRICE_LOCK.has(selectedSA?.id ?? '') && !selectedPlan && (
                           <span className="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-2.5 py-0.5">
                             Price Lock
                           </span>
@@ -240,9 +252,21 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   {isCurrent ? (
                     <div className="mt-5">
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
-                        Your Current Plan
-                      </div>
+                      {isMove2 ? (
+                        selectedPlan ? (
+                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                            <span style={{ textDecoration: 'line-through' }}>Moving</span>
+                          </div>
+                        ) : (
+                          <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
+                            Moving
+                          </div>
+                        )
+                      ) : (
+                        <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
+                          Your Current Plan
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className={`mt-5 w-full py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors
