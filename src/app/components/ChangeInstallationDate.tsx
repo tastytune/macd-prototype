@@ -55,7 +55,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
   const handleSlotClick = (date: Date, slotId: string) => {
     const dateStr = formatDateValue(date);
     setSelectedDate(dateStr);
-    setSelectedSlot({ dateStr, slotId });
+    setSelectedSlot(prev => (prev?.dateStr === dateStr && prev?.slotId === slotId) ? null : { dateStr, slotId });
     setDateViaInput(false);
   };
 
@@ -197,7 +197,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                         return (
                           <button
                             key={slot.id}
-                            onClick={() => setSelectedSlot({ dateStr: selectedDate, slotId: slot.id })}
+                            onClick={() => setSelectedSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: selectedDate, slotId: slot.id })}
                             className={`block w-full py-1.5 px-3 rounded-lg text-xs font-medium text-left transition-colors
                               ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
                           >

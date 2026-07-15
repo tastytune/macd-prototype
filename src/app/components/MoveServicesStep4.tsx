@@ -104,7 +104,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
   const handleSlotClick = (date: Date, slotId: string) => {
     const dateStr = formatDateValue(date);
     setInstallationDate(dateStr);
-    setSelectedSlot({ dateStr, slotId });
+    setSelectedSlot(prev => (prev?.dateStr === dateStr && prev?.slotId === slotId) ? null : { dateStr, slotId });
     setDateViaInput(false);
   };
 
@@ -170,7 +170,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                             return (
                               <button
                                 key={slot.id}
-                                onClick={() => setSelectedSlot({ dateStr: installationDate, slotId: slot.id })}
+                                onClick={() => setSelectedSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: installationDate, slotId: slot.id })}
                                 className={`block w-full py-1.5 px-3 rounded-lg text-xs font-medium text-left transition-colors
                                   ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
                               >
