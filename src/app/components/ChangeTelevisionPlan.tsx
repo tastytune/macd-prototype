@@ -67,7 +67,7 @@ const DVR_OPTIONS = [
   { hours: 300, price: 12.00 },
 ];
 
-const SET_TOP_BOX_PRICE_PER = 5.00;  // per box + remote pair per month
+const SET_TOP_BOX_PRICE_PER = 4.95;  // per box + remote pair per month
 
 // Current service-option values per SA
 const SA_VIDEO_STREAMS: Record<string, number> = { 'sa-00912': 4, 'sa-01047': 3 };
