@@ -40,8 +40,10 @@ const SA_INTERNET_PLAN: Record<string, string> = {
 const SA_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
 
 const ADD_ONS = [
-  { id: 'whole-home-wifi',   label: 'Whole Home Wi-Fi',  price: 5.95, isCurrentlyActive: true },
-  { id: 'service-assurance', label: 'Service Assurance', price: 3.49, isCurrentlyActive: false },
+  { id: 'whole-home-wifi',   label: 'Whole Home Wi-Fi',  price: 5.95,  isCurrentlyActive: true,  group: null },
+  { id: 'service-assurance', label: 'Service Assurance', price: 3.49,  isCurrentlyActive: false, group: null },
+  { id: 'tech-home-protect', label: 'Tech Home Protect', price: 5.99,  isCurrentlyActive: false, group: 'tech-home' },
+  { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, isCurrentlyActive: false, group: 'tech-home' },
 ];
 
 export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
@@ -90,7 +92,15 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
   const toggleAddOn = (id: string) => {
     setSelectedAddOns(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        const addOn = ADD_ONS.find(a => a.id === id);
+        if (addOn?.group) {
+          ADD_ONS.filter(a => a.group === addOn.group && a.id !== id).forEach(a => next.delete(a.id));
+        }
+        next.add(id);
+      }
       return next;
     });
   };
@@ -253,7 +263,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
               Choose optional services for {planLabel}
             </h3>
             <div className="space-y-2.5">
-              {ADD_ONS.map(addOn => {
+              {ADD_ONS.filter(a => !a.group).map(addOn => {
                 const isChecked = selectedAddOns.has(addOn.id);
                 return (
                   <button
@@ -261,25 +271,49 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     onClick={() => toggleAddOn(addOn.id)}
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors text-left"
                   >
-                    {/* Checkbox */}
                     <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
                       ${isChecked ? 'border-blue-600' : 'border-gray-300'}`}>
                       {isChecked && <div className="w-2 h-2 rounded-full bg-blue-600" />}
                     </div>
-
                     <span className="flex-1 text-sm font-medium text-gray-800">{addOn.label}</span>
-
                     {addOn.isCurrentlyActive && (
                       <span className="text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
                         Active
                       </span>
                     )}
-
-                    <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/each</span>
+                    <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/mo</span>
                     <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
                   </button>
                 );
               })}
+
+              {/* Tech Home — mutually exclusive group */}
+              <div className="pt-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2.5">
+                  Tech Home <span className="normal-case font-normal text-gray-400">· choose one</span>
+                </p>
+                <div className="space-y-2.5">
+                  {ADD_ONS.filter(a => a.group === 'tech-home').map(addOn => {
+                    const isChecked = selectedAddOns.has(addOn.id);
+                    return (
+                      <button
+                        key={addOn.id}
+                        onClick={() => toggleAddOn(addOn.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-colors text-left
+                          ${isChecked ? 'border-blue-300 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
+                          ${isChecked ? 'border-blue-600' : 'border-gray-300'}`}>
+                          {isChecked && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <span className="flex-1 text-sm font-medium text-gray-800">{addOn.label}</span>
+                        <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/mo</span>
+                        <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
