@@ -271,9 +271,13 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     onClick={() => toggleAddOn(addOn.id)}
                     className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors text-left"
                   >
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
-                      ${isChecked ? 'border-blue-600' : 'border-gray-300'}`}>
-                      {isChecked && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
+                      ${isChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+                      {isChecked && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </div>
                     <span className="flex-1 text-sm font-medium text-gray-800">{addOn.label}</span>
                     {addOn.isCurrentlyActive && (
