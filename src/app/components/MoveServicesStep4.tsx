@@ -112,8 +112,8 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
     <div className="max-w-6xl mx-auto px-8 py-10">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
-        <ContextBar action={'move' as MACDAction} selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">Move — Schedule</h1>
+        <ContextBar action={'move2' as MACDAction} selectedSA={selectedSA} />
       </div>
       <Breadcrumb steps={['Select account', 'Destination', 'Services', 'Schedule', 'Review order']} currentIndex={3} />
 
