@@ -22,6 +22,7 @@ interface Step5Props {
   installationSlot?: string;
   billingEndDate?: string;
   timeSlot?: string;
+  destinationAddress?: string;
 }
 
 const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; bodyFull?: string; servicesList: string }> = {
@@ -50,6 +51,12 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     bodyRest: ' request has been successfully created with reference number:',
     servicesList: 'Services Being Moved',
   },
+  move2: {
+    title: 'Move Request Created',
+    boldWord: 'move order',
+    bodyRest: ' request has been successfully created with reference number:',
+    servicesList: 'Services Being Moved',
+  },
   change: {
     title: 'Change Request Created',
     boldWord: 'change',
@@ -58,7 +65,7 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -80,7 +87,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
   const formatDateWithDay = (ds: string) =>
     new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-  const isMove = action === 'move';
+  const isMove = action === 'move' || action === 'move2';
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -110,34 +117,25 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
 
         {/* Key Dates — shown for Move */}
         {isMove && (installationDate || billingEndDate) && (
-          <div className="mb-6 pb-6 border-b border-gray-200">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <CalendarClock className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                <p className="font-semibold text-amber-800 text-sm">Key Dates — Agent Reference</p>
+          <div className="mb-6 pb-6 border-b border-gray-200 space-y-3">
+            {installationDate && (
+              <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <CalendarClock className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <p className="text-sm text-blue-800">
+                  Installation scheduled for{' '}
+                  <strong>{formatDateWithDay(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}</strong>
+                  {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
+                </p>
               </div>
-              <ul className="space-y-3 text-sm text-amber-800">
-                {installationDate && (
-                  <li className="flex flex-col gap-0.5">
-                    <span className="font-semibold">Installation at new address</span>
-                    <span>
-                      {formatDateWithDay(installationDate)}
-                      {timeSlot && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-xs font-medium">
-                          {timeSlot}
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                )}
-                {billingEndDate && (
-                  <li className="flex flex-col gap-0.5">
-                    <span className="font-semibold">Billing end at origin address</span>
-                    <span>{formatDateWithDay(billingEndDate)}</span>
-                  </li>
-                )}
-              </ul>
-            </div>
+            )}
+            {billingEndDate && (
+              <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <p className="text-sm text-amber-800">
+                  Billing at origin address ends on <strong>{formatDateWithDay(billingEndDate)}</strong>.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

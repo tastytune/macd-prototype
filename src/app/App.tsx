@@ -801,10 +801,11 @@ function App() {
               onReturn={handleReturnToAccount}
               action={selectedAction}
               selectedSA={selectedSA}
-              installationDate={selectedAction === 'move' ? moveInstallationDate : changeInstallationDate}
+              installationDate={(selectedAction === 'move' || selectedAction === 'move2') ? moveInstallationDate : changeInstallationDate}
               installationSlot={changeInstallationSlot}
               billingEndDate={moveBillingEndDate}
               timeSlot={moveTimeSlot}
+              destinationAddress={(selectedAction === 'move' || selectedAction === 'move2') ? moveDestinationAddress : undefined}
             />
           </motion.div>
         )}
