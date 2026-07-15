@@ -7,7 +7,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   disconnect: 'bg-red-50 text-red-700',
   change: 'bg-blue-50 text-blue-700',
   move: 'bg-[#f3e8f3] text-[#800080]',
-  move2: 'bg-blue-50 text-blue-700',
+  move2: 'bg-[#f3e8f3] text-[#800080]',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -16,7 +16,7 @@ const actionLabel: Record<MACDAction, string> = {
   disconnect: 'Disconnect',
   change: 'Change',
   move: 'Move',
-  move2: 'Move 2',
+  move2: 'Move',
 };
 
 interface ContextBarProps {
