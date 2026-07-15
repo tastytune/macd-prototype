@@ -169,8 +169,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Service'}</h1>
-        <ContextBar action="change" selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">{isMove2 ? 'Move Phone Service' : isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Service'}</h1>
+        <ContextBar action={isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
         steps={isMove2
