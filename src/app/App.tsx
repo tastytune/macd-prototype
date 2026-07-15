@@ -801,7 +801,7 @@ function App() {
               onReturn={handleReturnToAccount}
               action={selectedAction}
               selectedSA={selectedSA}
-              installationDate={(selectedAction === 'move' || selectedAction === 'move2') ? moveInstallationDate : changeInstallationDate}
+              installationDate={(selectedAction === 'move' || selectedAction === 'move2') ? (moveInstallationDate || changeInstallationDate) : changeInstallationDate}
               installationSlot={changeInstallationSlot}
               billingEndDate={moveBillingEndDate}
               timeSlot={moveTimeSlot}

@@ -123,7 +123,12 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <CalendarClock className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <p className="text-sm text-blue-800">
                   Installation scheduled for{' '}
-                  <strong>{formatDateWithDay(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}</strong>
+                  <strong>
+                    {formatDateWithDay(installationDate)}
+                    {(timeSlot || (installationSlot && TIME_SLOT_LABELS[installationSlot]))
+                      ? `, ${timeSlot || TIME_SLOT_LABELS[installationSlot]}`
+                      : ''}
+                  </strong>
                   {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
                 </p>
               </div>
