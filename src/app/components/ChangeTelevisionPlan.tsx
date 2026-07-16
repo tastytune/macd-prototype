@@ -430,12 +430,18 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
           {/* Channel add-ons */}
           <div className="mb-10">
-            <h3 className={`text-base font-semibold mb-2 ${addOnsEnabled ? 'text-gray-900' : 'text-gray-400'}`}>
-              Choose optional services{planLabel ? ` for ${planLabel}` : ''}
-            </h3>
-            <p className="text-sm text-gray-500 mb-5">
-              Digital Music channels are included with your selected plan. Enhance your channel lineup with the following add-ons:
-            </p>
+            <div className="flex items-center gap-2 mb-5">
+              <h3 className={`text-base font-semibold ${addOnsEnabled ? 'text-gray-900' : 'text-gray-400'}`}>
+                Choose optional services{planLabel ? ` for ${planLabel}` : ''}
+              </h3>
+              <div className="relative group">
+                <Info className={`w-4 h-4 cursor-default ${addOnsEnabled ? 'text-gray-400 hover:text-gray-600' : 'text-gray-300'}`} />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal z-50">
+                  Digital Music channels are included with your selected plan. Enhance your channel lineup with the following add-ons.
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800" />
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-5 gap-4">
               {visibleAddOns.map(addOn => {
                 const isLosingToDowngrade = selectedPlan === '75plus' && activeAddOnIds.includes(addOn.id);
