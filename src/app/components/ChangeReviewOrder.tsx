@@ -329,9 +329,9 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
       </div>
 
       {/* Warning banner */}
-      <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
-        <AlertTriangle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-blue-800">
+      <div className={`flex items-start gap-3 p-4 rounded-lg mt-6 border ${isMove2 ? 'bg-[#f3e8f3] border-[#d9a0d9]' : 'bg-blue-50 border-blue-200'}`}>
+        <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isMove2 ? 'text-[#800080]' : 'text-blue-500'}`} />
+        <p className={`text-sm ${isMove2 ? 'text-[#800080]' : 'text-blue-800'}`}>
           {isMove2
             ? <>The user is about to move services to the new address{installationDate ? <> with installation on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
             : <>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
@@ -349,7 +349,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         </button>
         <button
           onClick={onConfirm}
-          className="px-8 py-2.5 rounded-md text-sm font-medium border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all"
+          className={`px-8 py-2.5 rounded-md text-sm font-medium border transition-all ${isMove2 ? 'border-[#d9a0d9] bg-[#f3e8f3] text-[#800080] hover:bg-[#ede0ed]' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
         >
           {isMove2 ? 'Confirm Move' : 'Confirm Change'}
         </button>
