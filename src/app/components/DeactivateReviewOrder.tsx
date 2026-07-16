@@ -52,7 +52,7 @@ const serviceGroups = Object.keys(serviceLineItems);
 const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: number; serviceId: string }[]> = {
   'ba-00391': [
     { description: 'Internet 2 Gbps',          monthlyCharge: 124.95, serviceId: 'internet' },
-    { description: 'Whole Home Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
+    { description: 'Elite Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
     { description: 'iTV Preferred',            monthlyCharge:  79.95, serviceId: 'tv'       },
     { description: 'Cinemax',                  monthlyCharge:  12.99, serviceId: 'tv'       },
     { description: 'FANatic',                  monthlyCharge:   5.99, serviceId: 'tv'       },
@@ -62,7 +62,7 @@ const BA_ACTIVE_PLANS: Record<string, { description: string; monthlyCharge: numb
   ],
   'ba-00558': [
     { description: 'Internet 200 Mbps',        monthlyCharge:  55.95, serviceId: 'internet' },
-    { description: 'Whole Home Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
+    { description: 'Elite Wi-Fi',         monthlyCharge:   5.95, serviceId: 'internet' },
     { description: 'Phone Bundle',             monthlyCharge:  15.95, serviceId: 'phone'    },
   ],
 };

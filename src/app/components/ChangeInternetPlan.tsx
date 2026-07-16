@@ -41,7 +41,7 @@ const SA_INTERNET_PLAN: Record<string, string> = {
 const SA_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
 
 const ADD_ONS = [
-  { id: 'whole-home-wifi',   label: 'Whole Home Wi-Fi',  price: 5.95,  isCurrentlyActive: true,  group: null },
+  { id: 'whole-home-wifi',   label: 'Elite Wi-Fi',  price: 5.95,  isCurrentlyActive: true,  group: null },
   { id: 'service-assurance', label: 'Service Assurance', price: 3.49,  isCurrentlyActive: false, group: null },
   { id: 'tech-home-protect', label: 'Tech Home Protect', price: 5.99,  isCurrentlyActive: false, group: 'tech-home' },
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, isCurrentlyActive: false, group: 'tech-home' },
