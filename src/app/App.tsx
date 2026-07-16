@@ -55,14 +55,16 @@ export interface CartLine {
 const SA_INITIAL_CART: Record<string, CartLine[]> = {
   'sa-00912': [
     { label: 'Internet 2 Gbps',         price: 124.95, group: 'internet'    },
-    { label: 'Elite Wi-Fi',        price:   5.95, group: 'internet'    },
+    { label: 'Elite Wi-Fi',             price:   5.95, group: 'internet'    },
+    { label: 'Tech Home Support',       price:  14.99, group: 'internet'    },
     { label: 'iTV Preferred',           price:  79.95, group: 'television'  },
     { label: 'Cinemax',                 price:  12.99, group: 'television'  },
     { label: 'FANatic',                 price:   5.99, group: 'television'  },
   ],
   'sa-01047': [
     { label: 'Internet 200 Mbps',       price:  55.95, group: 'internet'    },
-    { label: 'Elite Wi-Fi',        price:   5.95, group: 'internet'    },
+    { label: 'Elite Wi-Fi',             price:   5.95, group: 'internet'    },
+    { label: 'Tech Home Protect',       price:   5.99, group: 'internet'    },
     { label: 'Unlimited Local Calling', price:  15.95, group: 'phone'       },
   ],
   'sa-02031': [
