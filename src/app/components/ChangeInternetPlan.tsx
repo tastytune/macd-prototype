@@ -100,6 +100,14 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
   }, 0);
   const planTotal = (activePlan?.price ?? 0) + addOnTotal;
 
+  // Baseline SA lines used when no previousLines exist yet (first visit)
+  const syntheticCurrentLines = [
+    ...(currentPlan ? [{ label: `Internet ${currentPlan.speed} ${currentPlan.unit}`, price: currentPlan.price, group: 'internet' as const }] : []),
+    { label: 'Elite Wi-Fi', price: 5.95, group: 'internet' as const },
+    ...(currentTechHome ? (() => { const a = ADD_ONS.find(x => x.id === currentTechHome)!; return [{ label: a.label, price: a.price, group: 'internet' as const }]; })() : []),
+  ];
+  const effectivePreviousLines = previousLines.length > 0 ? previousLines : syntheticCurrentLines;
+
   const toggleAddOn = (id: string) => {
     setSelectedAddOns(prev => {
       const next = new Set(prev);
@@ -412,9 +420,9 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
               {(() => {
                 const ADD_ON_LABELS = new Set(ADD_ONS.map(a => a.label));
-                const nonInternetLines = previousLines.filter(l => l.group !== 'internet');
-                const oldInternetPlanLines = previousLines.filter(l => l.group === 'internet' && !ADD_ON_LABELS.has(l.label));
-                const oldInternetAddOnLines = previousLines.filter(l => l.group === 'internet' && ADD_ON_LABELS.has(l.label));
+                const nonInternetLines = effectivePreviousLines.filter(l => l.group !== 'internet');
+                const oldInternetPlanLines = effectivePreviousLines.filter(l => l.group === 'internet' && !ADD_ON_LABELS.has(l.label));
+                const oldInternetAddOnLines = effectivePreviousLines.filter(l => l.group === 'internet' && ADD_ON_LABELS.has(l.label));
                 const oldAddOnLabelSet = new Set(oldInternetAddOnLines.map(l => l.label));
                 const newlyAddedAddOns = [...selectedAddOns]
                   .map(id => ADD_ONS.find(x => x.id === id)!)
@@ -423,7 +431,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
                 const effectivePlan = activePlan ?? currentPlan;
 
-                if (effectivePlan && (planChanged || addOnsChanged) && previousLines.length > 0) {
+                if (effectivePlan && (planChanged || addOnsChanged)) {
                   const keptAddOnTotal = oldInternetAddOnLines
                     .filter(l => { const a = ADD_ONS.find(x => x.label === l.label); return a ? selectedAddOns.has(a.id) : false; })
                     .reduce((s, l) => s + l.price, 0);
@@ -487,7 +495,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                           </div>
                         )}
                         {(() => {
-                          const prevTotal = previousLines.reduce((s, l) => s + l.price, 0);
+                          const prevTotal = effectivePreviousLines.reduce((s, l) => s + l.price, 0);
                           const diff = (fullTotal - promoDiscount) - prevTotal;
                           if (diff === 0) return null;
                           return (
@@ -508,22 +516,20 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                   );
                 }
 
-                if (previousLines.length > 0) {
-                  return (
-                    <div className="space-y-2 mb-3">
-                      {previousLines.map((line, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{line.label}</span>
-                          <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
-                        </div>
-                      ))}
-                      <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
-                        <span className="text-gray-700">Total</span>
-                        <span className="text-gray-900">${previousLines.reduce((s, l) => s + l.price, 0).toFixed(2)}/mo</span>
+                return (
+                  <div className="space-y-2 mb-3">
+                    {effectivePreviousLines.map((line, i) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-gray-600">{line.label}</span>
+                        <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
                       </div>
+                    ))}
+                    <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
+                      <span className="text-gray-700">Total</span>
+                      <span className="text-gray-900">${effectivePreviousLines.reduce((s, l) => s + l.price, 0).toFixed(2)}/mo</span>
                     </div>
-                  );
-                }
+                  </div>
+                );
 
                 return <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>;
               })()}
