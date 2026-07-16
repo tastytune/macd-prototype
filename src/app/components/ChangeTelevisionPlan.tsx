@@ -63,8 +63,8 @@ const VIDEO_STREAM_PRICE_PER = 1.00;  // per additional stream above the 3 inclu
 const DVR_OPTIONS = [
   { hours: 50,  price: 0     },
   { hours: 100, price: 5.00  },
-  { hours: 200, price: 8.00  },
-  { hours: 300, price: 12.00 },
+  { hours: 200, price: 10.00 },
+  { hours: 300, price: 15.00 },
 ];
 
 const SET_TOP_BOX_PRICE_PER = 4.95;  // per box + remote pair per month
