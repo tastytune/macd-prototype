@@ -58,7 +58,7 @@ const ADD_ONS = [
 ];
 
 // ── Service Options ──────────────────────────────────────────────────────────
-const VIDEO_STREAM_PRICE_PER = 2.00;  // per additional stream above the 3 included
+const VIDEO_STREAM_PRICE_PER = 1.00;  // per additional stream above the 3 included
 
 const DVR_OPTIONS = [
   { hours: 50,  price: 0     },
