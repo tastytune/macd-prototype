@@ -15,6 +15,7 @@ interface ChangeReviewOrderProps {
   isDowngrade?: boolean;
   isUpgrade?: boolean;
   isMove2?: boolean;
+  destinationAddress?: string;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -69,9 +70,11 @@ const GROUP_LABEL: Record<GroupKey, string> = {
 
 const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 
-export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
+export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
-  const activeGroups = GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
+  const activeGroups = isMove2
+    ? GROUP_ORDER.filter(g => cartLines.some(l => l.group === g) || (currentPlans[g] ?? []).length > 0)
+    : GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
 
   const toggle = (g: GroupKey) => {
@@ -114,7 +117,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
             <div className="p-6 pb-4">
               <div className="flex items-center gap-3 mb-1 flex-wrap">
-                <h3 className="text-[20px] font-bold text-gray-700">Services being Changed</h3>
+                <h3 className="text-[20px] font-bold text-gray-700">{isMove2 ? 'Services being Moved' : 'Services being Changed'}</h3>
                 {installationDate && (
                   <span className="text-[16px] font-bold text-gray-900">
                     — {formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}
@@ -142,12 +145,13 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                       const isCollapsed = collapsed.has(group);
                       const currentItems = currentPlans[group] ?? [];
                       const newItems = cartLines.filter(l => l.group === group);
+                      const isMovingUnchanged = isMove2 && newItems.length === 0;
                       const normalize = (s: string) => s.toLowerCase().trim();
                       const newLabels = new Set(newItems.map(l => normalize(l.label)));
                       const currentDescs = new Set(currentItems.map(i => normalize(i.description)));
-                      const removedItems = currentItems.filter(i => !newLabels.has(normalize(i.description)));
-                      const addedItems = newItems.filter(l => !currentDescs.has(normalize(l.label)));
-                      const totalRows = removedItems.length + addedItems.length;
+                      const removedItems = isMovingUnchanged ? [] : currentItems.filter(i => !newLabels.has(normalize(i.description)));
+                      const addedItems = isMovingUnchanged ? [] : newItems.filter(l => !currentDescs.has(normalize(l.label)));
+                      const totalRows = isMovingUnchanged ? currentItems.length : removedItems.length + addedItems.length;
 
                       return [
                         <tr
@@ -167,6 +171,18 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                         </tr>,
 
                         ...(!isCollapsed ? [
+                          // Moving (unchanged) rows — only in Move flow when no cart changes for this group
+                          ...(isMovingUnchanged ? currentItems.map((item, i) => (
+                            <tr key={`${group}-moving-${i}`} className="border-b border-gray-100 bg-[#faf0fa]/30">
+                              <td className="px-4 py-3.5 text-sm text-gray-900 pl-8 font-medium">{item.description}</td>
+                              <td className="px-4 py-3.5 text-sm text-center">
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f3e8f3] text-[#800080] border border-[#d9a0d9]">
+                                  Moving
+                                </span>
+                              </td>
+                              <td className="px-4 py-3.5 text-sm text-gray-900 text-right font-medium">${item.monthlyCharge.toFixed(2)}</td>
+                            </tr>
+                          )) : []),
                           ...removedItems.map((item, i) => (
                             <tr key={`${group}-removed-${i}`} className="border-b border-gray-100 bg-red-50/40">
                               <td className="px-4 py-3.5 text-sm text-gray-500 pl-8 line-through">{item.description}</td>
@@ -224,9 +240,14 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         <div className="w-80 shrink-0">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
             <div className="p-6">
-              {installationDate && (
-                <div className="pb-4 mb-4 border-b border-gray-200">
-                  <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>
+              {(installationDate || (isMove2 && destinationAddress)) && (
+                <div className="pb-4 mb-4 border-b border-gray-200 space-y-1">
+                  {isMove2 && destinationAddress && (
+                    <p className="text-xs text-gray-500">To: <strong className="text-gray-700">{destinationAddress}</strong></p>
+                  )}
+                  {installationDate && (
+                    <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>
+                  )}
                   {installationSlot && TIME_SLOT_LABELS[installationSlot] && (
                     <p className="text-xs text-gray-500">{TIME_SLOT_LABELS[installationSlot]}</p>
                   )}
@@ -311,7 +332,10 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
         <AlertTriangle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800">
-          The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.
+          {isMove2
+            ? <>The user is about to move services to the new address{installationDate ? <> with installation on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
+            : <>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
+          }
         </p>
       </div>
 
@@ -327,7 +351,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
           onClick={onConfirm}
           className="px-8 py-2.5 rounded-md text-sm font-medium border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all"
         >
-          Confirm Change
+          {isMove2 ? 'Confirm Move' : 'Confirm Change'}
         </button>
       </div>
     </div>

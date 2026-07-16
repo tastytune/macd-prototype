@@ -743,6 +743,7 @@ function App() {
                 isDowngrade={changeIsDowngrade}
                 isUpgrade={changeIsUpgrade}
                 isMove2={selectedAction === 'move2'}
+                destinationAddress={selectedAction === 'move2' ? moveDestinationAddress : undefined}
                 selectedPromos={changeSelectedPromos}
                 onPromoToggle={toggleChangePromo}
                 onBack={() => setCurrentStep('change-installation-date')}
