@@ -145,13 +145,20 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                       const isCollapsed = collapsed.has(group);
                       const currentItems = currentPlans[group] ?? [];
                       const newItems = cartLines.filter(l => l.group === group);
-                      const isMovingUnchanged = isMove2 && newItems.length === 0;
                       const normalize = (s: string) => s.toLowerCase().trim();
-                      const newLabels = new Set(newItems.map(l => normalize(l.label)));
                       const currentDescs = new Set(currentItems.map(i => normalize(i.description)));
-                      const removedItems = isMovingUnchanged ? [] : currentItems.filter(i => !newLabels.has(normalize(i.description)));
-                      const addedItems = isMovingUnchanged ? [] : newItems.filter(l => !currentDescs.has(normalize(l.label)));
-                      const totalRows = isMovingUnchanged ? currentItems.length : removedItems.length + addedItems.length;
+                      const newLabels = new Set(newItems.map(l => normalize(l.label)));
+                      // In Move: show currentItems as Moving + any genuinely new items as Added
+                      // In Change: show diff (removed / added)
+                      const addedItems = isMove2
+                        ? newItems.filter(l => !currentDescs.has(normalize(l.label)))
+                        : newItems.filter(l => !currentDescs.has(normalize(l.label)));
+                      const removedItems = isMove2
+                        ? []
+                        : currentItems.filter(i => !newLabels.has(normalize(i.description)));
+                      const totalRows = isMove2
+                        ? currentItems.length + addedItems.length
+                        : removedItems.length + addedItems.length;
 
                       return [
                         <tr
@@ -171,8 +178,8 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                         </tr>,
 
                         ...(!isCollapsed ? [
-                          // Moving (unchanged) rows — only in Move flow when no cart changes for this group
-                          ...(isMovingUnchanged ? currentItems.map((item, i) => (
+                          // Move: show all current services as "Moving"
+                          ...(isMove2 ? currentItems.map((item, i) => (
                             <tr key={`${group}-moving-${i}`} className="border-b border-gray-100 bg-[#faf0fa]/30">
                               <td className="px-4 py-3.5 text-sm text-gray-900 pl-8 font-medium">{item.description}</td>
                               <td className="px-4 py-3.5 text-sm text-center">
@@ -183,6 +190,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                               <td className="px-4 py-3.5 text-sm text-gray-900 text-right font-medium">${item.monthlyCharge.toFixed(2)}</td>
                             </tr>
                           )) : []),
+                          // Change: show removed items
                           ...removedItems.map((item, i) => (
                             <tr key={`${group}-removed-${i}`} className="border-b border-gray-100 bg-red-50/40">
                               <td className="px-4 py-3.5 text-sm text-gray-500 pl-8 line-through">{item.description}</td>
