@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, AlertTriangle, Package } from 'lucide-react';
+import { MapPin, AlertTriangle, Package, Info } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
