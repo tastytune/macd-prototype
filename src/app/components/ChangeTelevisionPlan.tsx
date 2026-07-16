@@ -327,8 +327,16 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
           {/* ── Service Options ── */}
           <div className="mb-10">
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Service Options</h3>
-            <p className="text-sm text-gray-500 mb-5">Adjust streams, DVR storage, and equipment for this account.</p>
+            <div className="flex items-center gap-2 mb-5">
+              <h3 className="text-base font-semibold text-gray-900">Service Options</h3>
+              <div className="relative group">
+                <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-default" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-72 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal z-50">
+                  Adjust streams, DVR storage, and equipment for this account.
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800" />
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-4">
 
