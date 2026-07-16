@@ -366,7 +366,6 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">DVR Storage</p>
-                    <p className="text-xs text-gray-500 mt-0.5">50 hours included</p>
                   </div>
                   {dvrPrice > 0
                     ? <span className="text-sm font-semibold text-blue-600">+${dvrPrice.toFixed(2)}/mo</span>
