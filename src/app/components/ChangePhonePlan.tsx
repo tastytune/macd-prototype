@@ -39,7 +39,7 @@ interface PhoneBundleFeature {
 const LONG_DISTANCE_BUNDLE: PhoneBundleFeature = {
   id: 'long-distance', name: 'Long Distance', basePrice: 0, manageable: 'attribute',
   attributeOptions: ['Unlimited', '120 minutes'],
-  attributePrices:  { '120 minutes': 0, Unlimited: 1.70 },
+  attributePrices:  { '120 minutes': 0, Unlimited: 19.20 },
   attributeDisplayPrices: { '120 minutes': '$17.50/mo', Unlimited: '$19.20/mo' },
   defaultAttribute: 'Unlimited',
 };
