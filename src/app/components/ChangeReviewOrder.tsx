@@ -79,6 +79,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
     : GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
   const [billingPref, setBillingPref] = useState<'electronic' | 'paper'>('electronic');
+  const [diffTooltip, setDiffTooltip] = useState(false);
 
   const toggle = (g: GroupKey) => {
     setCollapsed(prev => {
@@ -303,41 +304,46 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
                 const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount;
                 const diff = effectiveTotal - currentTotal;
+                const hasBreakdown = bundleDiscounts.length > 0 || promoDiscount > 0;
                 return (
                   <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
                     <span className="font-medium text-gray-700 flex items-center gap-1.5">
                       Difference
-                      <div className="relative group/diff">
-                        <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2.5 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal space-y-1.5">
-                          <p className="text-gray-300 mb-2">Net change vs. current plan:</p>
-                          <div className="flex justify-between">
-                            <span>New monthly charges</span>
-                            <span>${addedTotal.toFixed(2)}</span>
-                          </div>
-                          {bundleDiscounts.map(d => (
-                            <div key={d.label} className="flex justify-between text-green-300">
-                              <span>{d.label}</span>
-                              <span>−${d.amount.toFixed(2)}</span>
-                            </div>
-                          ))}
-                          {promoDiscount > 0 && (
-                            <div className="flex justify-between text-green-300">
-                              <span>Promo discount</span>
-                              <span>−${promoDiscount.toFixed(2)}</span>
+                      {hasBreakdown && (
+                        <div className="relative" onMouseEnter={() => setDiffTooltip(true)} onMouseLeave={() => setDiffTooltip(false)}>
+                          <Info className="w-3.5 h-3.5 text-gray-500 cursor-default" />
+                          {diffTooltip && (
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2.5 bg-gray-800 text-white text-xs rounded-lg z-50 font-normal space-y-1.5 shadow-lg">
+                              <p className="text-gray-300 mb-2">Discount breakdown:</p>
+                              <div className="flex justify-between">
+                                <span>New monthly charges</span>
+                                <span>${addedTotal.toFixed(2)}</span>
+                              </div>
+                              {bundleDiscounts.map(d => (
+                                <div key={d.label} className="flex justify-between text-green-300">
+                                  <span>{d.label}</span>
+                                  <span>−${d.amount.toFixed(2)}</span>
+                                </div>
+                              ))}
+                              {promoDiscount > 0 && (
+                                <div className="flex justify-between text-green-300">
+                                  <span>Promo discount</span>
+                                  <span>−${promoDiscount.toFixed(2)}</span>
+                                </div>
+                              )}
+                              <div className="border-t border-gray-600 pt-1.5 flex justify-between font-semibold">
+                                <span>Effective total</span>
+                                <span>${effectiveTotal.toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-gray-300">
+                                <span>Current plan</span>
+                                <span>−${currentTotal.toFixed(2)}</span>
+                              </div>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                             </div>
                           )}
-                          <div className="border-t border-gray-600 pt-1.5 flex justify-between font-semibold">
-                            <span>Effective total</span>
-                            <span>${effectiveTotal.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between text-gray-300">
-                            <span>Current plan</span>
-                            <span>−${currentTotal.toFixed(2)}</span>
-                          </div>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                         </div>
-                      </div>
+                      )}
                     </span>
                     <span className={`text-base font-bold ${diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
