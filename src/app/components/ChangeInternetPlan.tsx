@@ -309,28 +309,42 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
               {ADD_ONS.filter(a => !a.group).map(addOn => {
                 const isChecked = selectedAddOns.has(addOn.id);
                 return (
-                  <button
-                    key={addOn.id}
-                    onClick={() => toggleAddOn(addOn.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                      ${isChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                      {isChecked && (
-                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className="flex-1 text-sm font-medium text-gray-800">{addOn.label}</span>
-                    {initialAddOnIds.has(addOn.id) && (
-                      <span className="text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5">
-                        Active
-                      </span>
-                    )}
-                    <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/mo</span>
-                    <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                  </button>
+                  {(() => {
+                    const wasActive = initialAddOnIds.has(addOn.id);
+                    const removing = wasActive && !isChecked;
+                    return (
+                      <button
+                        key={addOn.id}
+                        onClick={() => toggleAddOn(addOn.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-colors text-left
+                          ${removing
+                            ? 'border-red-300 bg-red-50'
+                            : isChecked
+                              ? 'border-blue-300 bg-blue-50'
+                              : 'border-gray-200 hover:bg-gray-50'}`}
+                      >
+                        <div className={`w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
+                          ${isChecked ? 'border-blue-600 bg-blue-600' : removing ? 'border-red-300 bg-white' : 'border-gray-300 bg-white'}`}>
+                          {isChecked && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`flex-1 text-sm font-medium ${removing ? 'text-red-700 line-through' : 'text-gray-800'}`}>{addOn.label}</span>
+                        {wasActive && (
+                          <span className={`text-xs font-semibold rounded-full px-2.5 py-0.5 border
+                            ${removing
+                              ? 'text-red-500 bg-red-50 border-red-200 line-through'
+                              : 'text-green-700 bg-green-100 border-green-200'}`}>
+                            Active
+                          </span>
+                        )}
+                        <span className={`text-sm ${removing ? 'text-red-400 line-through' : 'text-gray-500'}`}>${addOn.price.toFixed(2)}/mo</span>
+                        <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                      </button>
+                    );
+                  })()}
                 );
               })}
 
@@ -344,17 +358,20 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     <button
                       onClick={() => toggleAddOn(addOn.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-colors text-left
-                        ${isChecked ? 'border-blue-300 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+                        ${!isChecked ? 'border-red-300 bg-red-50' : 'border-blue-300 bg-blue-50'}`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center
-                        ${isChecked ? 'border-blue-600' : 'border-gray-300'}`}>
+                        ${isChecked ? 'border-blue-600' : 'border-red-300'}`}>
                         {isChecked && <div className="w-2 h-2 rounded-full bg-blue-600" />}
                       </div>
-                      <span className="flex-1 text-sm font-medium text-gray-800">{addOn.label}</span>
-                      {isChecked && (
-                        <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Active</span>
-                      )}
-                      <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}/mo</span>
+                      <span className={`flex-1 text-sm font-medium ${isChecked ? 'text-gray-800' : 'text-red-700 line-through'}`}>{addOn.label}</span>
+                      <span className={`text-xs font-medium rounded-full px-2 py-0.5 border
+                        ${isChecked
+                          ? 'text-blue-700 bg-blue-100 border-blue-200'
+                          : 'text-red-500 bg-red-50 border-red-200 line-through'}`}>
+                        Active
+                      </span>
+                      <span className={`text-sm ${isChecked ? 'text-gray-500' : 'text-red-400 line-through'}`}>${addOn.price.toFixed(2)}/mo</span>
                       <Info className="w-4 h-4 text-gray-300 flex-shrink-0" />
                     </button>
                   </div>
