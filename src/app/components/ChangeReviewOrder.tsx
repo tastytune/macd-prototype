@@ -286,12 +286,6 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                   <span className="text-gray-700">New monthly charges</span>
                   <span className="text-gray-900">${addedTotal.toFixed(2)}</span>
                 </div>
-                {bundleDiscounts.map(d => (
-                  <div key={d.label} className="flex items-center justify-between text-sm text-green-700">
-                    <span>{d.label}</span>
-                    <span className="font-medium">−${d.amount.toFixed(2)}</span>
-                  </div>
-                ))}
               </div>
 
               {(isDowngrade || isUpgrade) && onPromoToggle && (
@@ -315,8 +309,32 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                       Difference
                       <div className="relative group/diff">
                         <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
-                          Net change in monthly recurring charges compared to your current plan.
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2.5 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/diff:opacity-100 transition-opacity pointer-events-none z-10 font-normal space-y-1.5">
+                          <p className="text-gray-300 mb-2">Net change vs. current plan:</p>
+                          <div className="flex justify-between">
+                            <span>New monthly charges</span>
+                            <span>${addedTotal.toFixed(2)}</span>
+                          </div>
+                          {bundleDiscounts.map(d => (
+                            <div key={d.label} className="flex justify-between text-green-300">
+                              <span>{d.label}</span>
+                              <span>−${d.amount.toFixed(2)}</span>
+                            </div>
+                          ))}
+                          {promoDiscount > 0 && (
+                            <div className="flex justify-between text-green-300">
+                              <span>Promo discount</span>
+                              <span>−${promoDiscount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          <div className="border-t border-gray-600 pt-1.5 flex justify-between font-semibold">
+                            <span>Effective total</span>
+                            <span>${effectiveTotal.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-300">
+                            <span>Current plan</span>
+                            <span>−${currentTotal.toFixed(2)}</span>
+                          </div>
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                         </div>
                       </div>
