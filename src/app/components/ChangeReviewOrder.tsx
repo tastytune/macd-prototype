@@ -100,6 +100,22 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
     sum + (currentPlans[g] ?? []).reduce((s, i) => s + i.monthlyCharge, 0), 0
   );
 
+  // Bundle discounts — Internet + TV bundled together
+  const hasInternetInCart = cartLines.some(l => l.group === 'internet' && l.label.startsWith('Internet'));
+  const tvPlanLine = cartLines.find(l => l.group === 'television' &&
+    (l.label.includes('Essentials') || l.label.includes('Preferred') || l.label.includes('Extra')));
+  const bundleDiscounts: { label: string; amount: number }[] = [];
+  if (hasInternetInCart && tvPlanLine) {
+    if (tvPlanLine.label.includes('Essentials')) {
+      bundleDiscounts.push({ label: 'Internet Bundle Discount', amount: 9 });
+      bundleDiscounts.push({ label: 'TV Bundle Discount', amount: 6 });
+    } else {
+      bundleDiscounts.push({ label: 'Internet Bundle Discount', amount: 25 });
+      bundleDiscounts.push({ label: 'TV Bundle Discount', amount: 16 });
+    }
+  }
+  const totalBundleDiscount = bundleDiscounts.reduce((s, d) => s + d.amount, 0);
+
   return (
     <div>
       <div className="mb-8">
@@ -270,6 +286,12 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                   <span className="text-gray-700">New monthly charges</span>
                   <span className="text-gray-900">${addedTotal.toFixed(2)}</span>
                 </div>
+                {bundleDiscounts.map(d => (
+                  <div key={d.label} className="flex items-center justify-between text-sm text-green-700">
+                    <span>{d.label}</span>
+                    <span className="font-medium">−${d.amount.toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
 
               {(isDowngrade || isUpgrade) && onPromoToggle && (
@@ -284,8 +306,9 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
               )}
 
               {(() => {
-                const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
-                const diff = (addedTotal - discount) - currentTotal;
+                const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount;
+                const diff = effectiveTotal - currentTotal;
                 return (
                   <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
                     <span className="font-medium text-gray-700 flex items-center gap-1.5">
@@ -307,13 +330,14 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
 
               <div className="pt-4 border-t-2 border-gray-300">
                 {(() => {
-                  const discount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                  const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
+                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount;
                   return (
                     <>
-                      {discount > 0 && (
+                      {promoDiscount > 0 && (
                         <div className="flex justify-between text-sm text-green-700 mb-2">
                           <span>Promo discount</span>
-                          <span className="font-medium">−${discount.toFixed(2)}</span>
+                          <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between">
@@ -327,7 +351,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                             </div>
                           </div>
                         </div>
-                        <span className="text-xl font-medium text-gray-900">${(addedTotal - discount).toFixed(2)}</span>
+                        <span className="text-xl font-medium text-gray-900">${effectiveTotal.toFixed(2)}</span>
                       </div>
                     </>
                   );
