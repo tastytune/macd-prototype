@@ -84,6 +84,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
 
 export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited' });
 
@@ -507,6 +508,20 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                             <div className="flex justify-between text-sm text-green-700">
                               <span>Promo discount</span>
                               <span className="font-medium">−${discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {isMove2 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-700">Move fee (one-time)</span>
+                                <button
+                                  onClick={() => setMoveFeeApplied(v => !v)}
+                                  className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                                >
+                                  <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                                </button>
+                              </div>
+                              <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
                             </div>
                           )}
                           {diff !== 0 && (

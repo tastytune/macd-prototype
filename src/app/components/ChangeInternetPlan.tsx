@@ -63,6 +63,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
     return null;
   });
   const currentTechHome = SA_TECH_HOME[selectedSA?.id ?? ''] ?? null;
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(() => {
     const initial = new Set<string>(['whole-home-wifi']);
     if (currentTechHome) initial.add(currentTechHome);
@@ -507,6 +508,20 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                             <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
                           </div>
                         )}
+                        {isMove2 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-700">Move fee (one-time)</span>
+                              <button
+                                onClick={() => setMoveFeeApplied(v => !v)}
+                                className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                              >
+                                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                              </button>
+                            </div>
+                            <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                          </div>
+                        )}
                         {(() => {
                           const prevTotal = effectivePreviousLines.reduce((s, l) => s + l.price, 0);
                           const diff = (fullTotal - promoDiscount) - prevTotal;
@@ -537,6 +552,20 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         <span className="font-medium text-gray-900">${line.price.toFixed(2)}</span>
                       </div>
                     ))}
+                    {isMove2 && (
+                      <div className="flex items-center justify-between text-sm border-t border-gray-100 pt-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-700">Move fee (one-time)</span>
+                          <button
+                            onClick={() => setMoveFeeApplied(v => !v)}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                        <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                      </div>
+                    )}
                     <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
                       <span className="text-gray-700">Total</span>
                       <span className="text-gray-900">${effectivePreviousLines.reduce((s, l) => s + l.price, 0).toFixed(2)}/mo</span>

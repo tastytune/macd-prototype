@@ -127,6 +127,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   const [videoStreams, setVideoStreams] = useState(initStreams);
   const [dvrHours,    setDvrHours]    = useState(initDvr);
   const [setTopBoxes, setSetTopBoxes]  = useState(initBoxes);
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
 
   const currentPlanId = SA_TV_PLAN[selectedSA?.id ?? ''] ?? null;
   const higherInternetSelected = selectedInternetPlanId === '1gig' || selectedInternetPlanId === '2gig';
@@ -596,6 +597,20 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                             <div className="flex justify-between text-sm text-green-700">
                               <span>Promo discount</span>
                               <span className="font-medium">−${discount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {isMove2 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-700">Move fee (one-time)</span>
+                                <button
+                                  onClick={() => setMoveFeeApplied(v => !v)}
+                                  className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                                >
+                                  <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                                </button>
+                              </div>
+                              <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
                             </div>
                           )}
                           {diff !== 0 && (
