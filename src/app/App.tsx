@@ -154,6 +154,8 @@ function App() {
   const [moveBillingEndDate, setMoveBillingEndDate] = useState<string>('');
   const [moveInstallationDate, setMoveInstallationDate] = useState<string>('');
   const [moveTimeSlot, setMoveTimeSlot] = useState<string>('');
+  const [moveOriginInstallDate, setMoveOriginInstallDate] = useState<string>('');
+  const [moveOriginSlot, setMoveOriginSlot] = useState<string>('');
 
   const calculateTotalActiveMonthlyCharges = () => {
     const internetTotal = 12.99 + 3.50;
@@ -570,7 +572,7 @@ function App() {
               selectedSA={selectedSA}
               selectedServiceIds={moveSelectedServiceIds}
               onBack={() => setCurrentStep('move-services-step3')}
-              onNext={(billingEnd, installation, timeSlot) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setMoveTimeSlot(timeSlot); setCurrentStep('move-review'); }}
+              onNext={(billingEnd, installation, timeSlot, originInstall, originSlotLabel) => { setMoveBillingEndDate(billingEnd); setMoveInstallationDate(installation); setMoveTimeSlot(timeSlot); setMoveOriginInstallDate(originInstall ?? ''); setMoveOriginSlot(originSlotLabel ?? ''); setCurrentStep('move-review'); }}
             />
           </motion.div>
         )}
@@ -593,6 +595,8 @@ function App() {
               billingEndDate={moveBillingEndDate}
               installationDate={moveInstallationDate}
               timeSlot={moveTimeSlot}
+              originInstallationDate={moveOriginInstallDate}
+              originTimeSlot={moveOriginSlot}
               onBack={() => setCurrentStep('move-dates')}
               onSubmit={() => handleConfirmSubmit()}
             />

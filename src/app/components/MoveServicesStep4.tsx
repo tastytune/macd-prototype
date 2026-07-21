@@ -11,7 +11,7 @@ interface MoveServicesStep4Props {
   selectedSA?: Service | null;
   selectedServiceIds?: string[];
   onBack: () => void;
-  onNext: (billingEnd: string, installation: string, timeSlot: string) => void;
+  onNext: (billingEnd: string, installation: string, timeSlot: string, originInstallation?: string, originSlot?: string) => void;
 }
 
 // Original services active before the move (to compute originalMRC)
@@ -88,15 +88,25 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
     : baseServices;
   const totalMRC = movingServices.reduce((s, svc) => s + svc.price, 0);
   const mrcDiff = totalMRC - originalMRC;
+  const isM03 = scenario === 'M03';
+
   const [billingEndDate, setBillingEndDate] = useState('');
+
+  // Destination install (all scenarios)
   const [installationDate, setInstallationDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
   const [dateViaInput, setDateViaInput] = useState(false);
+
+  // Origin uninstall (M03 only)
+  const [originInstallDate, setOriginInstallDate] = useState('');
+  const [originSlot, setOriginSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
+  const [originDateViaInput, setOriginDateViaInput] = useState(false);
+
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
 
   const weekdays = getNextWeekdays(3);
 
-  const installHint = scenario === 'M03'
+  const installHint = isM03
     ? 'Min: 15 business days (technology change).'
     : 'Min: 10 business days (buried drop).';
 
@@ -107,6 +117,13 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
     setInstallationDate(dateStr);
     setSelectedSlot(prev => (prev?.dateStr === dateStr && prev?.slotId === slotId) ? null : { dateStr, slotId });
     setDateViaInput(false);
+  };
+
+  const handleOriginSlotClick = (date: Date, slotId: string) => {
+    const dateStr = formatDateValue(date);
+    setOriginInstallDate(dateStr);
+    setOriginSlot(prev => (prev?.dateStr === dateStr && prev?.slotId === slotId) ? null : { dateStr, slotId });
+    setOriginDateViaInput(false);
   };
 
   return (
@@ -125,134 +142,224 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
           <div className="bg-white rounded-2xl border border-gray-200 p-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-8">Dates &amp; schedule</h2>
 
-            {/* Date fields */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
-                  Billing end date (old address) <span className="text-red-500">*</span>
-                  <div className="relative group">
-                    <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      Date customer vacates. Billing stops here.
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                    </div>
+            {/* Billing end date — always shown */}
+            <div className="mb-6">
+              <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
+                Billing end date (old address) <span className="text-red-500">*</span>
+                <div className="relative group">
+                  <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    Date customer vacates. Billing stops here.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                   </div>
-                </label>
-                <DateInput
-                  value={billingEndDate}
-                  onChange={v => setBillingEndDate(v)}
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
-                  Installation date (new address)
-                  <div className="relative group">
-                    <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                      {installHint}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                    </div>
-                  </div>
-                </label>
-                <DateInput
-                  value={installationDate}
-                  onChange={v => { setInstallationDate(v); setSelectedSlot(null); setDateViaInput(true); }}
-                />
-                {dateViaInput && installationDate && (
-                  <div className="mt-3 p-4 rounded-xl border border-gray-200 bg-white w-full">
-                    {(['MORNING', 'AFTERNOON'] as const).map(period => (
-                      <div key={period} className="mb-3 last:mb-0">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
-                          {period === 'MORNING' ? 'Morning' : 'Afternoon'}
-                        </p>
-                        <div className="space-y-1.5">
-                          {TIME_SLOTS.filter(s => s.period === period).map(slot => {
-                            const isSelected = selectedSlot?.slotId === slot.id;
-                            return (
-                              <button
-                                key={slot.id}
-                                onClick={() => setSelectedSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: installationDate, slotId: slot.id })}
-                                className={`block w-full py-1.5 px-3 rounded-lg text-xs font-medium text-left transition-colors
-                                  ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
-                              >
-                                {slot.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Selection */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">Quick Selection – Next Available Dates:</p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                {weekdays.map(date => {
-                  const dateStr = formatDateValue(date);
-                  const isCardSelected = selectedSlot?.dateStr === dateStr;
-                  return (
-                    <div
-                      key={dateStr}
-                      className={`w-52 rounded-2xl border p-5 transition-all
-                        ${isCardSelected ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white'}`}
-                    >
-                      <p className={`text-sm font-semibold mb-4 ${isCardSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                        {formatDateLabel(date)}
-                      </p>
-
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Morning</p>
-                      <div className="space-y-2 mb-4">
-                        {TIME_SLOTS.filter(s => s.period === 'MORNING').map(slot => {
-                          const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
-                          return (
-                            <button
-                              key={slot.id}
-                              onClick={() => handleSlotClick(date, slot.id)}
-                              className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
-                                ${isSelected
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
-                                }`}
-                            >
-                              {slot.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Afternoon</p>
-                      <div className="space-y-2">
-                        {TIME_SLOTS.filter(s => s.period === 'AFTERNOON').map(slot => {
-                          const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
-                          return (
-                            <button
-                              key={slot.id}
-                              onClick={() => handleSlotClick(date, slot.id)}
-                              className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
-                                ${isSelected
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
-                                }`}
-                            >
-                              {slot.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
+              </label>
+              <div className="max-w-xs">
+                <DateInput value={billingEndDate} onChange={v => setBillingEndDate(v)} />
               </div>
             </div>
+
+            {/* M03: two installation appointments side by side */}
+            {isM03 ? (
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                {/* Origin — Uninstall */}
+                <div className="rounded-2xl border-2 border-orange-200 bg-orange-50/40 p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-orange-800">Installation at Origin</p>
+                      <p className="text-xs text-orange-600">Disconnection / uninstall</p>
+                    </div>
+                  </div>
+                  <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
+                  <DateInput
+                    value={originInstallDate}
+                    onChange={v => { setOriginInstallDate(v); setOriginSlot(null); setOriginDateViaInput(true); }}
+                  />
+                  {/* Quick slots */}
+                  <div className="mt-4 space-y-3">
+                    {weekdays.map(date => {
+                      const dateStr = formatDateValue(date);
+                      const isCardSelected = originSlot?.dateStr === dateStr;
+                      return (
+                        <div key={dateStr} className={`rounded-xl border p-3 transition-all ${isCardSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-white'}`}>
+                          <p className={`text-xs font-semibold mb-2 ${isCardSelected ? 'text-orange-700' : 'text-gray-600'}`}>{formatDateLabel(date)}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {TIME_SLOTS.map(slot => {
+                              const isSelected = isCardSelected && originSlot?.slotId === slot.id;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  onClick={() => handleOriginSlotClick(date, slot.id)}
+                                  className={`py-1.5 px-2 rounded-lg text-[10px] font-medium text-center transition-colors
+                                    ${isSelected ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700'}`}
+                                >
+                                  {slot.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Destination — Install */}
+                <div className="rounded-2xl border-2 border-blue-200 bg-blue-50/40 p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-blue-800">Installation at Destination</p>
+                      <p className="text-xs text-blue-600">New service install · Min 15 business days</p>
+                    </div>
+                  </div>
+                  <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
+                  <DateInput
+                    value={installationDate}
+                    onChange={v => { setInstallationDate(v); setSelectedSlot(null); setDateViaInput(true); }}
+                  />
+                  {/* Quick slots */}
+                  <div className="mt-4 space-y-3">
+                    {weekdays.map(date => {
+                      const dateStr = formatDateValue(date);
+                      const isCardSelected = selectedSlot?.dateStr === dateStr;
+                      return (
+                        <div key={dateStr} className={`rounded-xl border p-3 transition-all ${isCardSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                          <p className={`text-xs font-semibold mb-2 ${isCardSelected ? 'text-blue-700' : 'text-gray-600'}`}>{formatDateLabel(date)}</p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {TIME_SLOTS.map(slot => {
+                              const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  onClick={() => handleSlotClick(date, slot.id)}
+                                  className={`py-1.5 px-2 rounded-lg text-[10px] font-medium text-center transition-colors
+                                    ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
+                                >
+                                  {slot.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Non-M03: single installation date */}
+                <div className="mb-6">
+                  <label className="flex items-center gap-1.5 text-sm text-gray-700 mb-2">
+                    Installation date (new address)
+                    <div className="relative group">
+                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {installHint}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                      </div>
+                    </div>
+                  </label>
+                  <div className="max-w-xs">
+                    <DateInput
+                      value={installationDate}
+                      onChange={v => { setInstallationDate(v); setSelectedSlot(null); setDateViaInput(true); }}
+                    />
+                  </div>
+                  {dateViaInput && installationDate && (
+                    <div className="mt-3 p-4 rounded-xl border border-gray-200 bg-white max-w-xs">
+                      {(['MORNING', 'AFTERNOON'] as const).map(period => (
+                        <div key={period} className="mb-3 last:mb-0">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                            {period === 'MORNING' ? 'Morning' : 'Afternoon'}
+                          </p>
+                          <div className="space-y-1.5">
+                            {TIME_SLOTS.filter(s => s.period === period).map(slot => {
+                              const isSelected = selectedSlot?.slotId === slot.id;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  onClick={() => setSelectedSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: installationDate, slotId: slot.id })}
+                                  className={`block w-full py-1.5 px-3 rounded-lg text-xs font-medium text-left transition-colors
+                                    ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
+                                >
+                                  {slot.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Selection */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">Quick Selection – Next Available Dates:</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    {weekdays.map(date => {
+                      const dateStr = formatDateValue(date);
+                      const isCardSelected = selectedSlot?.dateStr === dateStr;
+                      return (
+                        <div
+                          key={dateStr}
+                          className={`w-52 rounded-2xl border p-5 transition-all
+                            ${isCardSelected ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white'}`}
+                        >
+                          <p className={`text-sm font-semibold mb-4 ${isCardSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                            {formatDateLabel(date)}
+                          </p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Morning</p>
+                          <div className="space-y-2 mb-4">
+                            {TIME_SLOTS.filter(s => s.period === 'MORNING').map(slot => {
+                              const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  onClick={() => handleSlotClick(date, slot.id)}
+                                  className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
+                                    ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
+                                >
+                                  {slot.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Afternoon</p>
+                          <div className="space-y-2">
+                            {TIME_SLOTS.filter(s => s.period === 'AFTERNOON').map(slot => {
+                              const isSelected = isCardSelected && selectedSlot?.slotId === slot.id;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  onClick={() => handleSlotClick(date, slot.id)}
+                                  className={`block w-full py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors
+                                    ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}
+                                >
+                                  {slot.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-end gap-3 mt-10">
@@ -265,7 +372,8 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
               <button
                 onClick={() => {
                   const slotLabel = selectedSlot ? (TIME_SLOTS.find(s => s.id === selectedSlot.slotId)?.label ?? '') : '';
-                  onNext(billingEndDate, installationDate, slotLabel);
+                  const originSlotLabel = originSlot ? (TIME_SLOTS.find(s => s.id === originSlot.slotId)?.label ?? '') : '';
+                  onNext(billingEndDate, installationDate, slotLabel, isM03 ? originInstallDate : undefined, isM03 ? originSlotLabel : undefined);
                 }}
                 disabled={!canProceed}
                 className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors

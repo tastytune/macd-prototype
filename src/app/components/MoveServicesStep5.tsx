@@ -13,6 +13,8 @@ interface MoveServicesStep5Props {
   billingEndDate: string;
   installationDate: string;
   timeSlot?: string;
+  originInstallationDate?: string;
+  originTimeSlot?: string;
   onBack: () => void;
   onSubmit: () => void;
 }
@@ -73,9 +75,12 @@ export function MoveServicesStep5({
   billingEndDate,
   installationDate,
   timeSlot,
+  originInstallationDate,
+  originTimeSlot,
   onBack,
   onSubmit,
 }: MoveServicesStep5Props) {
+  const isM03 = scenario === 'M03';
   const originAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
   const technology = scenario === 'M03' ? 'Fiber → Coax (technology change)' : 'Fiber → Fiber (no change)';
 
@@ -182,7 +187,16 @@ export function MoveServicesStep5({
                 {originAddress && <p className="text-xs text-gray-500">From: <strong className="text-gray-700">{originAddress}</strong></p>}
                 {destinationAddress && <p className="text-xs text-gray-500">To: <strong className="text-gray-700">{destinationAddress}</strong></p>}
                 {billingEndDate && <p className="text-xs text-gray-500">Billing end: {formatDate(billingEndDate)}</p>}
-                {installationDate && <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>}
+                {isM03 && originInstallationDate ? (
+                  <p className="text-xs text-orange-600">
+                    <strong>Origin uninstall:</strong> {formatDate(originInstallationDate)}{originTimeSlot ? `, ${originTimeSlot}` : ''}
+                  </p>
+                ) : null}
+                {installationDate && (
+                  <p className="text-xs text-blue-600">
+                    <strong>{isM03 ? 'Destination install:' : 'Installation:'}</strong> {formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500">{technology}</p>
               </div>
 
@@ -239,12 +253,22 @@ export function MoveServicesStep5({
 
       </div>
 
-      {/* Installation confirmation banner */}
+      {/* Installation confirmation banners */}
+      {isM03 && originInstallationDate && (
+        <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg mt-6">
+          <CalendarCheck className="w-4 h-4 text-orange-600 flex-shrink-0" />
+          <p className="text-sm text-orange-800">
+            <strong>Origin uninstall</strong> scheduled for{' '}
+            <strong>{formatDate(originInstallationDate)}{originTimeSlot ? `, ${originTimeSlot}` : ''}</strong>
+            {originAddress ? <> at <strong>{originAddress}</strong></> : ''}.
+          </p>
+        </div>
+      )}
       {installationDate && (
-        <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mt-6">
+        <div className={`flex items-center gap-3 p-4 rounded-lg ${isM03 ? 'mt-2 bg-blue-50 border border-blue-200' : 'mt-6 bg-blue-50 border border-blue-200'}`}>
           <CalendarCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
           <p className="text-sm text-blue-800">
-            Installation scheduled for{' '}
+            {isM03 ? <><strong>Destination install</strong> scheduled for{' '}</> : <>Installation scheduled for{' '}</>}
             <strong>{formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}</strong>
             {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
           </p>
