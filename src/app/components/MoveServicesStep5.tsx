@@ -278,12 +278,39 @@ export function MoveServicesStep5({
       {/* Warning banner */}
       <div className="flex items-start gap-3 p-4 bg-[#faf0fa] border border-[#d9a0d9] rounded-lg mt-3">
         <AlertTriangle className="w-4 h-4 text-[#800080] flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-[#800080]">
-          The user is about to move services
-          {billingEndDate ? <> with billing ending on <strong>{formatDate(billingEndDate)}</strong></> : ''}
-          {installationDate ? <> and installation scheduled for <strong>{formatDate(installationDate)}</strong>{timeSlot ? <> (<strong>{timeSlot}</strong>)</> : ''}</> : ''}
-          . This action cannot be undone.
-        </p>
+        <div className="text-sm text-[#800080] space-y-1">
+          {isM03 ? (
+            <>
+              <p>
+                The user is about to move services with a technology change.{' '}
+                <strong>A technician truck may need to visit both addresses.</strong>
+              </p>
+              {billingEndDate && (
+                <p>Billing ends on <strong>{formatDate(billingEndDate)}</strong>.</p>
+              )}
+              {originInstallationDate && (
+                <p>
+                  Uninstall at origin: <strong>{formatDate(originInstallationDate)}</strong>
+                  {originTimeSlot ? <> (<strong>{originTimeSlot}</strong>)</> : ''}.
+                </p>
+              )}
+              {installationDate && (
+                <p>
+                  Installation at destination: <strong>{formatDate(installationDate)}</strong>
+                  {timeSlot ? <> (<strong>{timeSlot}</strong>)</> : ''}.
+                </p>
+              )}
+              <p>This action cannot be undone.</p>
+            </>
+          ) : (
+            <p>
+              The user is about to move services
+              {billingEndDate ? <> with billing ending on <strong>{formatDate(billingEndDate)}</strong></> : ''}
+              {installationDate ? <> and installation scheduled for <strong>{formatDate(installationDate)}</strong>{timeSlot ? <> (<strong>{timeSlot}</strong>)</> : ''}</> : ''}
+              . This action cannot be undone.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
