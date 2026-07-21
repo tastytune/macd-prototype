@@ -345,7 +345,8 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
               {(() => {
                 const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
                 const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
-                const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee;
+                const paperFee = billingPref === 'paper' ? 5 : 0;
+                const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee + paperFee;
                 const diff = effectiveTotal - currentTotal;
                 return (
                   <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
@@ -361,13 +362,20 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 {(() => {
                   const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
                   const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
-                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee;
+                  const paperFee = billingPref === 'paper' ? 5 : 0;
+                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee + paperFee;
                   return (
                     <>
                       {promoDiscount > 0 && (
                         <div className="flex justify-between text-sm text-green-700 mb-2">
                           <span>Promo discount</span>
                           <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {paperFee > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600 mb-2">
+                          <span>Paper Statement</span>
+                          <span className="font-medium">+$5.00</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between">
