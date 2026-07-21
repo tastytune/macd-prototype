@@ -364,7 +364,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       <span className={`flex-1 text-sm font-medium ${isChecked ? 'text-gray-800' : 'text-red-700 line-through'}`}>{addOn.label}</span>
                       <span className={`text-xs font-medium rounded-full px-2 py-0.5 border
                         ${isChecked
-                          ? 'text-blue-700 bg-blue-100 border-blue-200'
+                          ? 'text-green-700 bg-green-100 border-green-200'
                           : 'text-red-500 bg-red-50 border-red-200 line-through'}`}>
                         Active
                       </span>
