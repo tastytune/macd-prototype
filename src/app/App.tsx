@@ -754,6 +754,9 @@ function App() {
                 selectedSA={selectedSA}
                 installationDate={changeInstallationDate}
                 installationSlot={changeInstallationSlot}
+                originInstallationDate={changeOriginInstallDate}
+                originInstallationSlot={changeOriginInstallSlot}
+                scenario={moveScenario}
                 cartLines={changeCartLines}
                 isDowngrade={changeIsDowngrade}
                 isUpgrade={changeIsUpgrade}

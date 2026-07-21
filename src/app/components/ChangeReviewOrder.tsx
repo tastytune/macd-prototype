@@ -11,6 +11,9 @@ interface ChangeReviewOrderProps {
   selectedSA?: Service | null;
   installationDate: string;
   installationSlot?: string;
+  originInstallationDate?: string;
+  originInstallationSlot?: string;
+  scenario?: string;
   cartLines: CartLine[];
   isDowngrade?: boolean;
   isUpgrade?: boolean;
@@ -72,7 +75,8 @@ const GROUP_LABEL: Record<GroupKey, string> = {
 
 const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 
-export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
+export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, originInstallationDate, originInstallationSlot, scenario, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
+  const isM03 = isMove2 && scenario === 'M03';
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
   const activeGroups = isMove2
     ? GROUP_ORDER.filter(g => cartLines.some(l => l.group === g) || (currentPlans[g] ?? []).length > 0)
@@ -404,12 +408,24 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
       {/* Warning banner */}
       <div className={`flex items-start gap-3 p-4 rounded-lg mt-6 border ${isMove2 ? 'bg-[#f3e8f3] border-[#d9a0d9]' : 'bg-blue-50 border-blue-200'}`}>
         <AlertTriangle className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isMove2 ? 'text-[#800080]' : 'text-blue-500'}`} />
-        <p className={`text-sm ${isMove2 ? 'text-[#800080]' : 'text-blue-800'}`}>
-          {isMove2
-            ? <>The user is about to move services to the new address{installationDate ? <> with installation on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
-            : <>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
-          }
-        </p>
+        <div className={`text-sm space-y-1 ${isMove2 ? 'text-[#800080]' : 'text-blue-800'}`}>
+          {isM03 ? (
+            <>
+              <p>The user is about to move services with a technology change. <strong>A technician truck may need to visit both addresses.</strong></p>
+              {originInstallationDate && (
+                <p>Uninstall at origin: <strong>{formatDate(originInstallationDate)}{originInstallationSlot && TIME_SLOT_LABELS[originInstallationSlot] ? `, ${TIME_SLOT_LABELS[originInstallationSlot]}` : ''}</strong>.</p>
+              )}
+              {installationDate && (
+                <p>Installation at destination: <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong>.</p>
+              )}
+              <p>This action cannot be undone.</p>
+            </>
+          ) : isMove2 ? (
+            <p>The user is about to move services to the new address{installationDate ? <> with installation on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action cannot be undone.</p>
+          ) : (
+            <p>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action cannot be undone.</p>
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
