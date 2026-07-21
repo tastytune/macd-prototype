@@ -541,7 +541,23 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     })()}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>
+                  <>
+                    <p className="text-sm text-gray-400 mb-3">Select a plan to see pricing</p>
+                    {isMove2 && (
+                      <div className="flex items-center justify-between text-sm border-t border-gray-100 pt-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-700">Move fee (one-time)</span>
+                          <button
+                            onClick={() => setMoveFeeApplied(v => !v)}
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                        <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                      </div>
+                    )}
+                  </>
                 );
               })()}
             </div>
