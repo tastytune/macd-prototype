@@ -189,12 +189,12 @@ export function MoveServicesStep5({
                 {billingEndDate && <p className="text-xs text-gray-500">Billing end: {formatDate(billingEndDate)}</p>}
                 {isM03 && originInstallationDate ? (
                   <p className="text-xs text-orange-600">
-                    <strong>Origin uninstall:</strong> {formatDate(originInstallationDate)}{originTimeSlot ? `, ${originTimeSlot}` : ''}
+                    <strong>Install date — Origin:</strong> {formatDate(originInstallationDate)}{originTimeSlot ? `, ${originTimeSlot}` : ''}
                   </p>
                 ) : null}
                 {installationDate && (
                   <p className="text-xs text-blue-600">
-                    <strong>{isM03 ? 'Destination install:' : 'Installation:'}</strong> {formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}
+                    <strong>{isM03 ? 'Install date — Destination:' : 'Installation:'}</strong> {formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}
                   </p>
                 )}
                 <p className="text-xs text-gray-500">{technology}</p>
@@ -258,7 +258,7 @@ export function MoveServicesStep5({
         <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg mt-6">
           <CalendarCheck className="w-4 h-4 text-orange-600 flex-shrink-0" />
           <p className="text-sm text-orange-800">
-            <strong>Origin uninstall</strong> scheduled for{' '}
+            <strong>Installation Preferred Date — Origin</strong> scheduled for{' '}
             <strong>{formatDate(originInstallationDate)}{originTimeSlot ? `, ${originTimeSlot}` : ''}</strong>
             {originAddress ? <> at <strong>{originAddress}</strong></> : ''}.
           </p>
@@ -268,7 +268,7 @@ export function MoveServicesStep5({
         <div className={`flex items-center gap-3 p-4 rounded-lg ${isM03 ? 'mt-2 bg-blue-50 border border-blue-200' : 'mt-6 bg-blue-50 border border-blue-200'}`}>
           <CalendarCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
           <p className="text-sm text-blue-800">
-            {isM03 ? <><strong>Destination install</strong> scheduled for{' '}</> : <>Installation scheduled for{' '}</>}
+            {isM03 ? <><strong>Installation Preferred Date — Destination</strong> scheduled for{' '}</> : <>Installation scheduled for{' '}</>}
             <strong>{formatDate(installationDate)}{timeSlot ? `, ${timeSlot}` : ''}</strong>
             {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
           </p>

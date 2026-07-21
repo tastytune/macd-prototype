@@ -169,8 +169,8 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                       <Calendar className="w-4 h-4 text-orange-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-orange-800">Installation at Origin</p>
-                      <p className="text-xs text-orange-600">Disconnection / uninstall</p>
+                      <p className="text-sm font-semibold text-orange-800">Installation Preferred Date — Origin</p>
+                      <p className="text-xs text-orange-600">Disconnection / uninstall at origin address</p>
                     </div>
                   </div>
                   <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
@@ -214,8 +214,8 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                       <Calendar className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-blue-800">Installation at Destination</p>
-                      <p className="text-xs text-blue-600">New service install · Min 15 business days</p>
+                      <p className="text-sm font-semibold text-blue-800">Installation Preferred Date — Destination</p>
+                      <p className="text-xs text-blue-600">New service install at destination · Min 15 business days</p>
                     </div>
                   </div>
                   <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
