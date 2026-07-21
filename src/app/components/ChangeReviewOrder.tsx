@@ -261,6 +261,28 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 </table>
               </div>
             </div>
+
+            {/* Billing Preference — inside the services card */}
+            <div className="px-6 pb-6 pt-4 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Billing Preference</p>
+              <div className="space-y-2.5">
+                {(['electronic', 'paper'] as const).map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setBillingPref(opt)}
+                    className="w-full flex items-center gap-3 text-left"
+                  >
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${billingPref === opt ? 'border-blue-600' : 'border-gray-300'}`}>
+                      {billingPref === opt && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                    </div>
+                    <span className="text-sm text-gray-800">
+                      {opt === 'electronic' ? 'Electronic Billing' : 'Paper Statement'}
+                    </span>
+                    {opt === 'paper' && <span className="text-sm text-gray-500 ml-auto">$5.00</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -380,28 +402,6 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
             : <>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action can not be undone.</>
           }
         </p>
-      </div>
-
-      {/* Billing Preference */}
-      <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Billing Preference</p>
-        <div className="space-y-2.5">
-          {(['electronic', 'paper'] as const).map(opt => (
-            <button
-              key={opt}
-              onClick={() => setBillingPref(opt)}
-              className="w-full flex items-center gap-3 text-left"
-            >
-              <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${billingPref === opt ? 'border-blue-600' : 'border-gray-300'}`}>
-                {billingPref === opt && <div className="w-2 h-2 rounded-full bg-blue-600" />}
-              </div>
-              <span className="text-sm text-gray-800">
-                {opt === 'electronic' ? 'Electronic Billing' : 'Paper Statement'}
-              </span>
-              {opt === 'paper' && <span className="text-sm text-gray-500 ml-auto">$5.00</span>}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Navigation */}
