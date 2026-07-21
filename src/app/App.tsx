@@ -137,6 +137,8 @@ function App() {
   const [moveSelectedServiceIds, setMoveSelectedServiceIds] = useState<string[]>(['fiber', 'voice', 'streaming', 'wifi']);
   const [changeInstallationDate, setChangeInstallationDate] = useState<string>('');
   const [changeInstallationSlot, setChangeInstallationSlot] = useState<string>('');
+  const [changeOriginInstallDate, setChangeOriginInstallDate] = useState<string>('');
+  const [changeOriginInstallSlot, setChangeOriginInstallSlot] = useState<string>('');
   const [changeCartLines, setChangeCartLines] = useState<CartLine[]>([]);
   const [changeInternetPlanId, setChangeInternetPlanId] = useState<string>('');
   const [changeSelectedPromos, setChangeSelectedPromos] = useState<Set<string>>(new Set());
@@ -719,11 +721,18 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
+              scenario={moveScenario}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-phone-plan')}
               onSkip={() => { setChangeInstallationDate(''); setChangeInstallationSlot(''); setCurrentStep('change-review'); }}
-              onNext={(date, slot) => { setChangeInstallationDate(date); setChangeInstallationSlot(slot); setCurrentStep('change-review'); }}
+              onNext={(date, slot, originDate, originSlot) => {
+                setChangeInstallationDate(date);
+                setChangeInstallationSlot(slot);
+                setChangeOriginInstallDate(originDate ?? '');
+                setChangeOriginInstallSlot(originSlot ?? '');
+                setCurrentStep('change-review');
+              }}
             />
           </motion.div>
         )}
