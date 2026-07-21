@@ -136,6 +136,30 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                   value={originDate}
                   onChange={v => { setOriginDate(v); setOriginSlot(null); setOriginDateViaInput(true); }}
                 />
+                {originDateViaInput && originDate && (
+                  <div className="mt-3 p-3 rounded-xl border border-orange-200 bg-white">
+                    {(['MORNING', 'AFTERNOON'] as const).map(period => (
+                      <div key={period} className="mb-2 last:mb-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                          {period === 'MORNING' ? 'Morning' : 'Afternoon'}
+                        </p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {TIME_SLOTS.filter(s => s.period === period).map(slot => {
+                            const isSelected = originSlot?.slotId === slot.id;
+                            return (
+                              <button key={slot.id}
+                                onClick={() => setOriginSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: originDate, slotId: slot.id })}
+                                className={`py-1.5 px-2 rounded-lg text-[10px] font-medium text-center transition-colors
+                                  ${isSelected ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-700'}`}>
+                                {slot.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-4 space-y-3">
                   {weekdays.map(date => {
                     const dateStr = formatDateValue(date);
@@ -184,6 +208,30 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                   value={selectedDate}
                   onChange={v => { setSelectedDate(v); setSelectedSlot(null); setDateViaInput(true); }}
                 />
+                {dateViaInput && selectedDate && (
+                  <div className="mt-3 p-3 rounded-xl border border-blue-200 bg-white">
+                    {(['MORNING', 'AFTERNOON'] as const).map(period => (
+                      <div key={period} className="mb-2 last:mb-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+                          {period === 'MORNING' ? 'Morning' : 'Afternoon'}
+                        </p>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {TIME_SLOTS.filter(s => s.period === period).map(slot => {
+                            const isSelected = selectedSlot?.slotId === slot.id;
+                            return (
+                              <button key={slot.id}
+                                onClick={() => setSelectedSlot(prev => (prev?.slotId === slot.id) ? null : { dateStr: selectedDate, slotId: slot.id })}
+                                className={`py-1.5 px-2 rounded-lg text-[10px] font-medium text-center transition-colors
+                                  ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'}`}>
+                                {slot.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-4 space-y-3">
                   {weekdays.map(date => {
                     const dateStr = formatDateValue(date);
