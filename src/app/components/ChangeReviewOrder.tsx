@@ -322,7 +322,8 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
 
               {(() => {
                 const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
-                const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount;
+                const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
+                const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee;
                 const diff = effectiveTotal - currentTotal;
                 return (
                   <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
@@ -337,7 +338,8 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
               <div className="pt-4 border-t-2 border-gray-300">
                 {(() => {
                   const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
-                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount;
+                  const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
+                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee;
                   return (
                     <>
                       {promoDiscount > 0 && (

@@ -537,7 +537,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         })()}
                         <div className="flex justify-between text-sm font-semibold">
                           <span className="text-gray-700">Total</span>
-                          <span className="text-gray-900">${(fullTotal - promoDiscount).toFixed(2)}/mo</span>
+                          <span className="text-gray-900">${(fullTotal - promoDiscount + (isMove2 && moveFeeApplied ? 65 : 0)).toFixed(2)}/mo</span>
                         </div>
                       </div>
                     </div>
@@ -568,7 +568,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     )}
                     <div className="border-t border-gray-100 pt-2 flex justify-between text-sm font-semibold">
                       <span className="text-gray-700">Total</span>
-                      <span className="text-gray-900">${effectivePreviousLines.reduce((s, l) => s + l.price, 0).toFixed(2)}/mo</span>
+                      <span className="text-gray-900">${(effectivePreviousLines.reduce((s, l) => s + l.price, 0) + (isMove2 && moveFeeApplied ? 65 : 0)).toFixed(2)}/mo</span>
                     </div>
                   </div>
                 );

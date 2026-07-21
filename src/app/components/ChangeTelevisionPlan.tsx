@@ -623,7 +623,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                           )}
                           <div className="flex justify-between text-sm font-semibold">
                             <span className="text-gray-700">Total</span>
-                            <span className="text-gray-900">${(total - discount).toFixed(2)}/mo</span>
+                            <span className="text-gray-900">${(total - discount + (isMove2 && moveFeeApplied ? 65 : 0)).toFixed(2)}/mo</span>
                           </div>
                         </div>
                       );
