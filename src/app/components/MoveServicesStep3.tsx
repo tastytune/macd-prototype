@@ -150,6 +150,7 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
   const [selectedM03ITVTier, setSelectedM03ITVTier] = useState<string | null>(null);
   const [selectedM03TVAddons, setSelectedM03TVAddons] = useState<Set<string>>(new Set());
   const [phoneBundleActive, setPhoneBundleActive] = useState(true);
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const currentMRC_M04 = SERVICES.reduce((s, svc) => s + svc.price, 0);
   const selectedOffer = M04_OFFERS.find(o => o.id === selectedM04Offer);
   const phoneBundleService = SERVICES.find(s => s.id === 'phone-bundle');
@@ -229,6 +230,18 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                   <span className="text-gray-500">${addon.price.toFixed(2)}</span>
                 </div>
               ))}
+              <div className="flex items-center justify-between text-sm pt-1 border-t border-gray-100 mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-700">Move fee (one-time)</span>
+                  <button
+                    onClick={() => setMoveFeeApplied(v => !v)}
+                    className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+              </div>
             </div>
             <div className="pt-4 border-t-2 border-gray-300">
               <div className="flex justify-between text-sm">
@@ -702,6 +715,18 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                       <span className="text-gray-700">${svc.price.toFixed(2)}</span>
                     </div>
                   ))}
+                  <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100 mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Move fee (one-time)</span>
+                      <button
+                        onClick={() => setMoveFeeApplied(v => !v)}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                  </div>
                 </div>
                 <div className="pt-4 border-t-2 border-gray-300">
                   <div className="flex items-center justify-between mb-2">
@@ -832,6 +857,18 @@ export function MoveServicesStep3({ scenario, selectedSA, onBack, onNext }: Move
                       <span className="text-gray-700">${svc.price.toFixed(2)}</span>
                     </div>
                   ))}
+                  <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100 mt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Move fee (one-time)</span>
+                      <button
+                        onClick={() => setMoveFeeApplied(v => !v)}
+                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                      >
+                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                      </button>
+                    </div>
+                    <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                  </div>
                 </div>
                 <div className="pt-4 border-t-2 border-gray-300">
                   <div className="flex items-center justify-between mb-2">

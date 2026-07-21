@@ -92,6 +92,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
   const [installationDate, setInstallationDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<{ dateStr: string; slotId: string } | null>(null);
   const [dateViaInput, setDateViaInput] = useState(false);
+  const [moveFeeApplied, setMoveFeeApplied] = useState(true);
 
   const weekdays = getNextWeekdays(3);
 
@@ -299,9 +300,17 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                     <span className="text-gray-700">${svc.price.toFixed(2)}</span>
                   </div>
                 ))}
-                <div className="flex justify-between text-sm pt-1">
-                  <span className="text-gray-500">Standard move fee</span>
-                  <span className="text-gray-700">$65.00</span>
+                <div className="flex items-center justify-between text-sm pt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Move fee (one-time)</span>
+                    <button
+                      onClick={() => setMoveFeeApplied(v => !v)}
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                    </button>
+                  </div>
+                  <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
                 </div>
               </div>
 
