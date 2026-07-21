@@ -235,6 +235,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                           Move
                         </span>
                       )
+                    ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
+                      <span className="self-center text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
+                        Active
+                      </span>
                     ) : (
                       <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
                         Active

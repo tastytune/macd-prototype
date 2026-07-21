@@ -254,6 +254,10 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                           Move
                         </span>
                       )
+                    ) : selectedPlan ? (
+                      <span className="inline-block text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5 mb-3 line-through">
+                        Active
+                      </span>
                     ) : (
                       <span className="inline-block text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-3">
                         Active
