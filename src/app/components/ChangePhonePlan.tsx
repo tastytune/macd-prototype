@@ -227,8 +227,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
                     isMove2 && isCurrent ? (
                       (selectedPlan && selectedPlan !== currentPlanId) ? (
-                        <span className="self-center text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5 mb-2">
-                          <span style={{ textDecoration: 'line-through' }}>Move</span>
+                        <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
+                          Move
                         </span>
                       ) : (
                         <span className="self-center text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5 mb-2">
@@ -337,8 +337,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
                       {isMove2 ? (
                         (selectedPlan && selectedPlan !== currentPlanId) ? (
-                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
-                            <span style={{ textDecoration: 'line-through' }}>Moving</span>
+                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-red-50 text-red-400 line-through border border-red-200">
+                            Moving
                           </div>
                         ) : (
                           <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
