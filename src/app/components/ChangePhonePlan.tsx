@@ -236,7 +236,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                         </span>
                       )
                     ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
-                      <span className="self-center text-xs font-semibold text-gray-400 bg-gray-100 border border-gray-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
+                      <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
                         Active
                       </span>
                     ) : (
@@ -345,6 +345,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                             Moving
                           </div>
                         )
+                      ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
+                        <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-red-50 text-red-400 line-through border border-red-200">
+                          Your Current Plan
+                        </div>
                       ) : (
                         <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
                           Your Current Plan
