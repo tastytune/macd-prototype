@@ -483,8 +483,15 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
           Back
         </button>
         <button
-          onClick={onConfirm}
-          className={`px-8 py-2.5 rounded-md text-sm font-medium border transition-all ${isMove2 ? 'border-[#d9a0d9] bg-[#f3e8f3] text-[#800080] hover:bg-[#ede0ed]' : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'}`}
+          onClick={activeGroups.length > 0 ? onConfirm : undefined}
+          disabled={activeGroups.length === 0}
+          className={`px-8 py-2.5 rounded-md text-sm font-medium border transition-all
+            ${activeGroups.length === 0
+              ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+              : isMove2
+                ? 'border-[#d9a0d9] bg-[#f3e8f3] text-[#800080] hover:bg-[#ede0ed]'
+                : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+            }`}
         >
           {isMove2 ? 'Confirm Move' : 'Confirm Change'}
         </button>
