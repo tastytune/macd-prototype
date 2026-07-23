@@ -53,6 +53,9 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
       { description: 'Elite Wi-Fi',       monthlyCharge: 5.95  },
       { description: 'Tech Home Protect', monthlyCharge: 5.99  },
     ],
+    phone: [
+      { description: 'Unlimited Local Calling', monthlyCharge: 15.95 },
+    ],
   },
 };
 
@@ -78,9 +81,18 @@ const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, originInstallationDate, originInstallationSlot, scenario, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
   const isM03 = isMove2 && scenario === 'M03';
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
+  const norm = (s: string) => s.toLowerCase().trim();
   const activeGroups = isMove2
     ? GROUP_ORDER.filter(g => cartLines.some(l => l.group === g) || (currentPlans[g] ?? []).length > 0)
-    : GROUP_ORDER.filter(g => cartLines.some(l => l.group === g));
+    : GROUP_ORDER.filter(g => {
+        const current = currentPlans[g] ?? [];
+        const next = cartLines.filter(l => l.group === g);
+        if (next.length === 0 && current.length === 0) return false;
+        const currentDescs = new Set(current.map(i => norm(i.description)));
+        const nextLabels = new Set(next.map(l => norm(l.label)));
+        return current.some(i => !nextLabels.has(norm(i.description)))
+          || next.some(l => !currentDescs.has(norm(l.label)));
+      });
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
   const [billingPref, setBillingPref] = useState<'electronic' | 'paper'>('electronic');
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
