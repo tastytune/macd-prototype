@@ -472,8 +472,8 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       {/* Old internet plan – struck if changed, normal if not */}
                       {oldInternetPlanLines.map((line, i) => (
                         <div key={`op-${i}`} className="flex justify-between text-sm">
-                          <span className={planChanged ? 'text-gray-400 line-through' : 'text-gray-600'}>{line.label}</span>
-                          <span className={planChanged ? 'text-gray-400 line-through' : 'font-medium text-gray-900'}>${line.price.toFixed(2)}</span>
+                          <span className={planChanged ? 'text-red-400' : 'text-gray-600'}>{line.label}</span>
+                          <span className={planChanged ? 'text-red-400' : 'font-medium text-gray-900'}>${line.price.toFixed(2)}</span>
                         </div>
                       ))}
                       {/* Old add-ons – struck if deselected, normal if kept */}
@@ -482,8 +482,8 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         const kept = a ? selectedAddOns.has(a.id) : false;
                         return (
                           <div key={`oa-${i}`} className="flex justify-between text-sm">
-                            <span className={kept ? 'text-gray-600' : 'text-gray-400 line-through'}>{line.label}</span>
-                            <span className={kept ? 'font-medium text-gray-900' : 'text-gray-400 line-through'}>${line.price.toFixed(2)}</span>
+                            <span className={kept ? 'text-gray-600' : 'text-red-400'}>{line.label}</span>
+                            <span className={kept ? 'font-medium text-gray-900' : 'text-red-400'}>${line.price.toFixed(2)}</span>
                           </div>
                         );
                       })}

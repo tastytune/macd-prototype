@@ -585,8 +585,8 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     ))}
                     {removedAddOns.map(a => (
                       <div key={a.id} className="flex justify-between text-sm">
-                        <span className="text-gray-400 line-through">{a.name}</span>
-                        <span className="text-gray-400 line-through">${a.price.toFixed(2)}</span>
+                        <span className="text-red-400">{a.name}</span>
+                        <span className="text-red-400">${a.price.toFixed(2)}</span>
                       </div>
                     ))}
                     {(isDowngrade || isUpgrade) && onPromoToggle && (

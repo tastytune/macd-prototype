@@ -487,7 +487,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     {/* Phone Bundle sub-items */}
                     {phoneRemovedLines.map((line, i) => (
                       <div key={`rem-${i}`} className="flex justify-between items-center text-xs pl-4 border-l-2 border-red-200">
-                        <span className="text-gray-400 line-through">{line.label}</span>
+                        <span className="text-red-400">{line.label}</span>
                         <span className="font-medium text-red-500">−${line.price.toFixed(2)}</span>
                       </div>
                     ))}

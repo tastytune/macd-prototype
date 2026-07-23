@@ -217,13 +217,13 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                           // Change: show removed items
                           ...removedItems.map((item, i) => (
                             <tr key={`${group}-removed-${i}`} className="border-b border-gray-100 bg-red-50/40">
-                              <td className="px-4 py-3.5 text-sm text-gray-500 pl-8 line-through">{item.description}</td>
+                              <td className="px-4 py-3.5 text-sm text-red-500 pl-8 font-medium">{item.description}</td>
                               <td className="px-4 py-3.5 text-sm text-center">
                                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
                                   Removed
                                 </span>
                               </td>
-                              <td className="px-4 py-3.5 text-sm text-gray-400 text-right line-through">${item.monthlyCharge.toFixed(2)}</td>
+                              <td className="px-4 py-3.5 text-sm text-red-500 text-right font-medium">${item.monthlyCharge.toFixed(2)}</td>
                             </tr>
                           )),
                           ...addedItems.map((item, i) => (
@@ -240,7 +240,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                           // Phone Bundle child modifications (C08: removed, C09: attribute changed)
                           ...(group === 'phone' ? cartLines.filter(l => l.group === 'phone-removed').map((item, i) => (
                             <tr key={`phone-feat-removed-${i}`} className="border-b border-gray-100 bg-red-50/20">
-                              <td className="px-4 py-2.5 text-xs text-gray-400 pl-12 line-through border-l-2 border-l-red-200">{item.label}</td>
+                              <td className="px-4 py-2.5 text-xs text-red-500 pl-12 font-medium border-l-2 border-l-red-300">{item.label}</td>
                               <td className="px-4 py-2.5 text-xs text-center">
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-600 border border-red-200">Removed</span>
                               </td>
