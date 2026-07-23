@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Info } from 'lucide-react';
+import { MapPin, Info, AlertTriangle } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
@@ -63,6 +63,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
     return null;
   });
   const currentTechHome = SA_TECH_HOME[selectedSA?.id ?? ''] ?? null;
+  const [showLegacyWarning, setShowLegacyWarning] = useState(false);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(() => {
     const initial = new Set<string>(['whole-home-wifi']);
@@ -357,11 +358,19 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
               {currentTechHome && (() => {
                 const addOn = ADD_ONS.find(a => a.id === currentTechHome)!;
                 const isChecked = selectedAddOns.has(addOn.id);
+                const isLegacy = currentTechHome === 'tech-home-support';
+                const handleTechHomeClick = () => {
+                  if (isLegacy && isChecked) {
+                    setShowLegacyWarning(true);
+                  } else {
+                    toggleAddOn(addOn.id);
+                  }
+                };
                 return (
                   <div className="pt-2">
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2.5">Tech Home</p>
                     <button
-                      onClick={() => toggleAddOn(addOn.id)}
+                      onClick={handleTechHomeClick}
                       className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-colors text-left
                         ${!isChecked ? 'border-red-300 bg-red-50' : 'border-blue-300 bg-blue-50'}`}
                     >
@@ -589,6 +598,44 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
         </div>
 
       </div>
+
+      {/* Legacy product disconnect warning modal */}
+      {showLegacyWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-start gap-4 mb-5">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900 mb-1">Legacy product — cannot be reconnected</h3>
+                <p className="text-sm text-gray-600">
+                  <strong>Tech Home Support</strong> is a legacy product that is no longer available for new customers.
+                  If you disconnect it now, <strong>it cannot be reconnected in the future</strong>.
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mb-6 pl-14">Are you sure you want to proceed with the disconnection?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowLegacyWarning(false)}
+                className="px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLegacyWarning(false);
+                  toggleAddOn('tech-home-support');
+                }}
+                className="px-5 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Disconnect anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
