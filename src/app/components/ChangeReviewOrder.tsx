@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle, AlertTriangle } from 'lucide-react';
+import { ChevronDown, HelpCircle, AlertTriangle, MapPin } from 'lucide-react';
 import { PromoSection, PROMOS } from './ChangePromos';
 import type { Service, CartLine } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -294,49 +294,91 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         <div className="w-80 shrink-0">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
             <div className="p-6">
-              {(installationDate || (isMove2 && destinationAddress)) && (
-                <div className="pb-4 mb-4 border-b border-gray-200 space-y-1">
-                  {isMove2 && destinationAddress && (
-                    <p className="text-xs text-gray-500">To: <strong className="text-gray-700">{destinationAddress}</strong></p>
-                  )}
+              <h2 className="text-xl font-bold text-gray-900 mb-5">Order Summary</h2>
+
+              {/* Service Address */}
+              {selectedSA && (
+                <div className="pb-4 mb-4 border-b border-gray-200">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Service Address</p>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-gray-800">{selectedSA.address}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Destination address (Move2) */}
+              {isMove2 && destinationAddress && (
+                <div className="pb-4 mb-4 border-b border-gray-200">
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">New Address</p>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-gray-800">{destinationAddress}</span>
+                  </div>
                   {installationDate && (
-                    <p className="text-xs text-gray-500">Installation: {formatDate(installationDate)}</p>
-                  )}
-                  {installationSlot && TIME_SLOT_LABELS[installationSlot] && (
-                    <p className="text-xs text-gray-500">{TIME_SLOT_LABELS[installationSlot]}</p>
+                    <p className="text-xs text-gray-400 mt-1 ml-6">
+                      Installation: {formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}
+                    </p>
                   )}
                 </div>
               )}
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">New monthly charges</span>
-                  <span className="text-gray-900">${addedTotal.toFixed(2)}</span>
-                </div>
-                {bundleDiscounts.map(d => (
-                  <div key={d.label} className="flex items-center justify-between text-sm text-green-700">
-                    <span>{d.label}</span>
-                    <span className="font-medium">−${d.amount.toFixed(2)}</span>
-                  </div>
-                ))}
-                {isMove2 && (
-                  <div className="flex items-center justify-between text-sm pt-1 border-t border-gray-100 mt-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-700">Move fee (one-time)</span>
-                      <button
-                        onClick={() => setMoveFeeApplied(v => !v)}
-                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
-                      >
-                        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
-                      </button>
+              {/* Monthly Recurring Charges — individual line items */}
+              <div className="pb-4 mb-4 border-b border-gray-200">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Monthly Recurring Charges</p>
+                <div className="space-y-2.5">
+                  {/* Move2: current plan items being moved */}
+                  {isMove2 && activeGroups.flatMap(g =>
+                    (currentPlans[g] ?? []).map(item => (
+                      <div key={`moving-${item.description}`} className="flex justify-between text-sm">
+                        <span className="text-gray-700">{item.description}</span>
+                        <span className="font-bold text-gray-900">${item.monthlyCharge.toFixed(2)}</span>
+                      </div>
+                    ))
+                  )}
+                  {/* Change: all main cartLines; Move2: only genuinely new items */}
+                  {(() => {
+                    const allCurrentDescs = new Set(
+                      activeGroups.flatMap(g => (currentPlans[g] ?? []).map(i => i.description.toLowerCase().trim()))
+                    );
+                    return cartLines
+                      .filter(l => ['internet', 'television', 'phone'].includes(l.group))
+                      .filter(l => !isMove2 || !allCurrentDescs.has(l.label.toLowerCase().trim()))
+                      .map(line => (
+                        <div key={line.label} className="flex justify-between text-sm">
+                          <span className="text-gray-700">{line.label}</span>
+                          <span className="font-bold text-gray-900">${line.price.toFixed(2)}</span>
+                        </div>
+                      ));
+                  })()}
+                  {/* Bundle discounts */}
+                  {bundleDiscounts.map(d => (
+                    <div key={d.label} className="flex items-center justify-between text-sm text-green-700">
+                      <span>{d.label}</span>
+                      <span className="font-medium">−${d.amount.toFixed(2)}</span>
                     </div>
-                    <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
-                  </div>
-                )}
+                  ))}
+                  {/* Move fee */}
+                  {isMove2 && (
+                    <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100 mt-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-700">Move fee (one-time)</span>
+                        <button
+                          onClick={() => setMoveFeeApplied(v => !v)}
+                          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${moveFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
+                        >
+                          <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${moveFeeApplied ? 'translate-x-4' : 'translate-x-1'}`} />
+                        </button>
+                      </div>
+                      <span className={moveFeeApplied ? 'text-gray-900' : 'text-gray-400 line-through'}>$65.00</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Promotions */}
               {(isDowngrade || isUpgrade) && onPromoToggle && (
-                <div className="mt-4">
+                <div className="pb-4 mb-4 border-b border-gray-200">
                   <PromoSection
                     selectedPromos={selectedPromos}
                     onToggle={onPromoToggle}
@@ -346,6 +388,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 </div>
               )}
 
+              {/* Difference + Total */}
               {(() => {
                 const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
                 const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
@@ -353,52 +396,43 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee + paperFee;
                 const diff = effectiveTotal - currentTotal;
                 return (
-                  <div className="flex items-center justify-between pt-4 pb-4 mt-4 border-t border-gray-200">
-                    <span className="font-medium text-gray-700">Difference</span>
-                    <span className={`text-base font-bold ${diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
-                    </span>
-                  </div>
-                );
-              })()}
-
-              <div className="pt-4 border-t-2 border-gray-300">
-                {(() => {
-                  const promoDiscount = PROMOS.filter(p => selectedPromos.has(p.id) && p.discount > 0).reduce((s, p) => s + p.discount, 0);
-                  const moveFee = isMove2 && moveFeeApplied ? 65 : 0;
-                  const paperFee = billingPref === 'paper' ? 5 : 0;
-                  const effectiveTotal = addedTotal - totalBundleDiscount - promoDiscount + moveFee + paperFee;
-                  return (
-                    <>
-                      {promoDiscount > 0 && (
-                        <div className="flex justify-between text-sm text-green-700 mb-2">
-                          <span>Promo discount</span>
-                          <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
-                        </div>
-                      )}
-                      {paperFee > 0 && (
-                        <div className="flex justify-between text-sm text-gray-600 mb-2">
-                          <span>Paper Statement</span>
-                          <span className="font-medium">+$5.00</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-gray-900">Total Monthly</span>
-                          <div className="relative group">
-                            <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                              Total monthly recurring charges after the change is applied.
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                            </div>
+                  <>
+                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-200">
+                      <span className="font-medium text-gray-700">Difference</span>
+                      <span className={`text-base font-bold ${diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {diff >= 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                      </span>
+                    </div>
+                    {promoDiscount > 0 && (
+                      <div className="flex justify-between text-sm text-green-700 mb-2">
+                        <span>Promo discount</span>
+                        <span className="font-medium">−${promoDiscount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {paperFee > 0 && (
+                      <div className="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Paper Statement</span>
+                        <span className="font-medium">+$5.00</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-gray-900 text-base">Total</span>
+                        <div className="relative group">
+                          <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            Total monthly recurring charges after the change is applied.
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                           </div>
                         </div>
-                        <span className="text-xl font-medium text-gray-900">${effectiveTotal.toFixed(2)}</span>
                       </div>
-                    </>
-                  );
-                })()}
-              </div>
+                      <span className="text-xl font-bold text-gray-900">
+                        ${effectiveTotal.toFixed(2)}<span className="text-sm font-normal text-gray-500">/mo</span>
+                      </span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
