@@ -57,6 +57,11 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
       { description: 'Unlimited Local Calling', monthlyCharge: 15.95 },
     ],
   },
+  'sa-02031': {
+    phone: [
+      { description: 'Phone Standalone', monthlyCharge: 17.50 },
+    ],
+  },
 };
 
 const DEFAULT_CURRENT_PLANS: Partial<Record<GroupKey, { description: string; monthlyCharge: number }[]>> = {

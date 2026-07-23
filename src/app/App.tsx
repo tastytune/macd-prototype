@@ -652,7 +652,7 @@ function App() {
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-service-type')}
               onSkip={() => { setChangeInternetPlanId(''); setCurrentStep('change-television-plan'); }}
-              onNext={(planId, _addOns, lines) => { setChangeCartLines(lines); setChangeInternetPlanId(planId); setCurrentStep('change-television-plan'); }}
+              onNext={(planId, _addOns, lines) => { setChangeCartLines(prev => [...prev.filter(l => l.group !== 'internet'), ...lines]); setChangeInternetPlanId(planId); setCurrentStep('change-television-plan'); }}
             />
           </motion.div>
         )}
@@ -678,7 +678,7 @@ function App() {
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-internet-plan')}
               onSkip={() => setCurrentStep('change-phone-plan')}
-              onNext={(_planId, _addOns, lines) => { setChangeCartLines(lines); setCurrentStep('change-phone-plan'); }}
+              onNext={(_planId, _addOns, lines) => { setChangeCartLines(prev => [...prev.filter(l => l.group !== 'television'), ...lines]); setCurrentStep('change-phone-plan'); }}
             />
           </motion.div>
         )}
