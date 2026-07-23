@@ -679,7 +679,7 @@ function App() {
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-internet-plan')}
               onSkip={() => setCurrentStep('change-phone-plan')}
-              onNext={(_planId, _addOns, lines) => { setChangeCartLines(prev => [...prev.filter(l => l.group !== 'television'), ...lines]); setCurrentStep('change-phone-plan'); }}
+              onNext={(_planId, _addOns, lines) => { setChangeCartLines(lines); setCurrentStep('change-phone-plan'); }}
             />
           </motion.div>
         )}
@@ -700,7 +700,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
-              isPhoneStandalone={PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '')}
+              isPhoneStandalone={PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '') && !(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}
