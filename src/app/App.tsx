@@ -674,6 +674,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
+              internetAvailable={!!(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-internet-plan')}

@@ -12,6 +12,7 @@ interface ChangeTelevisionPlanProps {
   isDowngrade?: boolean;
   isUpgrade?: boolean;
   isMove2?: boolean;
+  internetAvailable?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -114,7 +115,7 @@ function StepperButton({ onClick, disabled, children }: {
   );
 }
 
-export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
+export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
@@ -208,18 +209,29 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
             </button>
           </div>
 
+          {/* Requires Internet warning */}
+          {!internetAvailable && (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 mb-6">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800">
+                Television service requires an active Internet plan. Go back and select an Internet plan first to enable TV options.
+              </p>
+            </div>
+          )}
+
           {/* Plan cards */}
           <div className="flex gap-4 mb-10">
             {PLANS.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               const isSelectable = selectablePlanIds.includes(plan.id);
               const isSelected = selectedPlan === plan.id;
+              const disabled = !isSelectable || !internetAvailable;
 
               return (
                 <div
                   key={plan.id}
                   onClick={() => {
-                    if (!isSelectable) return;
+                    if (disabled) return;
                     if (isSelected) {
                       setSelectedPlan(null);
                       setSelectedAddOns(new Set(activeAddOnIds));
@@ -236,7 +248,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     }
                   }}
                   className={`flex-1 rounded-2xl border-2 p-6 text-center transition-all
-                    ${!isSelectable
+                    ${disabled
                       ? 'border-gray-200 bg-gray-50 cursor-default'
                       : isSelected
                         ? 'border-blue-500 bg-blue-50 cursor-pointer'
@@ -266,26 +278,30 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                   )}
 
                   <div className={`text-sm font-semibold uppercase tracking-widest mb-2
-                    ${!isSelectable ? 'text-gray-300' : 'text-blue-600'}`}>
+                    ${disabled ? 'text-gray-300' : 'text-blue-600'}`}>
                     {plan.name}
                   </div>
                   <div className={`text-5xl font-bold leading-none mb-1
-                    ${!isSelectable ? 'text-gray-300' : 'text-gray-900'}`}>
+                    ${disabled ? 'text-gray-300' : 'text-gray-900'}`}>
                     {plan.channels}
                   </div>
                   <div className={`text-base font-medium mb-4
-                    ${!isSelectable ? 'text-gray-400' : 'text-gray-500'}`}>
+                    ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
                     Channels
                   </div>
                   <div className={`text-lg font-bold mb-1
-                    ${!isSelectable ? 'text-gray-400' : 'text-gray-900'}`}>
+                    ${disabled ? 'text-gray-400' : 'text-gray-900'}`}>
                     ${plan.price.toFixed(2)}
                     <span className="text-sm font-normal text-gray-400"> /month</span>
                   </div>
 
-                  {!isSelectable ? (
+                  {disabled ? (
                     <div className="mt-5">
-                      {isCurrent && isMove2 ? (
+                      {!internetAvailable ? (
+                        <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-amber-50 text-amber-600 border border-amber-200">
+                          Requires Internet
+                        </div>
+                      ) : isCurrent && isMove2 ? (
                         selectedPlan ? (
                           <div className="w-full py-2 rounded-lg text-xs font-semibold uppercase tracking-wide cursor-default bg-red-50 text-red-400 line-through border border-red-200">
                             Moving
