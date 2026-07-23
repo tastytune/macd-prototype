@@ -30,7 +30,7 @@ const changeServiceAccounts: Service[] = [
   ...serviceAccounts,
   {
     id: 'sa-02031',
-    name: 'SA-02031 · Primary',
+    name: 'SA-02031 · Tertiary',
     status: 'Active',
     address: '214 Birch Rd, Lincoln, NE 68502',
   },
