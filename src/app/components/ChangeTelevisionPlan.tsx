@@ -168,13 +168,23 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
   const planLabel = activePlan ? activePlan.name : '';
 
-  // Build service-option CartLines (only non-zero cost items)
+  // For CartLines output (non-zero only — avoids spurious "Added" rows in Review Order)
   const buildServiceOptLines = (): CartLine[] => {
     const lines: CartLine[] = [];
     if (videoStreamPrice > 0)
       lines.push({ label: `Video Streams (${videoStreams})`, price: videoStreamPrice, group: 'television' });
     if (dvrPrice > 0)
       lines.push({ label: `DVR Storage (${dvrHours} hrs)`, price: dvrPrice, group: 'television' });
+    if (stbPrice > 0)
+      lines.push({ label: `Set-Top Boxes + Remotes (${setTopBoxes})`, price: stbPrice, group: 'television' });
+    return lines;
+  };
+
+  // For sidebar display only — always show streams and DVR even when $0 (included)
+  const buildSidebarServiceOptLines = (): CartLine[] => {
+    const lines: CartLine[] = [];
+    lines.push({ label: `Video Streams (${videoStreams})`, price: videoStreamPrice, group: 'television' });
+    lines.push({ label: `DVR Storage (${dvrHours} hrs)`, price: dvrPrice, group: 'television' });
     if (stbPrice > 0)
       lines.push({ label: `Set-Top Boxes + Remotes (${setTopBoxes})`, price: stbPrice, group: 'television' });
     return lines;
@@ -580,8 +590,8 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.name, price: a.price, group: 'television' as const };
                   }),
-                  ...buildServiceOptLines(),
-                ] : buildServiceOptLines();
+                  ...buildSidebarServiceOptLines(),
+                ] : [];
 
                 // Active add-ons that were deselected — show with strikethrough
                 const removedAddOns = activeAddOnIds
