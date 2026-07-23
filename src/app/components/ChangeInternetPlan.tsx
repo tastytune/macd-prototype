@@ -87,7 +87,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
   const localIsUpgrade   = selectedPlanIdx !== -1 && selectedPlanIdx > currentPlanIdx;
   const effectiveIsDowngrade = localIsDowngrade || !!isDowngrade;
   const effectiveIsUpgrade   = localIsUpgrade && !effectiveIsDowngrade;
-  const showPromos = effectiveIsDowngrade || effectiveIsUpgrade;
+  const showPromos = effectiveIsDowngrade || effectiveIsUpgrade || selectedPromos.size > 0;
 
   const initialAddOnIds = new Set<string>(['whole-home-wifi', ...(currentTechHome ? [currentTechHome] : [])]);
   const addOnsChanged = selectedAddOns.size !== initialAddOnIds.size

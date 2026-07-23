@@ -589,7 +589,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                         <span className="text-red-400">${a.price.toFixed(2)}</span>
                       </div>
                     ))}
-                    {(isDowngrade || isUpgrade) && onPromoToggle && (
+                    {(isDowngrade || isUpgrade || selectedPromos.size > 0) && onPromoToggle && (
                       <PromoSection
                         selectedPromos={selectedPromos}
                         onToggle={onPromoToggle}

@@ -149,6 +149,10 @@ function App() {
   const SA_INET_PLAN: Record<string, string> = { 'sa-00912': '2gig', 'sa-01047': '200mbps' };
   const PLAN_IDX: Record<string, number> = { '200mbps': 0, '1gig': 1, '2gig': 2 };
   const SA_HAS_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
+  const SA_ACTIVE_PROMOS: Record<string, string[]> = {
+    'sa-00912': ['price-lock', 'apply-promo'],
+    'sa-01047': ['price-lock'],
+  };
   const changeIsDowngrade = !!changeInternetPlanId && (PLAN_IDX[changeInternetPlanId] ?? 0) < (PLAN_IDX[SA_INET_PLAN[selectedSA?.id ?? ''] ?? '200mbps'] ?? 0);
   // isUpgrade: internet was upgraded, OR internet untouched but SA has active Price Lock
   const changeIsUpgrade = (!!changeInternetPlanId && (PLAN_IDX[changeInternetPlanId] ?? 0) > (PLAN_IDX[SA_INET_PLAN[selectedSA?.id ?? ''] ?? '200mbps'] ?? 0))
@@ -243,14 +247,14 @@ function App() {
       setSelectedService(services[0]);
       setChangeCartLines(SA_INITIAL_CART[services[0].id] ?? []);
       setChangeInternetPlanId('');
-      setChangeSelectedPromos(new Set());
+      setChangeSelectedPromos(new Set(SA_ACTIVE_PROMOS[services[0].id] ?? []));
       setCurrentStep('move-services');
     } else if (selectedAction === 'change') {
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
       setChangeCartLines(SA_INITIAL_CART[services[0].id] ?? []);
       setChangeInternetPlanId('');
-      setChangeSelectedPromos(new Set());
+      setChangeSelectedPromos(new Set(SA_ACTIVE_PROMOS[services[0].id] ?? []));
       setCurrentStep('change-service-type');
     } else if (selectedAction === 'disconnect') {
       setSelectedSA(services[0]);
