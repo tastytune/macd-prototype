@@ -489,23 +489,25 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         </div>
                       ))}
                       {/* Old add-ons – struck if deselected, normal if kept */}
-                      {oldInternetAddOnLines.map((line, i) => {
+                      {oldInternetAddOnLines.flatMap((line, i) => {
                         const a = ADD_ONS.find(x => x.label === line.label);
                         const kept = a ? selectedAddOns.has(a.id) : false;
-                        return (
+                        const rows = [
                           <div key={`oa-${i}`} className="flex justify-between text-sm">
                             <span className={kept ? 'text-gray-600' : 'text-red-400'}>{line.label}</span>
                             <span className={kept ? 'font-medium text-gray-900' : 'text-red-400'}>${line.price.toFixed(2)}</span>
                           </div>
-                        );
+                        ];
+                        if (a?.id === 'whole-home-wifi' && !kept) {
+                          rows.push(
+                            <div key={`core-wifi-${i}`} className="flex justify-between text-sm">
+                              <span className="text-gray-600">Core Wi-Fi</span>
+                              <span className="font-medium text-gray-900">$0.00</span>
+                            </div>
+                          );
+                        }
+                        return rows;
                       })}
-                      {/* Core Wi-Fi fallback shown when Elite Wi-Fi is removed */}
-                      {initialAddOnIds.has('whole-home-wifi') && !selectedAddOns.has('whole-home-wifi') && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Core Wi-Fi</span>
-                          <span className="font-medium text-gray-900">$0.00</span>
-                        </div>
-                      )}
                       {/* New internet plan – only when plan actually changed */}
                       {planChanged && (
                         <div className="flex justify-between text-sm">

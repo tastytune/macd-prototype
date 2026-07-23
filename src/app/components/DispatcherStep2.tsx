@@ -146,6 +146,24 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
   // BA radio selection (Deactivate/Reactivate) — single select
   const [selectedBA, setSelectedBA] = useState<string>(initialSelectedBA ?? billingAccounts[0].id);
 
+  // Serviceability check simulation for sa-02031
+  const [serviceabilityLoading, setServiceabilityLoading] = useState<string | null>(null);
+  const [fiberEligible, setFiberEligible] = useState<Set<string>>(new Set());
+
+  const handleSAClick = (saId: string) => {
+    if (serviceabilityLoading) return;
+    if (saId === 'sa-02031' && !fiberEligible.has(saId)) {
+      setServiceabilityLoading(saId);
+      setTimeout(() => {
+        setServiceabilityLoading(null);
+        setFiberEligible(prev => new Set([...prev, saId]));
+        setSelectedSA(saId);
+      }, 1800);
+    } else {
+      setSelectedSA(saId);
+    }
+  };
+
   const handleNext = () => {
     if (isServiceAccountAction) {
       const sa = activeServiceAccounts.find(s => s.id === selectedSA);
@@ -175,30 +193,43 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
           <div className="flex flex-col gap-3">
             {activeServiceAccounts.map(sa => {
               const isSelected = selectedSA === sa.id;
-              const isMove = action === 'move';
-              const selectedBorder = isMove ? 'border-blue-600' : 'border-blue-600';
-              const selectedBg = isMove ? 'bg-blue-50' : 'bg-blue-50';
-              const radioBorder = isMove ? 'border-blue-600' : 'border-blue-600';
-              const radioDot = isMove ? 'bg-blue-600' : 'bg-blue-600';
+              const isLoading = serviceabilityLoading === sa.id;
+              const isFiber = fiberEligible.has(sa.id);
               return (
                 <button
                   key={sa.id}
-                  onClick={() => setSelectedSA(sa.id)}
+                  onClick={() => handleSAClick(sa.id)}
+                  disabled={!!serviceabilityLoading}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all
-                    ${isSelected ? `${selectedBorder} ${selectedBg}` : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                    ${isLoading
+                      ? 'border-blue-300 bg-blue-50/40 animate-pulse cursor-wait'
+                      : isSelected
+                        ? 'border-blue-600 bg-blue-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
                 >
-                  {/* Radio */}
-                  <div className={`mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full border-2
-                    ${isSelected ? radioBorder : 'border-gray-300'}`}
-                    style={{ width: 18, height: 18 }}>
-                    {isSelected && <div className={`w-2 h-2 rounded-full ${radioDot}`} />}
-                  </div>
+                  {/* Radio / spinner */}
+                  {isLoading ? (
+                    <svg className="mt-0.5 w-4 h-4 flex-shrink-0 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                  ) : (
+                    <div className={`mt-0.5 flex-shrink-0 flex items-center justify-center rounded-full border-2
+                      ${isSelected ? 'border-blue-600' : 'border-gray-300'}`}
+                      style={{ width: 18, height: 18 }}>
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 mb-1">{sa.name}</p>
                     <p className="text-xs text-gray-500 flex items-center gap-1">
                       <svg className="w-3 h-3 inline-block flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.418-4.418-7-8.015-7-11A7 7 0 0 1 12 3a7 7 0 0 1 7 7c0 2.985-2.582 6.582-7 11z"/><circle cx="12" cy="10" r="2"/></svg>
                       {sa.address}
                     </p>
+                    {isLoading && (
+                      <p className="text-xs text-blue-500 mt-1 font-medium">Checking serviceability…</p>
+                    )}
                     <div className="flex gap-2 mt-2 flex-wrap">
                       {(changeTags[sa.id] ?? []).map(tag => (
                         <span key={tag} className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${changeTagStyle[tag] ?? defaultTagStyle}`}>{tag}</span>
@@ -206,6 +237,11 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
                       {(changePromoPills[sa.id] ?? []).map(pill => (
                         <span key={pill.label} className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${pill.style}`}>{pill.label}</span>
                       ))}
+                      {isFiber && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                          Fiber Eligible
+                        </span>
+                      )}
                     </div>
                   </div>
                   <span className="text-xs px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 font-medium flex-shrink-0">

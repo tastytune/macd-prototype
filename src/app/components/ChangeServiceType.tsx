@@ -10,6 +10,34 @@ interface ChangeServiceTypeProps {
   onNext: (serviceType: string) => void;
 }
 
+const SA_SERVICE_PILLS: Record<string, Record<string, string[]>> = {
+  'sa-00912': {
+    internet:   ['2 Gbps', 'Elite Wi-Fi', 'Tech Home Support'],
+    television: ['iTV Preferred', 'Cinemax', 'FANatic'],
+    phone:      ['Phone Bundle', 'LD Unlimited'],
+  },
+  'sa-01047': {
+    internet:   ['200 Mbps'],
+    television: [],
+    phone:      ['Phone Bundle'],
+  },
+  'sa-02031': {
+    internet:   [],
+    television: [],
+    phone:      ['Phone Standalone'],
+  },
+};
+
+const SPECIAL_PILL_STYLE: Record<string, string> = {
+  'Phone Standalone': 'bg-teal-100 text-teal-700',
+};
+
+const SERVICE_PILL_COLOR: Record<string, string> = {
+  internet:   'bg-blue-100 text-blue-700',
+  television: 'bg-purple-100 text-purple-700',
+  phone:      'bg-green-100 text-green-700',
+};
+
 const SERVICE_TYPES = [
   {
     id: 'internet',
@@ -67,6 +95,7 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
         {SERVICE_TYPES.map((svc, i) => {
           const Icon = svc.icon;
           const isSelected = selected === svc.id;
+          const pills = SA_SERVICE_PILLS[selectedSA?.id ?? '']?.[svc.id] ?? [];
           return (
             <button
               key={svc.id}
@@ -81,9 +110,23 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${svc.iconBg}`}>
                 <Icon className={`w-6 h-6 ${svc.iconColor}`} />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-xl font-semibold text-gray-900 mb-2">{svc.label}</p>
-                <p className="text-sm text-gray-500 leading-relaxed">{svc.description}</p>
+                <p className="text-sm text-gray-500 leading-relaxed mb-3">{svc.description}</p>
+                {pills.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {pills.map(pill => (
+                      <span
+                        key={pill}
+                        className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${SPECIAL_PILL_STYLE[pill] ?? SERVICE_PILL_COLOR[svc.id]}`}
+                      >
+                        {pill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-400 italic">No current service</span>
+                )}
               </div>
               {/* Radio */}
               <div className={`self-end w-4 h-4 rounded-full border-2 flex items-center justify-center mt-auto
