@@ -408,6 +408,9 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                 const planToSubmit = planChanged ? visiblePlans.find(p => p.id === selectedPlan)! : currentPlan;
                 const lines: CartLine[] = [
                   { label: `Internet ${planToSubmit.speed} ${planToSubmit.unit}`, price: planToSubmit.price, group: 'internet' },
+                  ...(initialAddOnIds.has('whole-home-wifi') && !selectedAddOns.has('whole-home-wifi')
+                    ? [{ label: 'Core Wi-Fi', price: 0, group: 'internet' as const }]
+                    : []),
                   ...[...selectedAddOns].map(id => {
                     const a = ADD_ONS.find(x => x.id === id)!;
                     return { label: a.label, price: a.price, group: 'internet' as const };
@@ -496,6 +499,13 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                           </div>
                         );
                       })}
+                      {/* Core Wi-Fi fallback shown when Elite Wi-Fi is removed */}
+                      {initialAddOnIds.has('whole-home-wifi') && !selectedAddOns.has('whole-home-wifi') && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Core Wi-Fi</span>
+                          <span className="font-medium text-gray-900">$0.00</span>
+                        </div>
+                      )}
                       {/* New internet plan – only when plan actually changed */}
                       {planChanged && (
                         <div className="flex justify-between text-sm">

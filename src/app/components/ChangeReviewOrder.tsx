@@ -96,7 +96,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         const currentDescs = new Set(current.map(i => norm(i.description)));
         const nextLabels = new Set(next.map(l => norm(l.label)));
         return current.some(i => !nextLabels.has(norm(i.description)))
-          || next.some(l => !currentDescs.has(norm(l.label)));
+          || next.some(l => norm(l.label) !== 'core wi-fi' && !currentDescs.has(norm(l.label)));
       });
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
   const [billingPref, setBillingPref] = useState<'electronic' | 'paper'>('electronic');
@@ -193,7 +193,7 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                       // In Change: show diff (removed / added)
                       const addedItems = isMove2
                         ? newItems.filter(l => !currentDescs.has(normalize(l.label)))
-                        : newItems.filter(l => !currentDescs.has(normalize(l.label)));
+                        : newItems.filter(l => !currentDescs.has(normalize(l.label)) && normalize(l.label) !== 'core wi-fi');
                       const removedItems = isMove2
                         ? []
                         : currentItems.filter(i => !newLabels.has(normalize(i.description)));
