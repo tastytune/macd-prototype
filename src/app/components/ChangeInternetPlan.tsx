@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Info, AlertTriangle } from 'lucide-react';
 import type { Service, CartLine } from '../App';
+import type { WorkOrderResult } from './FollowOnWorkOrder';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
 import { Breadcrumb } from './Breadcrumb';
@@ -11,6 +12,7 @@ interface ChangeInternetPlanProps {
   isDowngrade?: boolean;
   isMove2?: boolean;
   isCoaxMove?: boolean;
+  workOrder?: WorkOrderResult | null;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -32,7 +34,7 @@ const COAX_PLANS = [
 
 // Maps SA id → current internet plan id
 const SA_INTERNET_PLAN: Record<string, string> = {
-  'sa-00912': '2gig',
+  'sa-00912': '200mbps',
   'sa-01047': '200mbps',
   'sa-02031': 'none',
 };
@@ -54,7 +56,7 @@ const ADD_ONS = [
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, group: 'tech-home' },
 ];
 
-export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isCoaxMove = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
     if (!isMove2 || !isCoaxMove) return null;
     const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
@@ -214,7 +216,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     }`}
                 >
                   {/* Fixed-height pill row */}
-                  <div className="h-7 flex items-center justify-center gap-1.5 mb-3">
+                  <div className="min-h-[1.75rem] flex flex-wrap items-center justify-center gap-1.5 mb-3">
                     {isCurrent && (
                       <>
                         {isMove2 ? (
@@ -241,6 +243,16 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                             Price Lock
                           </span>
                         )}
+                      </>
+                    )}
+                    {!isCurrent && workOrder && plan.id === workOrder.upsellPlanId && (
+                      <>
+                        <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
+                          Installing
+                        </span>
+                        <span className="inline-block text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-0.5">
+                          {workOrder.id}
+                        </span>
                       </>
                     )}
                     {isSelected && showPromos && (

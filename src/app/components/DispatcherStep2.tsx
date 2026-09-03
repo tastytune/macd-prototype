@@ -37,7 +37,7 @@ const changeServiceAccounts: Service[] = [
 ];
 
 const changeTags: Record<string, string[]> = {
-  'sa-00912': ['Internet 2Gbps', 'iTV Preferred', 'Cinemax', 'FANatic'],
+  'sa-00912': ['Internet 200Mbps', 'iTV Preferred', 'Cinemax', 'FANatic'],
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
   'sa-02031': ['Phone Standalone'],
 };
@@ -125,15 +125,17 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   change: 'bg-blue-50 text-blue-700',
   move: 'bg-[#f3e8f3] text-[#800080]',
   move2: 'bg-blue-50 text-blue-700',
+  followOnOrder: 'bg-indigo-50 text-indigo-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
-  deactivate: 'Deactivate',
+  deactivate: 'Temporary Disconnect',
   reactivate: 'Reactivate',
   disconnect: 'Disconnect',
   change: 'Change',
   move: 'Move',
   move2: 'Move 2',
+  followOnOrder: 'Follow On Order',
 };
 
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {
@@ -305,7 +307,7 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
                     {isDeactivate ? (
                       ba.deactivateDisabled ? (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                          Deactivated
+                          Temporarily Disconnected
                         </span>
                       ) : (
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium
@@ -320,7 +322,7 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
                         </span>
                       ) : (
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                          Deactivated
+                          Temporarily Disconnected
                         </span>
                       )
                     ) : null}

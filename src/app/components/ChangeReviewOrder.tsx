@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ChevronDown, HelpCircle, AlertTriangle, MapPin } from 'lucide-react';
+import { ChevronDown, HelpCircle, AlertTriangle, MapPin, CheckCircle2 } from 'lucide-react';
 import { PromoSection, PROMOS } from './ChangePromos';
 import type { Service, CartLine } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
 import { Breadcrumb } from './Breadcrumb';
+import { MOCK_WORK_ORDERS, type WorkOrderResult } from './FollowOnWorkOrder';
 
 interface ChangeReviewOrderProps {
   action: MACDAction | null;
@@ -37,7 +38,7 @@ type GroupKey = 'internet' | 'television' | 'phone';
 const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: string; monthlyCharge: number }[]>>> = {
   'sa-00912': {
     internet: [
-      { description: 'Internet 2 Gbps',    monthlyCharge: 124.95 },
+      { description: 'Internet 200 Mbps',  monthlyCharge: 55.95  },
       { description: 'Elite Wi-Fi',        monthlyCharge: 5.95   },
       { description: 'Tech Home Support',  monthlyCharge: 14.99  },
     ],
@@ -100,6 +101,10 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
       });
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
   const [billingPref, setBillingPref] = useState<'electronic' | 'paper'>('electronic');
+  const [identityConfirmed, setIdentityConfirmed] = useState(false);
+  const [technicianId, setTechnicianId] = useState('');
+  const [technicianValidated, setTechnicianValidated] = useState(false);
+  const [validatedWorkOrder, setValidatedWorkOrder] = useState<WorkOrderResult | null>(null);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
 
   const toggle = (g: GroupKey) => {
@@ -304,7 +309,73 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                 ))}
               </div>
             </div>
+
+            {/* Technician ID — inside the services card */}
+            <div className="px-6 pb-6 pt-4 border-t border-gray-100">
+              <p className="text-sm font-semibold text-gray-900 mb-3">Technician ID</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={technicianId}
+                  onChange={(e) => { setTechnicianId(e.target.value); setTechnicianValidated(false); setValidatedWorkOrder(null); }}
+                  placeholder="e.g. TCH-2291"
+                  className="flex-1 px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={() => {
+                    const id = technicianId.trim();
+                    if (!id) return;
+                    const match = MOCK_WORK_ORDERS.find(wo => wo.techId.toLowerCase() === id.toLowerCase());
+                    setTechnicianValidated(true);
+                    setValidatedWorkOrder(match ?? MOCK_WORK_ORDERS[0] ?? null);
+                  }}
+                  disabled={!technicianId.trim()}
+                  className={`px-5 py-2.5 rounded-lg text-sm font-medium border whitespace-nowrap transition-all
+                    ${technicianValidated
+                      ? 'border-green-200 bg-green-50 text-green-700'
+                      : technicianId.trim()
+                        ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                >
+                  {technicianValidated ? 'Validated ✓' : 'Validate Technician'}
+                </button>
+              </div>
+
+              {technicianValidated && validatedWorkOrder && (
+                <div className="mt-3 flex items-center gap-3 px-4 py-3 rounded-xl border border-green-200 bg-green-50">
+                  <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900">
+                      {validatedWorkOrder.technician} · confirmed on {validatedWorkOrder.id}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {validatedWorkOrder.customerName} · {validatedWorkOrder.saId} · {validatedWorkOrder.saLabel} · {validatedWorkOrder.address}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Identity confirmation */}
+          <button
+            onClick={() => setIdentityConfirmed(v => !v)}
+            className="w-full flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 mt-4 text-left hover:bg-gray-100 transition-colors"
+          >
+            <div className={`w-4 h-4 mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
+              ${identityConfirmed ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+              {identityConfirmed && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm text-gray-700 leading-snug">
+              I confirm the customer's identity matches the account on file and they are authorized to request changes to this service.
+            </span>
+          </button>
         </div>
 
         {/* ── Right: Order Summary ── */}
@@ -488,10 +559,10 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
           Back
         </button>
         <button
-          onClick={activeGroups.length > 0 ? onConfirm : undefined}
-          disabled={activeGroups.length === 0}
+          onClick={activeGroups.length > 0 && identityConfirmed ? onConfirm : undefined}
+          disabled={activeGroups.length === 0 || !identityConfirmed}
           className={`px-8 py-2.5 rounded-md text-sm font-medium border transition-all
-            ${activeGroups.length === 0
+            ${activeGroups.length === 0 || !identityConfirmed
               ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
               : isMove2
                 ? 'border-[#d9a0d9] bg-[#f3e8f3] text-[#800080] hover:bg-[#ede0ed]'

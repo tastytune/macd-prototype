@@ -124,7 +124,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
             <div className="p-6 pb-4">
               <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-[20px] font-bold text-gray-700">Services being Deactivated —</h3>
+                <h3 className="text-[20px] font-bold text-gray-700">Services being Temporarily Disconnected —</h3>
                 <span className="text-[16px] font-bold text-gray-900">{formatDate(deactivationDate)}</span>
               </div>
             </div>
@@ -163,7 +163,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                             <td className="px-4 py-4 text-sm text-gray-900 pl-8">{item.description}</td>
                             <td className="px-4 py-4 text-sm text-center">
                               <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                                Deactivation
+                                Temporary Disconnection
                               </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-gray-900 text-right">${item.monthlyCharge.toFixed(2)}</td>
@@ -225,7 +225,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                     );
                   })}
                 </div>
-                <p className="text-xs text-gray-500 mt-3">Deactivation: {formatDate(deactivationDate)}</p>
+                <p className="text-xs text-gray-500 mt-3">Temporary Disconnection: {formatDate(deactivationDate)}</p>
               </div>
 
               <div className="space-y-2">
@@ -236,7 +236,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                 {showDeactivationFee && (
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-700">Deactivation fees</span>
+                      <span className="text-gray-700">Temporary disconnection fees</span>
                       <button
                         onClick={() => setDeactivationFeeApplied(v => !v)}
                         className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${deactivationFeeApplied ? 'bg-blue-600' : 'bg-gray-200'}`}
@@ -270,7 +270,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
                     <div className="relative group/rem">
                       <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover/rem:opacity-100 transition-opacity pointer-events-none z-10 font-normal">
-                        Amount owed for the days already consumed in the current billing cycle, plus the deactivation fee.
+                        Amount owed for the days already consumed in the current billing cycle, plus the temporary disconnection fee.
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                       </div>
                     </div>
@@ -289,7 +289,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
       <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mt-6">
         <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800">
-          The user is about to deactivate products and its related features on <strong>{formatDate(deactivationDate)}</strong>. The customer can reactivate at any time.
+          The user is about to temporarily disconnect products and its related features on <strong>{formatDate(deactivationDate)}</strong>. The customer can reactivate at any time.
         </p>
       </div>
 
@@ -305,7 +305,7 @@ export function DeactivateReviewOrder({ action, selectedSA, deactivationDate, se
           onClick={onConfirm}
           className="px-8 py-2.5 rounded-md text-sm font-medium border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-all"
         >
-          Confirm Deactivation
+          Confirm Temporary Disconnection
         </button>
       </div>
     </div>

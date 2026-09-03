@@ -20,6 +20,9 @@ import { ChangeTelevisionPlan } from './components/ChangeTelevisionPlan';
 import { ChangePhonePlan } from './components/ChangePhonePlan';
 import { ChangeInstallationDate } from './components/ChangeInstallationDate';
 import { ChangeReviewOrder } from './components/ChangeReviewOrder';
+import { FollowOnWorkOrder } from './components/FollowOnWorkOrder';
+import type { WorkOrderResult } from './components/FollowOnWorkOrder';
+import { ServiceabilityCheck } from './components/ServiceabilityCheck';
 import type { MACDAction } from './components/DispatcherStep1';
 
 export interface Service {
@@ -54,7 +57,7 @@ export interface CartLine {
 
 const SA_INITIAL_CART: Record<string, CartLine[]> = {
   'sa-00912': [
-    { label: 'Internet 2 Gbps',         price: 124.95, group: 'internet'    },
+    { label: 'Internet 200 Mbps',       price:  55.95, group: 'internet'    },
     { label: 'Elite Wi-Fi',             price:   5.95, group: 'internet'    },
     { label: 'Tech Home Support',       price:  14.99, group: 'internet'    },
     { label: 'iTV Preferred',           price:  79.95, group: 'television'  },
@@ -114,7 +117,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -126,6 +129,7 @@ function App() {
   const [reactivationDate, setReactivationDate] = useState<string>('');
   const [reactivationReason, setReactivationReason] = useState<string>('');
   const [selectedBAId, setSelectedBAId] = useState<string>('');
+  const [followOnWorkOrder, setFollowOnWorkOrder] = useState<WorkOrderResult | null>(null);
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
@@ -146,7 +150,7 @@ function App() {
     const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next;
   });
   const PHONE_STANDALONE_SAS = new Set(['sa-02031']);
-  const SA_INET_PLAN: Record<string, string> = { 'sa-00912': '2gig', 'sa-01047': '200mbps' };
+  const SA_INET_PLAN: Record<string, string> = { 'sa-00912': '200mbps', 'sa-01047': '200mbps' };
   const PLAN_IDX: Record<string, number> = { '200mbps': 0, '1gig': 1, '2gig': 2 };
   const SA_HAS_PRICE_LOCK = new Set(['sa-00912', 'sa-01047']);
   const SA_ACTIVE_PROMOS: Record<string, string[]> = {
@@ -234,7 +238,29 @@ function App() {
 
   const handleDispatcherAction = (action: MACDAction) => {
     setSelectedAction(action);
-    setCurrentStep('dispatcher-step2');
+    setCurrentStep(action === 'followOnOrder' ? 'followon-workorder' : 'dispatcher-step2');
+  };
+
+  const handleFollowOnContinue = (workOrder: WorkOrderResult) => {
+    setFollowOnWorkOrder(workOrder);
+    setCurrentStep('followon-serviceability');
+  };
+
+  const handleFollowOnServiceabilityContinue = () => {
+    if (!followOnWorkOrder) return;
+    const saId = followOnWorkOrder.saId.toLowerCase();
+    const saService: Service = {
+      id: saId,
+      name: `${followOnWorkOrder.saId} · ${followOnWorkOrder.saLabel}`,
+      status: 'Active',
+      address: followOnWorkOrder.address,
+    };
+    setSelectedSA(saService);
+    setSelectedService(saService);
+    setChangeCartLines(SA_INITIAL_CART[saId] ?? []);
+    setChangeInternetPlanId('');
+    setChangeSelectedPromos(new Set(SA_ACTIVE_PROMOS[saId] ?? []));
+    setCurrentStep('change-service-type');
   };
 
   const handleDispatcherAccounts = (services: Service[], childItemIds: string[]) => {
@@ -384,6 +410,41 @@ function App() {
               initialSelectedBA={selectedBAId || undefined}
               onNext={handleDispatcherAccounts}
               onBack={() => setCurrentStep('dispatcher-step1')}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Follow On Order: Work Order lookup ── */}
+        {currentStep === 'followon-workorder' && (
+          <motion.div
+            key="followon-workorder"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <FollowOnWorkOrder
+              onBack={() => setCurrentStep('dispatcher-step1')}
+              onContinue={handleFollowOnContinue}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Follow On Order: Serviceability Check ── */}
+        {currentStep === 'followon-serviceability' && followOnWorkOrder && (
+          <motion.div
+            key="followon-serviceability"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ServiceabilityCheck
+              workOrder={followOnWorkOrder}
+              onBack={() => setCurrentStep('followon-workorder')}
+              onContinue={handleFollowOnServiceabilityContinue}
             />
           </motion.div>
         )}
@@ -622,7 +683,11 @@ function App() {
             <ChangeServiceType
               selectedSA={selectedSA}
               isMove2={selectedAction === 'move2'}
-              onBack={() => setCurrentStep(selectedAction === 'move2' ? 'move-services' : 'dispatcher-step2')}
+              onBack={() => setCurrentStep(
+                selectedAction === 'move2' ? 'move-services'
+                : selectedAction === 'followOnOrder' ? 'followon-serviceability'
+                : 'dispatcher-step2'
+              )}
               onNext={(serviceType) => {
                 if (serviceType === 'television') setCurrentStep('change-television-plan');
                 else if (serviceType === 'phone') setCurrentStep('change-phone-plan');
@@ -648,6 +713,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isMove2={selectedAction === 'move2'}
               isCoaxMove={selectedAction === 'move2' && moveScenario === 'M03'}
+              workOrder={selectedAction === 'followOnOrder' ? followOnWorkOrder : null}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-service-type')}

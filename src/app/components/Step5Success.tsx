@@ -40,10 +40,10 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     servicesList: 'Services to Be Reactivated',
   },
   deactivate: {
-    title: 'Deactivation Request Created',
-    boldWord: 'deactivation',
+    title: 'Temporary Disconnection Request Created',
+    boldWord: 'temporary disconnection',
     bodyRest: ' order request has been successfully created with reference number:',
-    servicesList: 'Services to Be Deactivated',
+    servicesList: 'Services to Be Temporarily Disconnected',
   },
   move: {
     title: 'Move Request Created',
@@ -61,6 +61,12 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     title: 'Change Request Created',
     boldWord: 'change',
     bodyRest: ' order request has been successfully created with reference number:',
+    servicesList: 'Services Being Changed',
+  },
+  followOnOrder: {
+    title: 'Follow On Order Request Created',
+    boldWord: 'follow-on order',
+    bodyRest: ' request has been successfully created with reference number:',
     servicesList: 'Services Being Changed',
   },
 };
@@ -195,7 +201,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
               <div className="flex items-start gap-3">
                 <Mail className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-amber-800">
-                  The customer will receive a confirmation via email with the details of this request, including the scheduled deactivation date and affected services.
+                  The customer will receive a confirmation via email with the details of this request, including the scheduled temporary disconnection date and affected services.
                 </p>
               </div>
             </div>

@@ -12,7 +12,7 @@ interface ChangeServiceTypeProps {
 
 const SA_SERVICE_PILLS: Record<string, Record<string, string[]>> = {
   'sa-00912': {
-    internet:   ['2 Gbps', 'Elite Wi-Fi', 'Tech Home Support'],
+    internet:   ['200 Mbps', 'Elite Wi-Fi', 'Tech Home Support'],
     television: ['iTV Preferred', 'Cinemax', 'FANatic'],
     phone:      ['Phone Bundle', 'LD Unlimited'],
   },

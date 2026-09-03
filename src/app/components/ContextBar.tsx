@@ -8,15 +8,17 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   change: 'bg-blue-50 text-blue-700',
   move: 'bg-[#f3e8f3] text-[#800080]',
   move2: 'bg-[#f3e8f3] text-[#800080]',
+  followOnOrder: 'bg-indigo-50 text-indigo-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
-  deactivate: 'Deactivate',
+  deactivate: 'Temporary Disconnect',
   reactivate: 'Reactivate',
   disconnect: 'Disconnect',
   change: 'Change',
   move: 'Move',
   move2: 'Move',
+  followOnOrder: 'Follow On Order',
 };
 
 interface ContextBarProps {

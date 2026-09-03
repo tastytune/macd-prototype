@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pause, Play, Power, RefreshCw } from 'lucide-react';
+import { Pause, Play, Power, RefreshCw, ClipboardList } from 'lucide-react';
 
 function MovePinsIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +18,7 @@ function MovePinsIcon({ className }: { className?: string }) {
   );
 }
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
@@ -42,7 +42,7 @@ const actions: {
 }[] = [
   {
     id: 'deactivate',
-    label: 'Deactivate',
+    label: 'Temporary Disconnect',
     description: 'Temporarily suspend services. The account remains intact and can be reactivated at any time.',
     icon: Pause,
     iconColor: 'text-amber-800',
@@ -104,7 +104,19 @@ const actions: {
     radioDot: 'bg-[#800080]',
     radioRing: 'border-[#800080]',
     labelColor: 'text-[#800080]',
-    fullWidth: true,
+  },
+  {
+    id: 'followOnOrder',
+    label: 'Follow On Order',
+    description: 'Create a new order linked to this account that will be executed after the current one.',
+    icon: ClipboardList,
+    iconColor: 'text-indigo-600',
+    iconBg: 'bg-indigo-50',
+    selectedBorder: 'border-indigo-500',
+    selectedBg: 'bg-indigo-50',
+    radioDot: 'bg-indigo-500',
+    radioRing: 'border-indigo-500',
+    labelColor: 'text-indigo-700',
   },
 ];
 
