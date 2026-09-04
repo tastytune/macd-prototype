@@ -1,5 +1,5 @@
-import { Check, AlertTriangle, Info } from 'lucide-react';
-import { useState } from 'react';
+import { Check, AlertTriangle, Info, MapPin, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
 import { ContextBar } from './ContextBar';
@@ -27,6 +27,29 @@ const US_STATES = [
   'VA','WA','WV','WI','WY',
 ];
 
+// Mock "Address Validation API" results — stands in for a Google-style
+// Places/Address Validation call while the demo has no real network access.
+interface StructuredAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+}
+
+const MOCK_ADDRESS_DB: StructuredAddress[] = [
+  { street: '450 Birchwood Ave',  city: 'Springfield',   state: 'IL', zip: '62704' },
+  { street: '452 Birchwood Ave',  city: 'Springfield',   state: 'IL', zip: '62704' },
+  { street: '450 Birchwood Ct',   city: 'Springfield',   state: 'IL', zip: '62704' },
+  { street: '850 N 96th St',      city: 'Omaha',         state: 'NE', zip: '68114' },
+  { street: '852 N 96th St',      city: 'Omaha',         state: 'NE', zip: '68114' },
+  { street: '123 Main St',        city: 'Springfield',   state: 'IL', zip: '62701' },
+  { street: '125 Main St',        city: 'Springfield',   state: 'IL', zip: '62701' },
+  { street: '123 Main St',        city: 'Springfield',   state: 'MO', zip: '65806' },
+  { street: '789 Oak Ridge Dr',   city: 'Austin',        state: 'TX', zip: '78701' },
+  { street: '42 Maple Ave',       city: 'Portland',       state: 'OR', zip: '97201' },
+  { street: '1600 Amphitheatre Pkwy', city: 'Mountain View', state: 'CA', zip: '94043' },
+];
+
 export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMove }: MoveServicesProps) {
   const [scenario, setScenario] = useState('');
   const [street, setStreet] = useState('');
@@ -34,6 +57,66 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
   const [state, setState] = useState('IL');
   const [zip, setZip] = useState('');
   const [serviceabilityChecked, setServiceabilityChecked] = useState(false);
+
+  // Simulated "Address Validation API" autocomplete — mimics a debounced
+  // Google Places-style lookup returning structured address suggestions.
+  const [addressSuggestions, setAddressSuggestions] = useState<StructuredAddress[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLookingUpAddress, setIsLookingUpAddress] = useState(false);
+  const lookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const streetFieldRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    return () => { if (lookupTimeoutRef.current) clearTimeout(lookupTimeoutRef.current); };
+  }, []);
+
+  // Close the suggestions dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (streetFieldRef.current && !streetFieldRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleStreetChange = (value: string) => {
+    setStreet(value);
+    setServiceabilityChecked(false);
+
+    if (lookupTimeoutRef.current) clearTimeout(lookupTimeoutRef.current);
+
+    const query = value.trim();
+    if (query.length < 3) {
+      setIsLookingUpAddress(false);
+      setShowSuggestions(false);
+      setAddressSuggestions([]);
+      return;
+    }
+
+    setIsLookingUpAddress(true);
+    setShowSuggestions(true);
+    // Fake network latency so it reads like a real autocomplete call
+    lookupTimeoutRef.current = setTimeout(() => {
+      const q = query.toLowerCase();
+      const matches = MOCK_ADDRESS_DB.filter(a =>
+        `${a.street} ${a.city} ${a.state} ${a.zip}`.toLowerCase().includes(q)
+      ).slice(0, 5);
+      setAddressSuggestions(matches);
+      setIsLookingUpAddress(false);
+    }, 350 + Math.random() * 250);
+  };
+
+  const handleSelectSuggestion = (addr: StructuredAddress) => {
+    setStreet(addr.street);
+    setCity(addr.city);
+    setState(addr.state);
+    setZip(addr.zip);
+    setShowSuggestions(false);
+    setAddressSuggestions([]);
+    setServiceabilityChecked(false);
+  };
 
   const canCheckServiceability =
     (street.trim() !== '' && city.trim() !== '' && zip.trim() !== '') || scenario !== '';
@@ -58,17 +141,55 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
 
         <div className="flex flex-col gap-5">
           {/* Street */}
-          <div>
+          <div ref={streetFieldRef} className="relative">
             <label className="block text-sm text-gray-700 mb-1.5">
               Street address
             </label>
-            <input
-              type="text"
-              value={street}
-              onChange={e => { setStreet(e.target.value); setServiceabilityChecked(false); }}
-              placeholder="123 Main St"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={street}
+                onChange={e => handleStreetChange(e.target.value)}
+                onFocus={() => { if (addressSuggestions.length > 0 || isLookingUpAddress) setShowSuggestions(true); }}
+                placeholder="123 Main St"
+                autoComplete="off"
+                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {isLookingUpAddress && (
+                <Loader2 className="w-4 h-4 text-gray-400 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
+              )}
+            </div>
+
+            {showSuggestions && (
+              <div className="absolute z-10 mt-1.5 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                {isLookingUpAddress ? (
+                  <div className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-500">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                    Searching addresses…
+                  </div>
+                ) : addressSuggestions.length > 0 ? (
+                  <ul>
+                    {addressSuggestions.map((addr, i) => (
+                      <li key={`${addr.street}-${addr.zip}-${i}`}>
+                        <button
+                          type="button"
+                          onMouseDown={e => { e.preventDefault(); handleSelectSuggestion(addr); }}
+                          className="w-full flex items-start gap-2.5 px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <span>
+                            <span className="text-gray-900">{addr.street}</span>
+                            <span className="text-gray-500">, {addr.city}, {addr.state} {addr.zip}</span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">No matching addresses found</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* City + State + ZIP */}
