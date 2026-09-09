@@ -126,9 +126,16 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
         {/* Work Order reference — shown for Follow On Order only */}
         {isFollowOnOrder && workOrderId && (
           <div className="mb-6 pb-6 border-b border-gray-200">
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-700">Associated work order</p>
-              <p className="text-xl font-semibold text-gray-900 pt-1">{workOrderId}</p>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-gray-700 font-normal text-center">Associated work order</p>
+              <a
+                href={`https://salesforce.com/work-order/${workOrderId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center text-blue-600 hover:text-blue-800 underline font-extralight text-xl pt-5"
+              >
+                {workOrderId}
+              </a>
             </div>
           </div>
         )}
