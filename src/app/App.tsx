@@ -770,8 +770,27 @@ function App() {
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}
-              onSkip={() => setCurrentStep('change-installation-date')}
-              onNext={(_planId, lines) => { setChangeCartLines(lines); setCurrentStep('change-installation-date'); }}
+              onSkip={() => {
+                // Follow-On Order: the technician is already on site, so there is no
+                // Installation Date step for this action only — skip straight to review.
+                if (selectedAction === 'followOnOrder') {
+                  setChangeInstallationDate('');
+                  setChangeInstallationSlot('');
+                  setCurrentStep('change-review');
+                } else {
+                  setCurrentStep('change-installation-date');
+                }
+              }}
+              onNext={(_planId, lines) => {
+                setChangeCartLines(lines);
+                if (selectedAction === 'followOnOrder') {
+                  setChangeInstallationDate('');
+                  setChangeInstallationSlot('');
+                  setCurrentStep('change-review');
+                } else {
+                  setCurrentStep('change-installation-date');
+                }
+              }}
             />
           </motion.div>
         )}
@@ -835,7 +854,7 @@ function App() {
                 destinationAddress={selectedAction === 'move2' ? moveDestinationAddress : undefined}
                 selectedPromos={changeSelectedPromos}
                 onPromoToggle={toggleChangePromo}
-                onBack={() => setCurrentStep('change-installation-date')}
+                onBack={() => setCurrentStep(selectedAction === 'followOnOrder' ? 'change-phone-plan' : 'change-installation-date')}
                 onConfirm={() => setCurrentStep('step5')}
               />
             </div>
