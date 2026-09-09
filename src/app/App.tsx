@@ -915,6 +915,7 @@ function App() {
               billingEndDate={moveBillingEndDate}
               timeSlot={moveTimeSlot}
               destinationAddress={(selectedAction === 'move' || selectedAction === 'move2') ? moveDestinationAddress : undefined}
+              workOrderId={selectedAction === 'followOnOrder' ? followOnWorkOrder?.id : undefined}
             />
           </motion.div>
         )}
