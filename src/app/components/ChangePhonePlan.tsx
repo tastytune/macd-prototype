@@ -110,17 +110,19 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     ...(isPhoneStandalone && !isMove2 ? { 'preferred-carrier': 'Other' } : {}),
   });
 
-  const features = [
-    ...PHONE_BUNDLE_FEATURES.map(f => {
-      if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;
-      if (f.id === 'call-waiting' && isPhoneStandalone) return CALL_WAITING_STANDALONE;
-      if (f.id === 'caller-id' && isPhoneStandalone) return CALLER_ID_STANDALONE;
-      if (f.id === 'voicemail' && isPhoneStandalone) return VOICEMAIL_STANDALONE;
-      return f;
-    }),
-    // Preferred Interexchange Carrier — Change action, Phone Standalone only (not shown for Move2)
-    ...(isPhoneStandalone && !isMove2 ? [PREFERRED_CARRIER_STANDALONE] : []),
-  ];
+  const features = PHONE_BUNDLE_FEATURES.flatMap(f => {
+    let feature = f;
+    if (f.id === 'long-distance' && isPhoneStandalone) feature = LONG_DISTANCE_STANDALONE;
+    if (f.id === 'call-waiting' && isPhoneStandalone) feature = CALL_WAITING_STANDALONE;
+    if (f.id === 'caller-id' && isPhoneStandalone) feature = CALLER_ID_STANDALONE;
+    if (f.id === 'voicemail' && isPhoneStandalone) feature = VOICEMAIL_STANDALONE;
+    // Preferred Interexchange Carrier — Change action, Phone Standalone only (not shown for Move2) —
+    // placed right after Directory Listing
+    if (f.id === 'directory-listing' && isPhoneStandalone && !isMove2) {
+      return [feature, PREFERRED_CARRIER_STANDALONE];
+    }
+    return [feature];
+  });
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
@@ -335,7 +337,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                                 <select
                                   value={attributeValues[f.id] ?? f.defaultAttribute}
                                   onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                                  className={`text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate ${f.id === 'preferred-carrier' ? 'w-40' : ''}`}
+                                  className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
                                 >
                                   {f.attributeOptions?.map(opt => (
                                     <option key={opt} value={opt}>
