@@ -63,6 +63,24 @@ const VOICEMAIL_STANDALONE: PhoneBundleFeature = {
   id: 'voicemail', name: 'Voicemail', basePrice: 4.95, manageable: 'removable',
 };
 
+const PREFERRED_CARRIER_STANDALONE: PhoneBundleFeature = {
+  id: 'preferred-carrier', name: 'Preferred Interexchange Carrier', basePrice: 0, manageable: 'attribute',
+  attributeOptions: [
+    'AT & T',
+    'CenturyLink',
+    'ComcastCommunications Corporation of Indiana',
+    'Frontier',
+    'Maplenet Wireless',
+    'Mediacom',
+    'Metronet',
+    'Other',
+    'Spectrum',
+    'Verizon',
+    'Windstream',
+  ],
+  defaultAttribute: 'Other',
+};
+
 const PHONE_BUNDLE_FEATURES: PhoneBundleFeature[] = [
   LONG_DISTANCE_BUNDLE,
   {
@@ -86,15 +104,23 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
-  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({ 'directory-listing': 'Published', 'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited' });
-
-  const features = PHONE_BUNDLE_FEATURES.map(f => {
-    if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;
-    if (f.id === 'call-waiting' && isPhoneStandalone) return CALL_WAITING_STANDALONE;
-    if (f.id === 'caller-id' && isPhoneStandalone) return CALLER_ID_STANDALONE;
-    if (f.id === 'voicemail' && isPhoneStandalone) return VOICEMAIL_STANDALONE;
-    return f;
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({
+    'directory-listing': 'Published',
+    'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited',
+    ...(isPhoneStandalone && !isMove2 ? { 'preferred-carrier': 'Other' } : {}),
   });
+
+  const features = [
+    ...PHONE_BUNDLE_FEATURES.map(f => {
+      if (f.id === 'long-distance' && isPhoneStandalone) return LONG_DISTANCE_STANDALONE;
+      if (f.id === 'call-waiting' && isPhoneStandalone) return CALL_WAITING_STANDALONE;
+      if (f.id === 'caller-id' && isPhoneStandalone) return CALLER_ID_STANDALONE;
+      if (f.id === 'voicemail' && isPhoneStandalone) return VOICEMAIL_STANDALONE;
+      return f;
+    }),
+    // Preferred Interexchange Carrier — Change action, Phone Standalone only (not shown for Move2)
+    ...(isPhoneStandalone && !isMove2 ? [PREFERRED_CARRIER_STANDALONE] : []),
+  ];
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
