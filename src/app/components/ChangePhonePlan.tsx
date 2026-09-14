@@ -253,7 +253,12 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
-                    isMove2 && isCurrent ? (
+                    isPhoneStandalone ? (
+                      // Phone Standalone has no other plan to switch to — always plain Active
+                      <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
+                        Active
+                      </span>
+                    ) : isMove2 && isCurrent ? (
                       (selectedPlan && selectedPlan !== currentPlanId) ? (
                         <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
                           Move
