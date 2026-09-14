@@ -335,7 +335,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                                 <select
                                   value={attributeValues[f.id] ?? f.defaultAttribute}
                                   onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                                  className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0"
+                                  className={`text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate ${f.id === 'preferred-carrier' ? 'w-40' : ''}`}
                                 >
                                   {f.attributeOptions?.map(opt => (
                                     <option key={opt} value={opt}>
