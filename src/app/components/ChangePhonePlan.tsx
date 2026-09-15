@@ -104,6 +104,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
+  // LOA (retain number at old address) — Move only: CRC flags that the customer wants to
+  // keep this phone number at the origin address instead of it moving with the account,
+  // and must confirm they discussed the implications with the customer before submitting.
+  const [loaRequested, setLoaRequested] = useState(false);
+  const [loaDiscussed, setLoaDiscussed] = useState(false);
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({
     'directory-listing': 'Published',
     'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited',
@@ -191,6 +196,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         mods.push({ label: `${f.name} → ${val}`, price: 0, group: 'phone-changed' });
       }
     });
+    if (isMove2 && loaRequested) {
+      mods.push({ label: 'Retain number at old address (LOA on file)', price: 0, group: 'phone-changed' });
+    }
     return [main, ...mods];
   };
 
@@ -456,6 +464,47 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
             );
           })()}
 
+          {/* LOA — retain number at old address (Move only, once a phone plan is selected) */}
+          {isMove2 && selectedPlan && (
+            <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={loaRequested}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    setLoaRequested(checked);
+                    if (!checked) setLoaDiscussed(false);
+                  }}
+                  className="w-4 h-4 mt-0.5 rounded accent-amber-600 cursor-pointer flex-shrink-0"
+                />
+                <span className="text-sm text-amber-900">
+                  <span className="font-semibold">LOA:</span> Customer wants to retain this phone number at the old service address instead of moving it.
+                </span>
+              </label>
+
+              {loaRequested && (
+                <div className="mt-4 pl-7">
+                  <div className="flex items-start gap-2 mb-3 text-xs text-amber-800 bg-amber-100 border border-amber-200 rounded-lg p-3">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                    <span>Retaining the number creates a separate line at the origin address and may involve additional charges. Discuss this with the customer before submitting the order.</span>
+                  </div>
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={loaDiscussed}
+                      onChange={e => setLoaDiscussed(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded accent-amber-600 cursor-pointer flex-shrink-0"
+                    />
+                    <span className="text-sm text-amber-900">
+                      I have discussed this with the customer.
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Footer */}
           <div className="flex justify-end gap-3">
             <button
@@ -467,13 +516,14 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
             <button
               onClick={() => {
                 if (!selectedPlan || !activePlan) return;
+                if (loaRequested && !loaDiscussed) return;
                 const summaryLines = buildSummaryLines();
                 const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed');
                 onNext(selectedPlan, [...nonPhoneLines, ...summaryLines]);
               }}
-              disabled={!selectedPlan}
+              disabled={!selectedPlan || (loaRequested && !loaDiscussed)}
               className={`px-7 py-2.5 rounded-lg text-sm font-bold transition-colors
-                ${selectedPlan ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                ${selectedPlan && !(loaRequested && !loaDiscussed) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
             >
               Continue
             </button>
