@@ -20,6 +20,7 @@ interface ChangeReviewOrderProps {
   isUpgrade?: boolean;
   isMove2?: boolean;
   destinationAddress?: string;
+  mailingAddress?: string;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
   onBack: () => void;
@@ -84,7 +85,7 @@ const GROUP_LABEL: Record<GroupKey, string> = {
 
 const GROUP_ORDER: GroupKey[] = ['internet', 'television', 'phone'];
 
-export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, originInstallationDate, originInstallationSlot, scenario, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
+export function ChangeReviewOrder({ action, selectedSA, installationDate, installationSlot, originInstallationDate, originInstallationSlot, scenario, cartLines, isDowngrade, isUpgrade, isMove2 = false, destinationAddress, mailingAddress, selectedPromos = new Set(), onPromoToggle, onBack, onConfirm }: ChangeReviewOrderProps) {
   const isM03 = isMove2 && scenario === 'M03';
   const currentPlans = SA_CURRENT_PLANS[selectedSA?.id ?? ''] ?? DEFAULT_CURRENT_PLANS;
   const norm = (s: string) => s.toLowerCase().trim();
@@ -411,6 +412,11 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
                   {installationDate && (
                     <p className="text-xs text-gray-400 mt-1 ml-6">
                       Installation: {formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}
+                    </p>
+                  )}
+                  {mailingAddress && (
+                    <p className="text-xs text-gray-400 mt-1 ml-6">
+                      Mailing address: {mailingAddress}
                     </p>
                   )}
                 </div>

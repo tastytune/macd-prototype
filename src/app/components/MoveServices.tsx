@@ -10,7 +10,7 @@ interface MoveServicesProps {
   selectedSA?: Service | null;
   isMove2?: boolean;
   onBack: () => void;
-  onMove: (address: string, scenario: string) => void;
+  onMove: (address: string, scenario: string, mailingAddress?: string) => void;
 }
 
 const MOVE_SCENARIOS = [
@@ -57,6 +57,14 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
   const [state, setState] = useState('IL');
   const [zip, setZip] = useState('');
   const [serviceabilityChecked, setServiceabilityChecked] = useState(false);
+
+  // Mailing address capture — 2.1: defaults to the new service address; the CRC can
+  // uncheck it during the serviceability check to enter a separate mailing address.
+  const [mailingSameAsService, setMailingSameAsService] = useState(true);
+  const [mailingStreet, setMailingStreet] = useState('');
+  const [mailingCity, setMailingCity] = useState('');
+  const [mailingState, setMailingState] = useState('IL');
+  const [mailingZip, setMailingZip] = useState('');
 
   // Simulated "Address Validation API" autocomplete — mimics a debounced
   // Google Places-style lookup returning structured address suggestions.
@@ -228,6 +236,67 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
           </div>
         </div>
 
+        {/* Mailing address capture */}
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={mailingSameAsService}
+              onChange={e => setMailingSameAsService(e.target.checked)}
+              className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+            />
+            <span className="text-sm text-gray-700">Mailing address same as new service address</span>
+          </label>
+
+          {!mailingSameAsService && (
+            <div className="flex flex-col gap-5 mt-5">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1.5">Mailing street address</label>
+                <input
+                  type="text"
+                  value={mailingStreet}
+                  onChange={e => setMailingStreet(e.target.value)}
+                  placeholder="123 Main St"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-700 mb-1.5">City</label>
+                  <input
+                    type="text"
+                    value={mailingCity}
+                    onChange={e => setMailingCity(e.target.value)}
+                    placeholder="Springfield"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div className="w-32">
+                  <label className="block text-sm text-gray-700 mb-1.5">State</label>
+                  <select
+                    value={mailingState}
+                    onChange={e => setMailingState(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="w-36">
+                  <label className="block text-sm text-gray-700 mb-1.5">ZIP code</label>
+                  <input
+                    type="text"
+                    value={mailingZip}
+                    onChange={e => setMailingZip(e.target.value)}
+                    placeholder="62701"
+                    maxLength={10}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Serviceability results — M03 */}
         {serviceabilityChecked && scenario === 'M03' && (
           <div className="mt-6">
@@ -320,7 +389,11 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
             Check serviceability
           </button>
           <button
-            onClick={() => onMove(`${street}, ${city}, ${state} ${zip}`, scenario)}
+            onClick={() => onMove(
+              `${street}, ${city}, ${state} ${zip}`,
+              scenario,
+              mailingSameAsService ? undefined : `${mailingStreet}, ${mailingCity}, ${mailingState} ${mailingZip}`
+            )}
             disabled={!serviceabilityChecked}
             className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-colors
               ${serviceabilityChecked

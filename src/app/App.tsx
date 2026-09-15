@@ -138,6 +138,7 @@ function App() {
   const [disconnectionComments, setDisconnectionComments] = useState<string>('');
   const [moveScenario, setMoveScenario] = useState<string>('M01');
   const [moveDestinationAddress, setMoveDestinationAddress] = useState<string>('');
+  const [moveMailingAddress, setMoveMailingAddress] = useState<string>('');
   const [moveSelectedServiceIds, setMoveSelectedServiceIds] = useState<string[]>(['fiber', 'voice', 'streaming', 'wifi']);
   const [changeInstallationDate, setChangeInstallationDate] = useState<string>('');
   const [changeInstallationSlot, setChangeInstallationSlot] = useState<string>('');
@@ -577,8 +578,9 @@ function App() {
               selectedSA={selectedSA}
               isMove2={selectedAction === 'move2'}
               onBack={() => setCurrentStep('dispatcher-step2')}
-              onMove={(address, scenario) => {
+              onMove={(address, scenario, mailingAddress) => {
                 setMoveDestinationAddress(address);
+                setMoveMailingAddress(mailingAddress ?? '');
                 setMoveScenario(scenario || 'M01');
                 setCurrentStep(selectedAction === 'move2' ? 'change-service-type' : 'move-service-type');
               }}
@@ -658,6 +660,7 @@ function App() {
               scenario={moveScenario}
               selectedSA={selectedSA}
               destinationAddress={moveDestinationAddress}
+              mailingAddress={moveMailingAddress || undefined}
               selectedServiceIds={moveSelectedServiceIds}
               billingEndDate={moveBillingEndDate}
               installationDate={moveInstallationDate}
@@ -852,6 +855,7 @@ function App() {
                 isUpgrade={changeIsUpgrade}
                 isMove2={selectedAction === 'move2'}
                 destinationAddress={selectedAction === 'move2' ? moveDestinationAddress : undefined}
+                mailingAddress={selectedAction === 'move2' ? (moveMailingAddress || undefined) : undefined}
                 selectedPromos={changeSelectedPromos}
                 onPromoToggle={toggleChangePromo}
                 onBack={() => setCurrentStep(selectedAction === 'followOnOrder' ? 'change-phone-plan' : 'change-installation-date')}
@@ -915,6 +919,7 @@ function App() {
               billingEndDate={moveBillingEndDate}
               timeSlot={moveTimeSlot}
               destinationAddress={(selectedAction === 'move' || selectedAction === 'move2') ? moveDestinationAddress : undefined}
+              mailingAddress={(selectedAction === 'move' || selectedAction === 'move2') ? (moveMailingAddress || undefined) : undefined}
               workOrderId={selectedAction === 'followOnOrder' ? followOnWorkOrder?.id : undefined}
             />
           </motion.div>

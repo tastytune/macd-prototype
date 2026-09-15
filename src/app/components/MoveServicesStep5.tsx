@@ -9,6 +9,7 @@ interface MoveServicesStep5Props {
   scenario: string;
   selectedSA?: Service | null;
   destinationAddress: string;
+  mailingAddress?: string;
   selectedServiceIds: string[];
   billingEndDate: string;
   installationDate: string;
@@ -71,6 +72,7 @@ export function MoveServicesStep5({
   scenario,
   selectedSA,
   destinationAddress,
+  mailingAddress,
   selectedServiceIds,
   billingEndDate,
   installationDate,
@@ -186,6 +188,7 @@ export function MoveServicesStep5({
               <div className="pb-4 mb-4 border-b border-gray-200 space-y-1">
                 {originAddress && <p className="text-xs text-gray-500">From: <strong className="text-gray-700">{originAddress}</strong></p>}
                 {destinationAddress && <p className="text-xs text-gray-500">To: <strong className="text-gray-700">{destinationAddress}</strong></p>}
+                {mailingAddress && <p className="text-xs text-gray-500">Mailing address: <strong className="text-gray-700">{mailingAddress}</strong></p>}
                 {billingEndDate && <p className="text-xs text-gray-500">Billing end: {formatDate(billingEndDate)}</p>}
                 {isM03 && originInstallationDate ? (
                   <p className="text-xs text-orange-600">

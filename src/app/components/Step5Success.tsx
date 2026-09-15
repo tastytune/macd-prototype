@@ -23,6 +23,7 @@ interface Step5Props {
   billingEndDate?: string;
   timeSlot?: string;
   destinationAddress?: string;
+  mailingAddress?: string;
   workOrderId?: string;
 }
 
@@ -72,7 +73,7 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress, workOrderId }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress, mailingAddress, workOrderId }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -163,6 +164,14 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <p className="text-sm text-amber-800">
                   Billing at origin address ends on <strong>{formatDateWithDay(billingEndDate)}</strong>.
+                </p>
+              </div>
+            )}
+            {mailingAddress && (
+              <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <p className="text-sm text-gray-700">
+                  Mailing address on file: <strong>{mailingAddress}</strong>.
                 </p>
               </div>
             )}
