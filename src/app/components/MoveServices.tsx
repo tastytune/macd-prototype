@@ -68,14 +68,24 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
 
   // Simulated "Address Validation API" autocomplete — mimics a debounced
   // Google Places-style lookup returning structured address suggestions.
+  // Shared between the destination address field and the mailing address field.
   const [addressSuggestions, setAddressSuggestions] = useState<StructuredAddress[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLookingUpAddress, setIsLookingUpAddress] = useState(false);
   const lookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streetFieldRef = useRef<HTMLDivElement | null>(null);
 
+  const [mailingAddressSuggestions, setMailingAddressSuggestions] = useState<StructuredAddress[]>([]);
+  const [showMailingSuggestions, setShowMailingSuggestions] = useState(false);
+  const [isLookingUpMailingAddress, setIsLookingUpMailingAddress] = useState(false);
+  const mailingLookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mailingStreetFieldRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
-    return () => { if (lookupTimeoutRef.current) clearTimeout(lookupTimeoutRef.current); };
+    return () => {
+      if (lookupTimeoutRef.current) clearTimeout(lookupTimeoutRef.current);
+      if (mailingLookupTimeoutRef.current) clearTimeout(mailingLookupTimeoutRef.current);
+    };
   }, []);
 
   // Close the suggestions dropdown on outside click
@@ -84,10 +94,26 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
       if (streetFieldRef.current && !streetFieldRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
+      if (mailingStreetFieldRef.current && !mailingStreetFieldRef.current.contains(e.target as Node)) {
+        setShowMailingSuggestions(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const lookupAddresses = (query: string): Promise<StructuredAddress[]> => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const q = query.toLowerCase();
+        resolve(
+          MOCK_ADDRESS_DB.filter(a =>
+            `${a.street} ${a.city} ${a.state} ${a.zip}`.toLowerCase().includes(q)
+          ).slice(0, 5)
+        );
+      }, 350 + Math.random() * 250);
+    });
+  };
 
   const handleStreetChange = (value: string) => {
     setStreet(value);
@@ -107,13 +133,11 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
     setShowSuggestions(true);
     // Fake network latency so it reads like a real autocomplete call
     lookupTimeoutRef.current = setTimeout(() => {
-      const q = query.toLowerCase();
-      const matches = MOCK_ADDRESS_DB.filter(a =>
-        `${a.street} ${a.city} ${a.state} ${a.zip}`.toLowerCase().includes(q)
-      ).slice(0, 5);
-      setAddressSuggestions(matches);
-      setIsLookingUpAddress(false);
-    }, 350 + Math.random() * 250);
+      lookupAddresses(query).then(matches => {
+        setAddressSuggestions(matches);
+        setIsLookingUpAddress(false);
+      });
+    }, 0);
   };
 
   const handleSelectSuggestion = (addr: StructuredAddress) => {
@@ -124,6 +148,38 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
     setShowSuggestions(false);
     setAddressSuggestions([]);
     setServiceabilityChecked(false);
+  };
+
+  const handleMailingStreetChange = (value: string) => {
+    setMailingStreet(value);
+
+    if (mailingLookupTimeoutRef.current) clearTimeout(mailingLookupTimeoutRef.current);
+
+    const query = value.trim();
+    if (query.length < 3) {
+      setIsLookingUpMailingAddress(false);
+      setShowMailingSuggestions(false);
+      setMailingAddressSuggestions([]);
+      return;
+    }
+
+    setIsLookingUpMailingAddress(true);
+    setShowMailingSuggestions(true);
+    mailingLookupTimeoutRef.current = setTimeout(() => {
+      lookupAddresses(query).then(matches => {
+        setMailingAddressSuggestions(matches);
+        setIsLookingUpMailingAddress(false);
+      });
+    }, 350 + Math.random() * 250);
+  };
+
+  const handleSelectMailingSuggestion = (addr: StructuredAddress) => {
+    setMailingStreet(addr.street);
+    setMailingCity(addr.city);
+    setMailingState(addr.state);
+    setMailingZip(addr.zip);
+    setShowMailingSuggestions(false);
+    setMailingAddressSuggestions([]);
   };
 
   const canCheckServiceability =
@@ -250,15 +306,53 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
 
           {!mailingSameAsService && (
             <div className="flex flex-col gap-5 mt-5">
-              <div>
+              <div ref={mailingStreetFieldRef} className="relative">
                 <label className="block text-sm text-gray-700 mb-1.5">Mailing street address</label>
-                <input
-                  type="text"
-                  value={mailingStreet}
-                  onChange={e => setMailingStreet(e.target.value)}
-                  placeholder="123 Main St"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={mailingStreet}
+                    onChange={e => handleMailingStreetChange(e.target.value)}
+                    onFocus={() => { if (mailingAddressSuggestions.length > 0 || isLookingUpMailingAddress) setShowMailingSuggestions(true); }}
+                    placeholder="123 Main St"
+                    autoComplete="off"
+                    className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {isLookingUpMailingAddress && (
+                    <Loader2 className="w-4 h-4 text-gray-400 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
+                  )}
+                </div>
+
+                {showMailingSuggestions && (
+                  <div className="absolute z-10 mt-1.5 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                    {isLookingUpMailingAddress ? (
+                      <div className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-500">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                        Searching addresses…
+                      </div>
+                    ) : mailingAddressSuggestions.length > 0 ? (
+                      <ul>
+                        {mailingAddressSuggestions.map((addr, i) => (
+                          <li key={`${addr.street}-${addr.zip}-${i}`}>
+                            <button
+                              type="button"
+                              onMouseDown={e => { e.preventDefault(); handleSelectMailingSuggestion(addr); }}
+                              className="w-full flex items-start gap-2.5 px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                            >
+                              <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                              <span>
+                                <span className="text-gray-900">{addr.street}</span>
+                                <span className="text-gray-500">, {addr.city}, {addr.state} {addr.zip}</span>
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">No matching addresses found</div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
