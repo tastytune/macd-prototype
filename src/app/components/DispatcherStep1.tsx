@@ -82,7 +82,7 @@ const actions: {
   {
     id: 'change',
     label: 'Change',
-    description: 'Modify an existing service. Update plan, features, or configuration without interrupting service.',
+    description: 'Modify an existing service or add a new service to an existing customer. Update plan, features, or configuration without interrupting service.',
     icon: RefreshCw,
     iconColor: 'text-blue-600',
     iconBg: 'bg-blue-50',
