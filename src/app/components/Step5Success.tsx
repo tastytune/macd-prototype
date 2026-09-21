@@ -35,11 +35,11 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
     servicesList: 'Services to Be Disconnected',
   },
   reactivate: {
-    title: 'Reactivation Request Created',
+    title: 'Reconnection Request Created',
     boldWord: '',
     bodyRest: '',
-    bodyFull: 'Reactivation request created. Reference number:',
-    servicesList: 'Services to Be Reactivated',
+    bodyFull: 'Reconnection request created. Reference number:',
+    servicesList: 'Services to Be Reconnected',
   },
   deactivate: {
     title: 'Temporary Disconnection Request Created',

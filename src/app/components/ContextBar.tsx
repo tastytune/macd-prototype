@@ -13,7 +13,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
 
 const actionLabel: Record<MACDAction, string> = {
   deactivate: 'Temporary Disconnect',
-  reactivate: 'Reactivate',
+  reactivate: 'Reconnect',
   disconnect: 'Disconnect',
   change: 'Change',
   move: 'Move',

@@ -55,7 +55,7 @@ const actions: {
   },
   {
     id: 'reactivate',
-    label: 'Reactivate',
+    label: 'Reconnect',
     description: 'Restore a previously deactivated service. Billing and service will resume immediately.',
     icon: Play,
     iconColor: 'text-green-600',

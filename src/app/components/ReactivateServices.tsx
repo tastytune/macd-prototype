@@ -64,7 +64,7 @@ export function ReactivateServices({ action, selectedSA, baId, onBack, onReactiv
   return (
     <div className="max-w-3xl mx-auto px-8 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">Reactivate Services</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">Reconnect Services</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
       <Breadcrumb steps={['Select account', 'Services', 'Review order']} currentIndex={1} />
@@ -110,7 +110,7 @@ export function ReactivateServices({ action, selectedSA, baId, onBack, onReactiv
         <div className="flex flex-col gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Reactivation Reason<span className="text-red-600 ml-1">*</span>
+              Reconnection Reason<span className="text-red-600 ml-1">*</span>
             </label>
             <select
               value={reason}
@@ -126,7 +126,7 @@ export function ReactivateServices({ action, selectedSA, baId, onBack, onReactiv
 
           <div>
             <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              Requested Reactivation Date<span className="text-red-600 ml-1">*</span>
+              Requested Reconnection Date<span className="text-red-600 ml-1">*</span>
               <div className="relative group">
                 <HelpCircle className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -169,7 +169,7 @@ export function ReactivateServices({ action, selectedSA, baId, onBack, onReactiv
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Reactivate
+          Reconnect
         </button>
       </div>
     </div>

@@ -63,21 +63,31 @@ const VOICEMAIL_STANDALONE: PhoneBundleFeature = {
   id: 'voicemail', name: 'Voicemail', basePrice: 4.95, manageable: 'removable',
 };
 
-const PREFERRED_CARRIER_STANDALONE: PhoneBundleFeature = {
-  id: 'preferred-carrier', name: 'Preferred Interexchange Carrier', basePrice: 0, manageable: 'attribute',
-  attributeOptions: [
-    'AT & T',
-    'CenturyLink',
-    'ComcastCommunications Corporation of Indiana',
-    'Frontier',
-    'Maplenet Wireless',
-    'Mediacom',
-    'Metronet',
-    'Other',
-    'Spectrum',
-    'Verizon',
-    'Windstream',
-  ],
+const INTEREXCHANGE_CARRIER_OPTIONS = [
+  'AT & T',
+  'CenturyLink',
+  'ComcastCommunications Corporation of Indiana',
+  'Frontier',
+  'Maplenet Wireless',
+  'Mediacom',
+  'Metronet',
+  'Other',
+  'Spectrum',
+  'Verizon',
+  'Windstream',
+];
+
+// Interexchange carrier selection is split into Interlata (between LATAs) and
+// Intralata (within the same LATA) — each needs its own selectable carrier.
+const INTERLATA_CARRIER_STANDALONE: PhoneBundleFeature = {
+  id: 'interlata-carrier', name: 'Interlata Carrier', basePrice: 0, manageable: 'attribute',
+  attributeOptions: INTEREXCHANGE_CARRIER_OPTIONS,
+  defaultAttribute: 'Other',
+};
+
+const INTRALATA_CARRIER_STANDALONE: PhoneBundleFeature = {
+  id: 'intralata-carrier', name: 'Intralata Carrier', basePrice: 0, manageable: 'attribute',
+  attributeOptions: INTEREXCHANGE_CARRIER_OPTIONS,
   defaultAttribute: 'Other',
 };
 
@@ -112,7 +122,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({
     'directory-listing': 'Published',
     'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited',
-    ...(isPhoneStandalone && !isMove2 ? { 'preferred-carrier': 'Other' } : {}),
+    ...(isPhoneStandalone && !isMove2 ? { 'interlata-carrier': 'Other', 'intralata-carrier': 'Other' } : {}),
   });
 
   const features = PHONE_BUNDLE_FEATURES.flatMap(f => {
@@ -121,10 +131,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     if (f.id === 'call-waiting' && isPhoneStandalone) feature = CALL_WAITING_STANDALONE;
     if (f.id === 'caller-id' && isPhoneStandalone) feature = CALLER_ID_STANDALONE;
     if (f.id === 'voicemail' && isPhoneStandalone) feature = VOICEMAIL_STANDALONE;
-    // Preferred Interexchange Carrier — Change action, Phone Standalone only (not shown for Move2) —
+    // Interlata / Intralata Carrier — Change action, Phone Standalone only (not shown for Move2) —
     // placed right after Directory Listing
     if (f.id === 'directory-listing' && isPhoneStandalone && !isMove2) {
-      return [feature, PREFERRED_CARRIER_STANDALONE];
+      return [feature, INTERLATA_CARRIER_STANDALONE, INTRALATA_CARRIER_STANDALONE];
     }
     return [feature];
   });

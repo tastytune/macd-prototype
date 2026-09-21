@@ -130,7 +130,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
 
 const actionLabel: Record<MACDAction, string> = {
   deactivate: 'Temporary Disconnect',
-  reactivate: 'Reactivate',
+  reactivate: 'Reconnect',
   disconnect: 'Disconnect',
   change: 'Change',
   move: 'Move',
@@ -148,17 +148,23 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
   // BA radio selection (Deactivate/Reactivate) — single select
   const [selectedBA, setSelectedBA] = useState<string>(initialSelectedBA ?? billingAccounts[0].id);
 
-  // Serviceability check simulation for sa-02031
+  // Serviceability check simulation — runs for every SA; sa-02031 additionally
+  // surfaces the "Fiber Eligible" result once the check completes.
   const [serviceabilityLoading, setServiceabilityLoading] = useState<string | null>(null);
+  const [serviceabilityChecked, setServiceabilityChecked] = useState<Set<string>>(new Set());
   const [fiberEligible, setFiberEligible] = useState<Set<string>>(new Set());
 
   const handleSAClick = (saId: string) => {
     if (serviceabilityLoading) return;
-    if (saId === 'sa-02031' && !fiberEligible.has(saId)) {
+    if (selectedSA === saId) return;
+    if (!serviceabilityChecked.has(saId)) {
       setServiceabilityLoading(saId);
       setTimeout(() => {
         setServiceabilityLoading(null);
-        setFiberEligible(prev => new Set([...prev, saId]));
+        setServiceabilityChecked(prev => new Set([...prev, saId]));
+        if (saId === 'sa-02031') {
+          setFiberEligible(prev => new Set([...prev, saId]));
+        }
         setSelectedSA(saId);
       }, 1800);
     } else {
