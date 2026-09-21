@@ -395,7 +395,16 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
         {serviceabilityChecked && scenario === 'M03' && (
           <div className="mt-6">
             <hr className="border-gray-200 mb-5" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Serviceability Check</p>
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+              Serviceability Check
+              <span className="relative group normal-case">
+                <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal tracking-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Fiber unavailable at destination. Only a technology change to coax service is available.
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                </span>
+              </span>
+            </p>
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
                 <AlertTriangle className="w-3.5 h-3.5" /> Fiber not available
@@ -410,10 +419,6 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
                 <AlertTriangle className="w-3.5 h-3.5" /> Tech change required
               </span>
             </div>
-            <div className="flex items-center gap-2.5 px-4 py-3 bg-amber-50 rounded-lg border border-amber-200">
-              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <span className="text-sm text-amber-700">Fiber unavailable at destination. Only M03 (technology change) is available.</span>
-            </div>
           </div>
         )}
 
@@ -421,7 +426,16 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
         {serviceabilityChecked && scenario === 'M04' && (
           <div className="mt-6">
             <hr className="border-gray-200 mb-5" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Serviceability Check</p>
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+              Serviceability Check
+              <span className="relative group normal-case">
+                <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal tracking-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Fiber available at destination. Replacement offers are available — agent must select the new plan.
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                </span>
+              </span>
+            </p>
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700">
                 <Check className="w-3.5 h-3.5" /> Fiber available
@@ -432,10 +446,6 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-[#f3e8f3] text-[#800080] border border-[#d9a0d9]">
                 <Info className="w-3.5 h-3.5" /> Offer migration available
               </span>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-3 bg-[#faf0fa] rounded-lg border border-[#d9a0d9]">
-              <Info className="w-4 h-4 text-[#800080] flex-shrink-0" />
-              <span className="text-sm text-[#800080]">Fiber available at destination. Replacement offers are available — agent must select the new plan.</span>
             </div>
           </div>
         )}
