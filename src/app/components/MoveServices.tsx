@@ -444,7 +444,16 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
         {serviceabilityChecked && (scenario === 'M01' || scenario === 'M02') && (
           <div className="mt-6">
             <hr className="border-gray-200 mb-5" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Serviceability Check</p>
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
+              Serviceability Check
+              <span className="relative group normal-case">
+                <Info className="w-3.5 h-3.5 text-gray-400 cursor-pointer hover:text-gray-600" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal tracking-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Same technology available — full and partial moves are available.
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                </span>
+              </span>
+            </p>
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700">
                 <Check className="w-3.5 h-3.5" /> Fiber available
@@ -455,10 +464,6 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
                 <AlertTriangle className="w-3.5 h-3.5" /> Buried drop — 10 biz days
               </span>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-3 bg-blue-50 rounded-lg">
-              <Info className="w-4 h-4 text-blue-600 flex-shrink-0" />
-              <span className="text-sm text-blue-700">Same technology available — full and partial moves are available.</span>
             </div>
           </div>
         )}
