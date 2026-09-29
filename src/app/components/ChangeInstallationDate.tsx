@@ -48,7 +48,7 @@ function formatDateValue(date: Date) {
 }
 
 export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, scenario, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
-  const isM03 = isMove2 && scenario === 'M03';
+  const isDualSchedule = isMove2 && ['M01', 'M02', 'M03', 'M04'].includes(scenario ?? '');
   const weekdays = getNextWeekdays(3);
 
   // Destination date (all cases)
@@ -106,7 +106,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                 <Calendar className="w-5 h-5 text-blue-600" />
               </div>
               <h2 className="text-2xl font-semibold text-gray-900">
-                {isM03 ? 'Work Order Schedule' : 'Installation Date'}
+                {isDualSchedule ? 'Work Order Schedule' : 'Installation Date'}
               </h2>
             </div>
             <button
@@ -117,7 +117,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
             </button>
           </div>
 
-          {isM03 ? (
+          {isDualSchedule ? (
             /* ── M03: two panels side by side ── */
             <div className="grid grid-cols-2 gap-6 mb-8">
               {/* Origin — Uninstall */}
@@ -362,7 +362,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
               onClick={() => {
                 const slotLabel = selectedSlot ? (TIME_SLOTS.find(s => s.id === selectedSlot.slotId)?.label ?? '') : '';
                 const originSlotLabel = originSlot ? (TIME_SLOTS.find(s => s.id === originSlot.slotId)?.label ?? '') : '';
-                onNext(selectedDate, slotLabel, isM03 ? originDate : undefined, isM03 ? originSlotLabel : undefined);
+                onNext(selectedDate, slotLabel, isDualSchedule ? originDate : undefined, isDualSchedule ? originSlotLabel : undefined);
               }}
               className="px-7 py-2.5 rounded-lg text-sm font-bold transition-colors bg-blue-600 text-white hover:bg-blue-700"
             >
