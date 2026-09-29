@@ -106,7 +106,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                 <Calendar className="w-5 h-5 text-blue-600" />
               </div>
               <h2 className="text-2xl font-semibold text-gray-900">
-                {isM03 ? 'Installation Dates' : 'Installation Date'}
+                {isM03 ? 'Work Order Schedule' : 'Installation Date'}
               </h2>
             </div>
             <button
@@ -126,9 +126,15 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                   <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-4 h-4 text-orange-600" />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-orange-800">Installation Preferred Date — Origin</p>
-                    <p className="text-xs text-orange-600">Disconnection / uninstall at origin address</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-semibold text-orange-800">Preferred Disconnect Date</p>
+                    <span className="relative group">
+                      <Info className="w-3.5 h-3.5 text-orange-400 cursor-pointer hover:text-orange-600" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        Disconnection / uninstall at origin address
+                        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                      </span>
+                    </span>
                   </div>
                 </div>
                 <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
@@ -194,9 +200,15 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                   <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <Calendar className="w-4 h-4 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="flex items-center gap-1.5">
                     <p className="text-sm font-semibold text-blue-800">Installation Preferred Date — Destination</p>
-                    <p className="text-xs text-blue-600">New service install at destination · Min 15 business days</p>
+                    <span className="relative group">
+                      <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        New service install at destination · Min 15 business days
+                        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                      </span>
+                    </span>
                   </div>
                 </div>
                 <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
