@@ -196,7 +196,7 @@ export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocatio
       </div>
       <Breadcrumb
         steps={isAddLocation
-          ? ['Select account', 'Destination']
+          ? ['Select account', 'Destination', 'Customer details']
           : isMove2
             ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
             : ['Select account', 'Destination', 'Services', 'Schedule', 'Review order']}

@@ -10,6 +10,7 @@ import { ReactivateReviewOrder } from './components/ReactivateReviewOrder';
 import { DeactivateServices } from './components/DeactivateServices';
 import { DeactivateReviewOrder } from './components/DeactivateReviewOrder';
 import { MoveServices } from './components/MoveServices';
+import { AddLocationCustomerDetails } from './components/AddLocationCustomerDetails';
 import { MoveServiceType } from './components/MoveServiceType';
 import { MoveServicesStep3 } from './components/MoveServicesStep3';
 import { MoveServicesStep4 } from './components/MoveServicesStep4';
@@ -117,7 +118,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'add-location-customer-details' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -588,10 +589,31 @@ function App() {
                 setMoveMailingAddress(mailingAddress ?? '');
                 setMoveScenario(scenario || 'M01');
                 if (selectedAction === 'addLocation') {
-                  // Placeholder: no downstream screen defined yet for a brand-new location
+                  setCurrentStep('add-location-customer-details');
                   return;
                 }
                 setCurrentStep(selectedAction === 'move2' ? 'change-service-type' : 'move-service-type');
+              }}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Add On New Location: Customer details (output only) ── */}
+        {currentStep === 'add-location-customer-details' && (
+          <motion.div
+            key="add-location-customer-details"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <AddLocationCustomerDetails
+              action={selectedAction}
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('move-services')}
+              onNext={() => {
+                // Placeholder: no downstream screen defined yet past customer details
               }}
             />
           </motion.div>
