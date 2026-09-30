@@ -9,6 +9,7 @@ interface MoveServicesProps {
   action: MACDAction | null;
   selectedSA?: Service | null;
   isMove2?: boolean;
+  isAddLocation?: boolean;
   onBack: () => void;
   onMove: (address: string, scenario: string, mailingAddress?: string) => void;
 }
@@ -50,7 +51,7 @@ const MOCK_ADDRESS_DB: StructuredAddress[] = [
   { street: '1600 Amphitheatre Pkwy', city: 'Mountain View', state: 'CA', zip: '94043' },
 ];
 
-export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMove }: MoveServicesProps) {
+export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocation = false, onBack, onMove }: MoveServicesProps) {
   const [scenario, setScenario] = useState('');
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
@@ -190,13 +191,15 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
     <div className="max-w-4xl mx-auto px-8 py-10">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">Move Services</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : 'Move Services'}</h1>
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
-          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
-          : ['Select account', 'Destination', 'Services', 'Schedule', 'Review order']}
+        steps={isAddLocation
+          ? ['Select account', 'Destination']
+          : isMove2
+            ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+            : ['Select account', 'Destination', 'Services', 'Schedule', 'Review order']}
         currentIndex={1}
       />
 
@@ -488,7 +491,11 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
             Back
           </button>
           <button
-            onClick={() => canCheckServiceability && setServiceabilityChecked(true)}
+            onClick={() => {
+              if (!canCheckServiceability) return;
+              if (isAddLocation) setScenario('M04');
+              setServiceabilityChecked(true);
+            }}
             disabled={!canCheckServiceability}
             className={`px-6 py-2.5 rounded-full text-sm font-medium border transition-colors
               ${canCheckServiceability
@@ -518,6 +525,8 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
 
     </div>
 
+    {!isAddLocation && (
+    <>
     {/* Demo scenario selector — footer, kept well separated from the live app */}
     <div className="mt-20 border-t border-gray-200 bg-gray-50">
       <div className="max-w-4xl mx-auto px-8 py-6">
@@ -551,6 +560,8 @@ export function MoveServices({ action, selectedSA, isMove2 = false, onBack, onMo
         </div>
       </div>
     </div>
+    </>
+    )}
     </>
   );
 }

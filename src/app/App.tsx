@@ -294,9 +294,9 @@ function App() {
       setSelectedBAId(childItemIds[0] ?? '');
       setCurrentStep('reactivate-services');
     } else if (selectedAction === 'addLocation') {
-      // Placeholder: flow not yet implemented — stays on account selection for now
       setSelectedSA(services[0]);
       setSelectedService(services[0]);
+      setCurrentStep('move-services');
     } else {
       // Deactivate: go to deactivate-services step
       const baLabel = childItemIds.map(id => id.toUpperCase().replace('BA-', 'BA-')).join(', ');
@@ -581,11 +581,16 @@ function App() {
               action={selectedAction}
               selectedSA={selectedSA}
               isMove2={selectedAction === 'move2'}
+              isAddLocation={selectedAction === 'addLocation'}
               onBack={() => setCurrentStep('dispatcher-step2')}
               onMove={(address, scenario, mailingAddress) => {
                 setMoveDestinationAddress(address);
                 setMoveMailingAddress(mailingAddress ?? '');
                 setMoveScenario(scenario || 'M01');
+                if (selectedAction === 'addLocation') {
+                  // Placeholder: no downstream screen defined yet for a brand-new location
+                  return;
+                }
                 setCurrentStep(selectedAction === 'move2' ? 'change-service-type' : 'move-service-type');
               }}
             />
