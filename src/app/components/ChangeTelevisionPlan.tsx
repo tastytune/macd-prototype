@@ -12,6 +12,7 @@ interface ChangeTelevisionPlanProps {
   isDowngrade?: boolean;
   isUpgrade?: boolean;
   isMove2?: boolean;
+  isAddLocation?: boolean;
   internetAvailable?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -115,7 +116,7 @@ function StepperButton({ onClick, disabled, children }: {
   );
 }
 
-export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
+export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
@@ -194,14 +195,14 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isMove2 ? 'Move Television Service' : 'Change Television Service'}</h1>
-        <ContextBar action={isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Television Service' : 'Change Television Service'}</h1>
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || isAddLocation)
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 3 : 2}
+        currentIndex={(isMove2 || isAddLocation) ? 3 : 2}
       />
 
       <div className="flex gap-8 items-start">

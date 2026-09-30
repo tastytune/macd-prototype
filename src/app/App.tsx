@@ -750,6 +750,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
+              isAddLocation={selectedAction === 'addLocation'}
               internetAvailable={!!(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
@@ -776,7 +777,8 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
-              isPhoneStandalone={PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '') && !(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
+              isAddLocation={selectedAction === 'addLocation'}
+              isPhoneStandalone={(PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '') || selectedAction === 'addLocation') && !(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}

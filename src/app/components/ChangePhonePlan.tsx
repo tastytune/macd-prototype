@@ -11,6 +11,7 @@ interface ChangePhonePlanProps {
   isDowngrade?: boolean;
   isUpgrade?: boolean;
   isMove2?: boolean;
+  isAddLocation?: boolean;
   isPhoneStandalone?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -110,7 +111,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
 
-export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
@@ -216,14 +217,14 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isMove2 ? 'Move Phone Service' : isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Bundle'}</h1>
-        <ContextBar action={isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Phone Service' : isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Bundle'}</h1>
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || isAddLocation)
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 3 : 2}
+        currentIndex={(isMove2 || isAddLocation) ? 3 : 2}
       />
 
       <div className="flex gap-8 items-start">
