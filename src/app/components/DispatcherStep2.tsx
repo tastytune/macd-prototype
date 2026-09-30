@@ -126,6 +126,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   move: 'bg-[#f3e8f3] text-[#800080]',
   move2: 'bg-blue-50 text-blue-700',
   followOnOrder: 'bg-indigo-50 text-indigo-700',
+  addLocation: 'bg-teal-50 text-teal-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -136,11 +137,13 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
   move2: 'Move 2',
   followOnOrder: 'Follow On Order',
+  addLocation: 'Add On New Location',
 };
 
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {
-  const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change';
-  const activeServiceAccounts = action === 'change' ? changeServiceAccounts : serviceAccounts;
+  const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change' || action === 'addLocation';
+  const isAddLocation = action === 'addLocation';
+  const activeServiceAccounts = (action === 'change' || action === 'addLocation') ? changeServiceAccounts : serviceAccounts;
 
   // SA radio selection (Disconnect / Move)
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);
@@ -173,7 +176,11 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
   };
 
   const handleNext = () => {
-    if (isServiceAccountAction) {
+    if (isAddLocation) {
+      // Placeholder: no existing account is being selected — a new one will be created
+      const newLocationService: Service = { id: 'new-location', name: 'New location', status: 'Active' };
+      onNext([newLocationService], []);
+    } else if (isServiceAccountAction) {
       const sa = activeServiceAccounts.find(s => s.id === selectedSA);
       if (sa) onNext([sa], []);
     } else {
@@ -182,7 +189,7 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
     }
   };
 
-  const canProceed = isServiceAccountAction ? !!selectedSA : !!selectedBA;
+  const canProceed = isAddLocation ? true : isServiceAccountAction ? !!selectedSA : !!selectedBA;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -197,23 +204,27 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
       {isServiceAccountAction ? (
         /* ── Disconnect / Move: Service Accounts ── */
         <div className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Service accounts</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+            {isAddLocation ? 'Existing service accounts (creating a new one instead)' : 'Service accounts'}
+          </p>
           <div className="flex flex-col gap-3">
             {activeServiceAccounts.map(sa => {
-              const isSelected = selectedSA === sa.id;
+              const isSelected = !isAddLocation && selectedSA === sa.id;
               const isLoading = serviceabilityLoading === sa.id;
               const isFiber = fiberEligible.has(sa.id);
               return (
                 <button
                   key={sa.id}
-                  onClick={() => handleSAClick(sa.id)}
-                  disabled={!!serviceabilityLoading}
+                  onClick={() => !isAddLocation && handleSAClick(sa.id)}
+                  disabled={isAddLocation || !!serviceabilityLoading}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all
-                    ${isLoading
-                      ? 'border-blue-300 bg-blue-50/40 animate-pulse cursor-wait'
-                      : isSelected
-                        ? 'border-blue-600 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    ${isAddLocation
+                      ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
+                      : isLoading
+                        ? 'border-blue-300 bg-blue-50/40 animate-pulse cursor-wait'
+                        : isSelected
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                 >
                   {/* Radio / spinner */}
