@@ -293,6 +293,10 @@ function App() {
       setSelectedService(baService);
       setSelectedBAId(childItemIds[0] ?? '');
       setCurrentStep('reactivate-services');
+    } else if (selectedAction === 'addLocation') {
+      // Placeholder: flow not yet implemented — stays on account selection for now
+      setSelectedSA(services[0]);
+      setSelectedService(services[0]);
     } else {
       // Deactivate: go to deactivate-services step
       const baLabel = childItemIds.map(id => id.toUpperCase().replace('BA-', 'BA-')).join(', ');

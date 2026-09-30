@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pause, Play, Power, RefreshCw, ClipboardList } from 'lucide-react';
+import { Pause, Play, Power, RefreshCw, ClipboardList, MapPinPlus } from 'lucide-react';
 
 function MovePinsIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +18,7 @@ function MovePinsIcon({ className }: { className?: string }) {
   );
 }
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder' | 'addLocation';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
@@ -117,6 +117,19 @@ const actions: {
     radioDot: 'bg-indigo-500',
     radioRing: 'border-indigo-500',
     labelColor: 'text-indigo-700',
+  },
+  {
+    id: 'addLocation',
+    label: 'Add On New Location',
+    description: 'Add a new service location under this customer, alongside their existing accounts.',
+    icon: MapPinPlus,
+    iconColor: 'text-teal-600',
+    iconBg: 'bg-teal-50',
+    selectedBorder: 'border-teal-500',
+    selectedBg: 'bg-teal-50',
+    radioDot: 'bg-teal-500',
+    radioRing: 'border-teal-500',
+    labelColor: 'text-teal-700',
   },
 ];
 

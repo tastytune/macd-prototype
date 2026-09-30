@@ -9,6 +9,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   move: 'bg-[#f3e8f3] text-[#800080]',
   move2: 'bg-[#f3e8f3] text-[#800080]',
   followOnOrder: 'bg-indigo-50 text-indigo-700',
+  addLocation: 'bg-teal-50 text-teal-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -19,6 +20,7 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
   move2: 'Move',
   followOnOrder: 'Follow On Order',
+  addLocation: 'Add On New Location',
 };
 
 interface ContextBarProps {

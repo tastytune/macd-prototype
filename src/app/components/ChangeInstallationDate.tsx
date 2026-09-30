@@ -131,7 +131,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
                     <span className="relative group">
                       <Info className="w-3.5 h-3.5 text-orange-400 cursor-pointer hover:text-orange-600" />
                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-800 text-white text-xs font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        Disconnection / uninstall at origin address
+                        Disconnection at origin address
                         <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                       </span>
                     </span>

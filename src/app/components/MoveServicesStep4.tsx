@@ -170,7 +170,7 @@ export function MoveServicesStep4({ scenario, selectedSA, selectedServiceIds, on
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-orange-800">Installation Preferred Date — Origin</p>
-                      <p className="text-xs text-orange-600">Disconnection / uninstall at origin address</p>
+                      <p className="text-xs text-orange-600">Disconnection at origin address</p>
                     </div>
                   </div>
                   <label className="text-xs text-gray-600 mb-1.5 block">Date</label>
