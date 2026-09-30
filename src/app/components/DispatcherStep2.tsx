@@ -196,7 +196,7 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
 
       {/* Header */}
       <div>
-        <h1 className="text-3xl text-gray-900 mb-2">Select accounts</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Create Account' : 'Select accounts'}</h1>
         <ContextBar action={action} selectedSA={null} />
       </div>
 
