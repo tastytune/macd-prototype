@@ -209,9 +209,6 @@ export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocatio
 
         {isAddLocation && (
           <div className="mb-8 pb-8 border-b border-gray-100">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
-              Customer details
-            </p>
             <div className="text-gray-900">
               <p className="text-lg font-semibold">Robert Johnson</p>
               <p className="text-sm text-gray-700 mt-1">450 Birchwood Ave, Springfield, IL 62704</p>
