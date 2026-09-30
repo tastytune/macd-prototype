@@ -1,4 +1,4 @@
-import { Check, AlertTriangle, Info, MapPin, Loader2, User, Mail, Smartphone } from 'lucide-react';
+import { Check, AlertTriangle, Info, MapPin, Loader2, Mail, Smartphone } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -212,39 +212,16 @@ export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocatio
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
               Customer details
             </p>
-            <div className="flex flex-col gap-5">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-700 mb-1.5">First name</label>
-                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    Robert
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-700 mb-1.5">Last name</label>
-                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    Johnson
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-700 mb-1.5">Email</label>
-                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    robert.johnson@example.com
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-700 mb-1.5">Mobile</label>
-                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
-                    <Smartphone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    (217) 555-0148
-                  </div>
-                </div>
-              </div>
+            <div className="text-gray-900">
+              <p className="text-lg font-semibold">Robert Johnson</p>
+              <p className="text-sm text-gray-700 mt-1">450 Birchwood Ave, Springfield, IL 62704</p>
+              <p className="flex items-center gap-1.5 text-sm text-gray-700 mt-1">
+                <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                <a href="mailto:robert.johnson@example.com" className="text-blue-600 underline">robert.johnson@example.com</a>
+                <span className="text-gray-300 mx-1">|</span>
+                <Smartphone className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                (217) 555-0148
+              </p>
             </div>
           </div>
         )}
