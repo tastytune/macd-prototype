@@ -32,7 +32,7 @@ function DetailField({
   return (
     <div>
       <label className="block text-sm text-gray-700 mb-1.5">{label}</label>
-      <div className="flex items-center gap-2.5 px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-900">
+      <div className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-900">
         <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
         {value}
       </div>
