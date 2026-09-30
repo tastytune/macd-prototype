@@ -587,11 +587,7 @@ function App() {
                 setMoveDestinationAddress(address);
                 setMoveMailingAddress(mailingAddress ?? '');
                 setMoveScenario(scenario || 'M01');
-                if (selectedAction === 'addLocation') {
-                  // Placeholder: no downstream screen defined yet for a brand-new location
-                  return;
-                }
-                setCurrentStep(selectedAction === 'move2' ? 'change-service-type' : 'move-service-type');
+                setCurrentStep((selectedAction === 'move2' || selectedAction === 'addLocation') ? 'change-service-type' : 'move-service-type');
               }}
             />
           </motion.div>
@@ -695,8 +691,9 @@ function App() {
             <ChangeServiceType
               selectedSA={selectedSA}
               isMove2={selectedAction === 'move2'}
+              isAddLocation={selectedAction === 'addLocation'}
               onBack={() => setCurrentStep(
-                selectedAction === 'move2' ? 'move-services'
+                (selectedAction === 'move2' || selectedAction === 'addLocation') ? 'move-services'
                 : selectedAction === 'followOnOrder' ? 'followon-serviceability'
                 : 'dispatcher-step2'
               )}

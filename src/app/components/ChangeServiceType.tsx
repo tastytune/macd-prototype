@@ -6,6 +6,7 @@ import { Breadcrumb } from './Breadcrumb';
 interface ChangeServiceTypeProps {
   selectedSA?: Service | null;
   isMove2?: boolean;
+  isAddLocation?: boolean;
   onBack: () => void;
   onNext: (serviceType: string) => void;
 }
@@ -65,7 +66,7 @@ const SERVICE_TYPES = [
   },
 ];
 
-export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext }: ChangeServiceTypeProps) {
+export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation = false, onBack, onNext }: ChangeServiceTypeProps) {
   const isPhoneStandalone = selectedSA?.id === 'sa-02031';
   const [selected, setSelected] = useState<string | null>(isPhoneStandalone ? 'phone' : null);
 
@@ -84,10 +85,10 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
         </p>
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || isAddLocation)
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 2 : 1}
+        currentIndex={(isMove2 || isAddLocation) ? 2 : 1}
       />
 
       {/* Service type cards */}
@@ -95,16 +96,20 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
         {SERVICE_TYPES.map((svc, i) => {
           const Icon = svc.icon;
           const isSelected = selected === svc.id;
+          const isDisabled = isAddLocation && svc.id === 'television';
           const pills = SA_SERVICE_PILLS[selectedSA?.id ?? '']?.[svc.id] ?? [];
           return (
             <button
               key={svc.id}
-              onClick={() => setSelected(svc.id)}
+              onClick={() => { if (!isDisabled) setSelected(svc.id); }}
+              disabled={isDisabled}
               className={`flex flex-col gap-4 p-8 text-left transition-all
                 ${i > 0 ? 'border-l border-gray-200' : ''}
-                ${isSelected
-                  ? 'bg-blue-50 border-blue-500 ring-2 ring-inset ring-blue-500'
-                  : 'bg-white hover:bg-gray-50'
+                ${isDisabled
+                  ? 'bg-gray-50 opacity-60 cursor-not-allowed'
+                  : isSelected
+                    ? 'bg-blue-50 border-blue-500 ring-2 ring-inset ring-blue-500'
+                    : 'bg-white hover:bg-gray-50'
                 }`}
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${svc.iconBg}`}>
@@ -113,7 +118,9 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
               <div className="flex-1">
                 <p className="text-xl font-semibold text-gray-900 mb-2">{svc.label}</p>
                 <p className="text-sm text-gray-500 leading-relaxed mb-3">{svc.description}</p>
-                {pills.length > 0 ? (
+                {isDisabled ? (
+                  <span className="text-xs text-gray-400 italic">Requires internet service first</span>
+                ) : pills.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
                     {pills.map(pill => (
                       <span
@@ -129,10 +136,12 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, onBack, onNext 
                 )}
               </div>
               {/* Radio */}
-              <div className={`self-end w-4 h-4 rounded-full border-2 flex items-center justify-center mt-auto
-                ${isSelected ? 'border-blue-600' : 'border-gray-300'}`}>
-                {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
-              </div>
+              {!isDisabled && (
+                <div className={`self-end w-4 h-4 rounded-full border-2 flex items-center justify-center mt-auto
+                  ${isSelected ? 'border-blue-600' : 'border-gray-300'}`}>
+                  {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                </div>
+              )}
             </button>
           );
         })}
