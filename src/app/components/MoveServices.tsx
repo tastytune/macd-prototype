@@ -1,4 +1,4 @@
-import { Check, AlertTriangle, Info, MapPin, Loader2 } from 'lucide-react';
+import { Check, AlertTriangle, Info, MapPin, Loader2, User, Mail, Smartphone } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Service } from '../App';
 import type { MACDAction } from './DispatcherStep1';
@@ -196,7 +196,7 @@ export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocatio
       </div>
       <Breadcrumb
         steps={isAddLocation
-          ? ['Select account', 'Destination', 'Customer details']
+          ? ['Select account', 'Destination']
           : isMove2
             ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
             : ['Select account', 'Destination', 'Services', 'Schedule', 'Review order']}
@@ -206,6 +206,48 @@ export function MoveServices({ action, selectedSA, isMove2 = false, isAddLocatio
       {/* Form card */}
       <div className="bg-white rounded-2xl border border-gray-200 p-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-8">New destination address</h2>
+
+        {isAddLocation && (
+          <div className="mb-8 pb-8 border-b border-gray-100">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
+              Customer details
+            </p>
+            <div className="flex flex-col gap-5">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-700 mb-1.5">First name</label>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    Robert
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-700 mb-1.5">Last name</label>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    Johnson
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-700 mb-1.5">Email</label>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    robert.johnson@example.com
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-700 mb-1.5">Mobile</label>
+                  <div className="flex items-center gap-2.5 text-sm text-gray-900">
+                    <Smartphone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    (217) 555-0148
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-5">
           {/* Street */}
