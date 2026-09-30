@@ -721,6 +721,7 @@ function App() {
               previousLines={changeCartLines}
               isDowngrade={changeIsDowngrade}
               isMove2={selectedAction === 'move2'}
+              isAddLocation={selectedAction === 'addLocation'}
               isCoaxMove={selectedAction === 'move2' && moveScenario === 'M03'}
               workOrder={selectedAction === 'followOnOrder' ? followOnWorkOrder : null}
               selectedPromos={changeSelectedPromos}

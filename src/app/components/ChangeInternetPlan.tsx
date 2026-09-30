@@ -11,6 +11,7 @@ interface ChangeInternetPlanProps {
   previousLines?: CartLine[];
   isDowngrade?: boolean;
   isMove2?: boolean;
+  isAddLocation?: boolean;
   isCoaxMove?: boolean;
   workOrder?: WorkOrderResult | null;
   selectedPromos?: Set<string>;
@@ -56,7 +57,7 @@ const ADD_ONS = [
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, group: 'tech-home' },
 ];
 
-export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isAddLocation = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
     if (!isMove2 || !isCoaxMove) return null;
     const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
@@ -73,7 +74,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
     return initial;
   });
 
-  const currentPlanId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
+  const currentPlanId = isAddLocation ? 'none' : (SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig');
   const currentPlan = PLANS.find(p => p.id === currentPlanId) ?? null;
   // M03 coax move: use coax plans (technology change, 2Gbps unavailable at coax destination)
   const visiblePlans = (isMove2 && isCoaxMove) ? COAX_PLANS : PLANS;
@@ -134,14 +135,14 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isMove2 ? 'Move Internet Service' : 'Change Internet Service'}</h1>
-        <ContextBar action={isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Internet Service' : 'Change Internet Service'}</h1>
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || isAddLocation)
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 3 : 2}
+        currentIndex={(isMove2 || isAddLocation) ? 3 : 2}
       />
 
       <div className="flex gap-8 items-start">
