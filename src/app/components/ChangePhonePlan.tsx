@@ -262,6 +262,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     const isActualCurrent = plan.id === actualCurrentPlanId;
     const cardFeatures = buildFeatureList(plan.id === 'phone-standalone');
     const isDisabled = plan.id === 'phone-bundle' && !isSelected && !hasInternet;
+    const warnsOnSelect = plan.id === 'phone-standalone' && !isSelected && hasInternet;
 
     return (
       <div
@@ -366,6 +367,12 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
             {isDisabled && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
                 Select Internet to enable Phone Bundle.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+              </div>
+            )}
+            {warnsOnSelect && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
+                Selecting Phone Standalone disconnects Internet and Television services.
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
               </div>
             )}
