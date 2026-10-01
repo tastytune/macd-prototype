@@ -601,7 +601,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
               <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span>
                 {movingAwayFromBundle
-                  ? 'Deselecting Phone Bundle disconnects Internet and Television services.'
+                  ? `Selecting ${selectedPlan === 'phone-standalone' ? 'Phone Standalone' : 'No Phone'} disconnects Internet and Television services.`
                   : 'Switching to Phone Bundle requires active Internet service.'}
               </span>
             </div>
