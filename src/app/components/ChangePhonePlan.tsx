@@ -428,16 +428,20 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       )}
                     </div>
                   ) : (
-                    <div className="mt-auto pt-6 flex flex-col items-center gap-2.5">
-                      <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
+                    <div className="mt-auto pt-6 flex justify-center">
+                      <div className={`relative group flex items-center gap-1.5 px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
                         ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
                         {isSelected ? (isActiveBundle ? 'Deselect' : 'Selected') : 'Select'}
+                        {isActiveBundle && (
+                          <>
+                            <Info size={14} className="flex-shrink-0" />
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs normal-case font-normal leading-snug text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
+                              Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television.
+                              <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                            </span>
+                          </>
+                        )}
                       </div>
-                      {isActiveBundle && (
-                        <p className="text-xs text-amber-600 max-w-xs leading-snug">
-                          Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television.
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
