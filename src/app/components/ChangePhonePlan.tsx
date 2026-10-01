@@ -21,9 +21,8 @@ interface ChangePhonePlanProps {
 }
 
 const PLANS = [
-  { id: 'phone-bundle',     title: 'Phone Bundle',    subtitle: '', price: 17.50, topPick: false },
-  { id: 'phone-standalone', title: 'Standalone Phone', subtitle: '', price: 0,    topPick: false },
-  { id: 'no-phone',         title: 'No Phone',        subtitle: '', price: 0,    topPick: false },
+  { id: 'phone-bundle',     title: 'Phone Bundle',     subtitle: '', price: 17.50, topPick: false },
+  { id: 'phone-standalone', title: 'Standalone Phone', subtitle: '', price: 0,     topPick: false },
 ];
 
 type FeatureManageable = 'fixed' | 'removable' | 'attribute';
@@ -126,7 +125,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
       return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : null;
     }
     if (isPhoneStandalone) return 'phone-standalone';
-    return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : 'no-phone';
+    return 'phone-bundle';
   });
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
@@ -139,13 +138,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // The account's actual current phone service, outside this screen — drives the Active
   // badge and the Internet/Television warnings below. Meaningful for the Change flow only;
   // Move2 and Add On New Location keep their own pre-existing single-card model.
-  const actualCurrentPlanId: string = isPhoneStandalone
-    ? 'phone-standalone'
-    : SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : 'no-phone';
+  const actualCurrentPlanId: string = isPhoneStandalone ? 'phone-standalone' : 'phone-bundle';
 
-  // Phone Bundle / Standalone Phone / No Phone — this screen's three Change-flow options
-  // are mutually exclusive: selecting one deselects whichever of the other two was selected
-  // (see handlePlanClick below).
+  // Phone Bundle / Standalone Phone — this screen's two Change-flow options are mutually
+  // exclusive: selecting one deselects the other (see handlePlanClick below).
   const standaloneActive = isLegacyFlow ? isPhoneStandalone : selectedPlan === 'phone-standalone';
   const movingAwayFromBundle = !isLegacyFlow && actualCurrentPlanId === 'phone-bundle' && selectedPlan !== 'phone-bundle';
   const movingToBundle       = !isLegacyFlow && actualCurrentPlanId !== 'phone-bundle' && selectedPlan === 'phone-bundle';
@@ -187,7 +183,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     });
   };
 
-  const features = selectedPlan === 'no-phone' ? [] : buildFeatureList(standaloneActive);
+  const features = buildFeatureList(standaloneActive);
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
@@ -220,8 +216,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
       }
       return;
     }
-    // Phone Bundle / Standalone Phone / No Phone — mutually exclusive, selecting one always
-    // deselects whichever of the other two was selected.
+    // Phone Bundle / Standalone Phone — mutually exclusive, selecting one deselects the other.
     if (selectedPlan === plan.id) return;
     setSelectedPlan(plan.id);
     setRemovedFeatures(new Set());
@@ -232,7 +227,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
   /* ── Order Summary line computation ── */
   const buildSummaryLines = (): CartLine[] => {
-    if (!selectedPlan || selectedPlan === 'no-phone') return [];
+    if (!selectedPlan) return [];
     const label = selectedPlan === 'phone-standalone' ? 'Phone Standalone' : 'Phone Bundle';
     // Main line = base + removable adj only (attrs shown as sub-items to avoid double-counting)
     const baseForSummary = PHONE_BUNDLE_BASE + removableBaseTotal - removedFeaturesAdj;
@@ -257,11 +252,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     return [main, ...mods];
   };
 
-  /* ── Change-flow card: Phone Bundle / Standalone Phone / No Phone ── */
+  /* ── Change-flow card: Phone Bundle / Standalone Phone ── */
   const renderPhoneOption = (plan: typeof PLANS[0]) => {
     const isSelected = selectedPlan === plan.id;
     const isActualCurrent = plan.id === actualCurrentPlanId;
-    const cardFeatures = plan.id === 'no-phone' ? [] : buildFeatureList(plan.id === 'phone-standalone');
+    const cardFeatures = buildFeatureList(plan.id === 'phone-standalone');
 
     return (
       <div
@@ -286,8 +281,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
           )
         )}
 
-        {plan.id !== 'no-phone' && (
-          <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
+        <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
             <div className="space-y-3">
               {cardFeatures.map(f => {
                 const isRemoved = isSelected && removedFeatures.has(f.id);
@@ -354,14 +348,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {plan.id === 'no-phone' && (
-          <p className={`text-sm mt-2 mb-4 ${isSelected ? 'text-blue-700' : 'text-gray-500'}`}>
-            No phone service on this line.
-          </p>
-        )}
+        </div>
 
         <div className="mt-auto pt-6 flex justify-center">
           <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
@@ -586,9 +573,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
               );
             }
 
-            // ── Change flow: Phone Bundle / Standalone Phone / No Phone — pick one ──
+            // ── Change flow: Phone Bundle / Standalone Phone — pick one ──
             return (
-              <div className="grid grid-cols-3 gap-4 mb-6 items-stretch">
+              <div className="grid grid-cols-2 gap-4 mb-6 items-stretch">
                 {PLANS.map(plan => (
                   <div key={plan.id} className="flex flex-col">{renderPhoneOption(plan)}</div>
                 ))}
@@ -601,7 +588,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
               <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span>
                 {movingAwayFromBundle
-                  ? `Selecting ${selectedPlan === 'phone-standalone' ? 'Phone Standalone' : 'No Phone'} disconnects Internet and Television services.`
+                  ? 'Selecting Phone Standalone disconnects Internet and Television services.'
                   : 'Switching to Phone Bundle requires active Internet service.'}
               </span>
             </div>
