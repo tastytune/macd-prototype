@@ -111,8 +111,15 @@ const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
 
+// SAs whose existing service already includes Phone Bundle — the plan card starts
+// pre-selected (editable) on this screen instead of requiring a click on SELECT.
+const SA_HAS_PHONE_BUNDLE = new Set(['sa-00912', 'sa-01047']);
+
 export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(isPhoneStandalone ? 'phone-bundle' : null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
+    if (isPhoneStandalone) return 'phone-bundle';
+    return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : null;
+  });
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
   // LOA (retain number at old address) — Move only: CRC flags that the customer wants to
