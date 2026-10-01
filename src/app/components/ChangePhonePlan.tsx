@@ -150,6 +150,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
   const isBundle      = selectedPlan === 'phone-bundle';
+  // This SA already has Phone Bundle active and the user has deselected it on this screen —
+  // that drops Internet (and anything that rides on it, like Television) from the cart.
+  const isActiveBundleSA = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
+  const goingStandalone  = isActiveBundleSA && selectedPlan !== 'phone-bundle';
 
   const attrPriceAdj = features
     .filter(f => f.manageable === 'attribute')
@@ -560,7 +564,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 if (!selectedPlan || !activePlan) return;
                 if (loaRequested && !loaDiscussed) return;
                 const summaryLines = buildSummaryLines();
-                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed');
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(goingStandalone && (l.group === 'internet' || l.group === 'television')));
                 onNext(selectedPlan, [...nonPhoneLines, ...summaryLines]);
               }}
               disabled={!selectedPlan || (loaRequested && !loaDiscussed)}
@@ -596,7 +600,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 const phoneRemovedLines = summaryLines.filter(l => l.group === 'phone-removed');
                 const phoneChangedLines = summaryLines.filter(l => l.group === 'phone-changed');
 
-                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed');
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(goingStandalone && (l.group === 'internet' || l.group === 'television')));
                 const allDisplayLines = mainPhoneLine ? [...nonPhoneLines, mainPhoneLine] : nonPhoneLines;
                 const total = allDisplayLines.reduce((s, l) => s + l.price, 0) + phoneChangedLines.reduce((s, l) => s + l.price, 0);
 
