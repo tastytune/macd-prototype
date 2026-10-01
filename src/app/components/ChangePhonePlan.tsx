@@ -21,7 +21,9 @@ interface ChangePhonePlanProps {
 }
 
 const PLANS = [
-  { id: 'phone-bundle', title: 'Phone Bundle', subtitle: '',                   price: 17.50, topPick: false },
+  { id: 'phone-bundle',     title: 'Phone Bundle',    subtitle: '', price: 17.50, topPick: false },
+  { id: 'phone-standalone', title: 'Standalone Phone', subtitle: '', price: 0,    topPick: false },
+  { id: 'no-phone',         title: 'No Phone',        subtitle: '', price: 0,    topPick: false },
 ];
 
 type FeatureManageable = 'fixed' | 'removable' | 'attribute';
@@ -116,9 +118,15 @@ const SA_PHONE_PLAN: Record<string, string> = {
 const SA_HAS_PHONE_BUNDLE = new Set(['sa-00912', 'sa-01047']);
 
 export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+  const isLegacyFlow = isMove2 || isAddLocation;
+
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
-    if (isPhoneStandalone) return 'phone-bundle';
-    return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : null;
+    if (isLegacyFlow) {
+      if (isPhoneStandalone) return 'phone-bundle';
+      return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : null;
+    }
+    if (isPhoneStandalone) return 'phone-standalone';
+    return SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : 'no-phone';
   });
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
   const [removedFeatures, setRemovedFeatures] = useState<Set<string>>(new Set());
@@ -127,44 +135,63 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // and must confirm they discussed the implications with the customer before submitting.
   const [loaRequested, setLoaRequested] = useState(false);
   const [loaDiscussed, setLoaDiscussed] = useState(false);
-  // This SA already has Phone Bundle active and the user has deselected it on this screen —
-  // it now reads as Phone Standalone (drops Internet/Television, and gets the Interlata/
-  // Intralata Carrier fields every Phone Standalone card shows).
-  const isActiveBundleSA = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
-  const goingStandalone  = isActiveBundleSA && selectedPlan !== 'phone-bundle';
-  const showsAsStandalone = isPhoneStandalone || goingStandalone;
 
-  const [attributeValues, setAttributeValues] = useState<Record<string, string>>({
-    'directory-listing': 'Published',
-    'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited',
-    ...(isPhoneStandalone && !isMove2 ? { 'interlata-carrier': 'Other', 'intralata-carrier': 'Other' } : {}),
-  });
+  // The account's actual current phone service, outside this screen — drives the Active
+  // badge and the Internet/Television warnings below. Meaningful for the Change flow only;
+  // Move2 and Add On New Location keep their own pre-existing single-card model.
+  const actualCurrentPlanId: string = isPhoneStandalone
+    ? 'phone-standalone'
+    : SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '') ? 'phone-bundle' : 'no-phone';
 
-  const features = PHONE_BUNDLE_FEATURES.flatMap(f => {
-    let feature = f;
-    if (f.id === 'long-distance' && isPhoneStandalone) feature = LONG_DISTANCE_STANDALONE;
-    if (f.id === 'call-waiting' && isPhoneStandalone) feature = CALL_WAITING_STANDALONE;
-    if (f.id === 'caller-id' && isPhoneStandalone) feature = CALLER_ID_STANDALONE;
-    if (f.id === 'voicemail' && isPhoneStandalone) feature = VOICEMAIL_STANDALONE;
-    // Interlata / Intralata Carrier — shown on every Phone Standalone card (Change action,
-    // not Move2), including a Phone Bundle deselected down to Standalone — placed right
-    // after Directory Listing
-    if (f.id === 'directory-listing' && showsAsStandalone && !isMove2) {
-      return [feature, INTERLATA_CARRIER_STANDALONE, INTRALATA_CARRIER_STANDALONE];
+  // Phone Bundle / Standalone Phone / No Phone — this screen's three Change-flow options
+  // are mutually exclusive: selecting one deselects whichever of the other two was selected
+  // (see handlePlanClick below).
+  const standaloneActive = isLegacyFlow ? isPhoneStandalone : selectedPlan === 'phone-standalone';
+  const movingAwayFromBundle = !isLegacyFlow && actualCurrentPlanId === 'phone-bundle' && selectedPlan !== 'phone-bundle';
+  const movingToBundle       = !isLegacyFlow && actualCurrentPlanId !== 'phone-bundle' && selectedPlan === 'phone-bundle';
+
+  const defaultAttributeValuesFor = (planId: string | null): Record<string, string> => {
+    if (planId === 'phone-standalone') {
+      return {
+        'directory-listing': 'Published',
+        'long-distance': 'Simplicity',
+        ...(isMove2 ? {} : { 'interlata-carrier': 'Other', 'intralata-carrier': 'Other' }),
+      };
     }
-    return [feature];
-  });
+    if (planId === 'phone-bundle') {
+      return { 'directory-listing': 'Published', 'long-distance': 'Unlimited' };
+    }
+    return {};
+  };
+
+  const [attributeValues, setAttributeValues] = useState<Record<string, string>>(() => defaultAttributeValuesFor(selectedPlan));
+
+  // Builds the feature list for a variant (Bundle vs Standalone pricing/options) — shared by
+  // the price/cart math below (for whichever plan is selected) and by each card's own
+  // always-visible feature rows.
+  const buildFeatureList = (standalone: boolean): PhoneBundleFeature[] => {
+    return PHONE_BUNDLE_FEATURES.flatMap(f => {
+      let feature = f;
+      if (standalone) {
+        if (f.id === 'long-distance') feature = LONG_DISTANCE_STANDALONE;
+        if (f.id === 'call-waiting') feature = CALL_WAITING_STANDALONE;
+        if (f.id === 'caller-id') feature = CALLER_ID_STANDALONE;
+        if (f.id === 'voicemail') feature = VOICEMAIL_STANDALONE;
+      }
+      // Interlata / Intralata Carrier — every Standalone card (Change action, not Move2) —
+      // placed right after Directory Listing
+      if (f.id === 'directory-listing' && standalone && !isMove2) {
+        return [feature, INTERLATA_CARRIER_STANDALONE, INTRALATA_CARRIER_STANDALONE];
+      }
+      return [feature];
+    });
+  };
+
+  const features = selectedPlan === 'no-phone' ? [] : buildFeatureList(standaloneActive);
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
-  const isBundle      = selectedPlan === 'phone-bundle';
 
-  const attrPriceAdj = features
-    .filter(f => f.manageable === 'attribute')
-    .reduce((sum, f) => {
-      const val = attributeValues[f.id] ?? f.defaultAttribute ?? '';
-      return sum + (f.attributePrices?.[val] ?? 0);
-    }, 0);
   const removableBaseTotal = features
     .filter(f => f.manageable === 'removable')
     .reduce((sum, f) => sum + f.basePrice, 0);
@@ -172,7 +199,6 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     const f = features.find(f => f.id === id);
     return sum + (f?.basePrice ?? 0);
   }, 0);
-  const phoneBundleEffectivePrice = PHONE_BUNDLE_BASE + attrPriceAdj + removableBaseTotal - removedFeaturesAdj;
 
   const toggleRemoveFeature = (id: string) => {
     setRemovedFeatures(prev => {
@@ -183,31 +209,34 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   };
 
   const handlePlanClick = (plan: typeof PLANS[0]) => {
-    if (plan.id === currentPlanId) return;
-    if (isPhoneStandalone) return;
-    const next = selectedPlan === plan.id ? null : plan.id;
-    setSelectedPlan(next);
-    if (next !== 'phone-bundle') {
-      setFeaturesExpanded(false);
-      setRemovedFeatures(new Set());
-      setAttributeValues({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
+    if (isLegacyFlow) {
+      if (plan.id === currentPlanId) return;
+      if (isPhoneStandalone) return;
+      const next = selectedPlan === plan.id ? null : plan.id;
+      setSelectedPlan(next);
+      if (next !== 'phone-bundle') {
+        setRemovedFeatures(new Set());
+        setAttributeValues({ 'directory-listing': 'Published', 'long-distance': 'Unlimited' });
+      }
+      return;
     }
+    // Phone Bundle / Standalone Phone / No Phone — mutually exclusive, selecting one always
+    // deselects whichever of the other two was selected.
+    if (selectedPlan === plan.id) return;
+    setSelectedPlan(plan.id);
+    setRemovedFeatures(new Set());
+    setAttributeValues(defaultAttributeValuesFor(plan.id));
   };
 
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
 
   /* ── Order Summary line computation ── */
   const buildSummaryLines = (): CartLine[] => {
-    if (!selectedPlan || !activePlan) return [];
-    const label = isBundle
-      ? (isPhoneStandalone ? 'Phone Standalone' : 'Phone Bundle')
-      : [activePlan.title, activePlan.subtitle].filter(Boolean).join(' ');
+    if (!selectedPlan || selectedPlan === 'no-phone') return [];
+    const label = selectedPlan === 'phone-standalone' ? 'Phone Standalone' : 'Phone Bundle';
     // Main line = base + removable adj only (attrs shown as sub-items to avoid double-counting)
-    const baseForSummary = isBundle
-      ? PHONE_BUNDLE_BASE + removableBaseTotal - removedFeaturesAdj
-      : activePlan.price;
+    const baseForSummary = PHONE_BUNDLE_BASE + removableBaseTotal - removedFeaturesAdj;
     const main: CartLine = { label, price: baseForSummary, group: 'phone' };
-    if (!isBundle) return [main];
     const mods: CartLine[] = [];
     removedFeatures.forEach(id => {
       const f = features.find(f => f.id === id);
@@ -228,11 +257,127 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     return [main, ...mods];
   };
 
+  /* ── Change-flow card: Phone Bundle / Standalone Phone / No Phone ── */
+  const renderPhoneOption = (plan: typeof PLANS[0]) => {
+    const isSelected = selectedPlan === plan.id;
+    const isActualCurrent = plan.id === actualCurrentPlanId;
+    const cardFeatures = plan.id === 'no-phone' ? [] : buildFeatureList(plan.id === 'phone-standalone');
+
+    return (
+      <div
+        key={plan.id}
+        onClick={() => handlePlanClick(plan)}
+        className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col cursor-pointer
+          ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}
+      >
+        <div className={`text-2xl font-black mb-3 ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
+          {plan.id === 'phone-standalone' ? 'Phone Standalone' : plan.title}
+        </div>
+
+        {isActualCurrent && (
+          isSelected ? (
+            <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
+              Active
+            </span>
+          ) : (
+            <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
+              Active
+            </span>
+          )
+        )}
+
+        {plan.id !== 'no-phone' && (
+          <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
+            <div className="space-y-3">
+              {cardFeatures.map(f => {
+                const isRemoved = isSelected && removedFeatures.has(f.id);
+                const attrVal   = f.manageable === 'attribute' ? (isSelected ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : (f.defaultAttribute ?? '')) : null;
+                const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
+                const rowPrice  = f.basePrice + attrAdj;
+
+                return (
+                  <div key={f.id} className="flex justify-between items-center gap-2">
+                    <span className={`text-sm flex-1 flex items-center gap-1 ${isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                      {f.name}
+                      {f.id === 'long-distance' && plan.id === 'phone-standalone' && (
+                        <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
+                          <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
+                            <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
+                            <div className="space-y-1">
+                              <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
+                              <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
+                              <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
+                              <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
+                            </div>
+                            <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                          </div>
+                        </span>
+                      )}
+                    </span>
+
+                    {isSelected && f.manageable === 'removable' ? (
+                      <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                        {f.basePrice > 0 && (
+                          <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
+                            +${f.basePrice.toFixed(2)}
+                          </span>
+                        )}
+                        <input
+                          type="checkbox"
+                          checked={!isRemoved}
+                          onChange={() => toggleRemoveFeature(f.id)}
+                          className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                        />
+                      </label>
+                    ) : isSelected && f.manageable === 'attribute' ? (
+                      <select
+                        value={attributeValues[f.id] ?? f.defaultAttribute}
+                        onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
+                        className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
+                      >
+                        {f.attributeOptions?.map(opt => (
+                          <option key={opt} value={opt}>
+                            {opt}{f.attributeDisplayPrices?.[opt]
+                              ? `  ${f.attributeDisplayPrices[opt]}`
+                              : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`text-sm flex-shrink-0 ${isSelected ? 'text-blue-800' : 'text-gray-700'}`}>
+                        {rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {plan.id === 'no-phone' && (
+          <p className={`text-sm mt-2 mb-4 ${isSelected ? 'text-blue-700' : 'text-gray-500'}`}>
+            No phone service on this line.
+          </p>
+        )}
+
+        <div className="mt-auto pt-6 flex justify-center">
+          <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
+            ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+            {isSelected ? 'Selected' : 'Select'}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Phone Service' : isPhoneStandalone ? 'Change Phone Standalone' : 'Change Phone Bundle'}</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Phone Service' : 'Change Phone Service'}</h1>
         <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
@@ -247,34 +392,19 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         {/* ── Left: plan cards ── */}
         <div className="flex-1 min-w-0">
 
-          {/* Skip Phone — only shown here when NOT using the inline layout (standalone or single-plan) */}
-          {!isPhoneStandalone && PLANS.filter(p => p.id !== 'phone-bundle').length > 0 && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={onSkip}
-                className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
-              >
-                Skip Phone
-              </button>
-            </div>
-          )}
-
-          {/* Plan cards — left 1/3 stacked + right 2/3 Phone Bundle */}
           {(() => {
-            const isSinglePlan = PLANS.filter(p => p.id !== 'phone-bundle').length === 0;
-            const hidePrice = isPhoneStandalone || isSinglePlan;
-            const renderCard = (plan: typeof PLANS[0]) => {
-              const isCurrent = plan.id === currentPlanId;
-              const isSelected = selectedPlan === plan.id;
-              // Phone Bundle already active on this SA (outside Move2) — deselecting it
-              // converts the line to Phone Standalone, so it gets its own Active/Deselect treatment.
-              const isActiveBundle = !isMove2 && !isPhoneStandalone && plan.id === 'phone-bundle' && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
-              const displayPrice = plan.id === 'phone-bundle' ? phoneBundleEffectivePrice : plan.price;
+            if (isLegacyFlow) {
+              // ── Move2 / Add On New Location: unchanged single Phone Bundle card (or, when
+              // isPhoneStandalone is forced true, its Standalone-styled read-only look) ──
+              const legacyPlan = PLANS.find(p => p.id === 'phone-bundle')!;
+              const isCurrent = legacyPlan.id === currentPlanId;
+              const isSelected = selectedPlan === legacyPlan.id;
+              const isActiveBundle = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
 
-              return (
+              const legacyCard = (
                 <div
-                  key={plan.id}
-                  onClick={() => handlePlanClick(plan)}
+                  key={legacyPlan.id}
+                  onClick={() => handlePlanClick(legacyPlan)}
                   className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
                     ${isCurrent
                       ? 'border-gray-200 bg-gray-50 cursor-default'
@@ -286,12 +416,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     }`}
                 >
                   <div className={`text-3xl font-black mb-3 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                    {plan.id === 'phone-bundle' && (isPhoneStandalone || (isActiveBundle && !isSelected)) ? 'Phone Standalone' : (plan.subtitle || plan.title)}
+                    {isPhoneStandalone ? 'Phone Standalone' : (legacyPlan.subtitle || legacyPlan.title)}
                   </div>
 
-                  {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle') || isActiveBundle) && (
+                  {(isCurrent || isPhoneStandalone || isActiveBundle) && (
                     isPhoneStandalone ? (
-                      // Phone Standalone has no other plan to switch to — always plain Active
                       <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
                         Active
                       </span>
@@ -325,92 +454,75 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       </span>
                     )
                   )}
-                  {plan.subtitle && (
-                    <div className={`text-sm font-semibold uppercase tracking-widest mb-5 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {plan.title}
-                    </div>
-                  )}
-                  {!(plan.id === 'phone-bundle' && hidePrice) && (
-                    <div className={`text-2xl font-bold mb-1 ${isCurrent ? 'text-gray-400' : 'text-gray-900'}`}>
-                      ${displayPrice.toFixed(2)}
-                      <span className="text-sm font-normal text-gray-400"> /month</span>
-                    </div>
-                  )}
 
-                  {/* Phone Bundle: feature list — controls inline when selected */}
-                  {plan.id === 'phone-bundle' && (
-                    <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
-                      <div className="space-y-3">
-                        {features.map(f => {
-                          const isRemoved = removedFeatures.has(f.id);
-                          const attrVal   = f.manageable === 'attribute' ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : null;
-                          const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
-                          const rowPrice  = f.basePrice + attrAdj;
+                  <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
+                    <div className="space-y-3">
+                      {features.map(f => {
+                        const isRemoved = removedFeatures.has(f.id);
+                        const attrVal   = f.manageable === 'attribute' ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : null;
+                        const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
+                        const rowPrice  = f.basePrice + attrAdj;
 
-                          return (
-                            <div key={f.id} className="flex justify-between items-center gap-2">
-                              {/* Name */}
-                              <span className={`text-sm flex-1 flex items-center gap-1 ${isCurrent ? 'text-gray-400' : isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                                {f.name}
-                                {f.id === 'long-distance' && isPhoneStandalone && (
-                                  <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
-                                    <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
-                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
-                                      <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
-                                      <div className="space-y-1">
-                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
-                                      </div>
-                                      <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
-                                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                        return (
+                          <div key={f.id} className="flex justify-between items-center gap-2">
+                            <span className={`text-sm flex-1 flex items-center gap-1 ${isCurrent ? 'text-gray-400' : isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
+                              {f.name}
+                              {f.id === 'long-distance' && isPhoneStandalone && (
+                                <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
+                                  <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
+                                    <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
+                                    <div className="space-y-1">
+                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
+                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
+                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
+                                      <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
                                     </div>
-                                  </span>
-                                )}
-                              </span>
-
-                              {/* Control (right side) */}
-                              {isSelected && f.manageable === 'removable' ? (
-                                <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
-                                  {f.basePrice > 0 && (
-                                    <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
-                                      +${f.basePrice.toFixed(2)}
-                                    </span>
-                                  )}
-                                  <input
-                                    type="checkbox"
-                                    checked={!isRemoved}
-                                    onChange={() => toggleRemoveFeature(f.id)}
-                                    className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
-                                  />
-                                </label>
-                              ) : isSelected && f.manageable === 'attribute' ? (
-                                <select
-                                  value={attributeValues[f.id] ?? f.defaultAttribute}
-                                  onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                                  className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
-                                >
-                                  {f.attributeOptions?.map(opt => (
-                                    <option key={opt} value={opt}>
-                                      {opt}{f.attributeDisplayPrices?.[opt]
-                                        ? `  ${f.attributeDisplayPrices[opt]}`
-                                        : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
-                                    </option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <span className={`text-sm flex-shrink-0 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-800' : 'text-gray-700'}`}>
-                                  {rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
+                                    <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                                  </div>
                                 </span>
                               )}
-                            </div>
-                          );
-                        })}
+                            </span>
 
-                      </div>
+                            {isSelected && f.manageable === 'removable' ? (
+                              <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                                {f.basePrice > 0 && (
+                                  <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
+                                    +${f.basePrice.toFixed(2)}
+                                  </span>
+                                )}
+                                <input
+                                  type="checkbox"
+                                  checked={!isRemoved}
+                                  onChange={() => toggleRemoveFeature(f.id)}
+                                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                                />
+                              </label>
+                            ) : isSelected && f.manageable === 'attribute' ? (
+                              <select
+                                value={attributeValues[f.id] ?? f.defaultAttribute}
+                                onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
+                                className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
+                              >
+                                {f.attributeOptions?.map(opt => (
+                                  <option key={opt} value={opt}>
+                                    {opt}{f.attributeDisplayPrices?.[opt]
+                                      ? `  ${f.attributeDisplayPrices[opt]}`
+                                      : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span className={`text-sm flex-shrink-0 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-800' : 'text-gray-700'}`}>
+                                {rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
 
                   {!isPhoneStandalone && (isCurrent ? (
                     <div className="mt-auto pt-6">
@@ -456,13 +568,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   ))}
                 </div>
               );
-            };
 
-            if (isPhoneStandalone) {
               return (
                 <div className="flex items-start gap-6 mb-10">
                   <div style={{ flex: '0 0 65%' }}>
-                    {PLANS.filter(p => p.id === 'phone-bundle').map(plan => renderCard(plan))}
+                    {legacyCard}
                   </div>
                   <div className="ml-auto pt-0">
                     <button
@@ -476,43 +586,26 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
               );
             }
 
-            // Single-plan layout: only phone-bundle, no other plans
-            const otherPlans = PLANS.filter(p => p.id !== 'phone-bundle');
-            if (otherPlans.length === 0) {
-              return (
-                <div className="flex items-start gap-6 mb-10">
-                  <div style={{ flex: '0 0 65%' }}>
-                    {PLANS.filter(p => p.id === 'phone-bundle').map(plan => renderCard(plan))}
-                  </div>
-                  <div className="ml-auto pt-0">
-                    <button
-                      onClick={onSkip}
-                      className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
-                    >
-                      Skip Phone
-                    </button>
-                  </div>
-                </div>
-              );
-            }
-
+            // ── Change flow: Phone Bundle / Standalone Phone / No Phone — pick one ──
             return (
-              <div className="flex gap-6 mb-10 items-stretch">
-                {/* Left 1/3: other plans stacked */}
-                <div className="flex flex-col gap-4" style={{ flex: '0 0 33%' }}>
-                  {otherPlans.map(plan => (
-                    <div key={plan.id} className="flex-1 flex flex-col">{renderCard(plan)}</div>
-                  ))}
-                </div>
-                {/* Right 2/3: Phone Bundle */}
-                <div className="flex flex-col" style={{ flex: '0 0 calc(67% - 24px)' }}>
-                  {PLANS.filter(p => p.id === 'phone-bundle').map(plan => (
-                    <div key={plan.id} className="flex-1 flex flex-col">{renderCard(plan)}</div>
-                  ))}
-                </div>
+              <div className="grid grid-cols-3 gap-4 mb-6 items-stretch">
+                {PLANS.map(plan => (
+                  <div key={plan.id} className="flex flex-col">{renderPhoneOption(plan)}</div>
+                ))}
               </div>
             );
           })()}
+
+          {!isLegacyFlow && (movingAwayFromBundle || movingToBundle) && (
+            <div className="mb-6 flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>
+                {movingAwayFromBundle
+                  ? 'Deselecting Phone Bundle disconnects Internet and Television services.'
+                  : 'Switching to Phone Bundle requires active Internet service.'}
+              </span>
+            </div>
+          )}
 
           {/* LOA — retain number at old address (Move only, once a phone plan is selected) */}
           {isMove2 && selectedPlan && (
@@ -568,7 +661,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 if (!selectedPlan || !activePlan) return;
                 if (loaRequested && !loaDiscussed) return;
                 const summaryLines = buildSummaryLines();
-                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(goingStandalone && (l.group === 'internet' || l.group === 'television')));
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(movingAwayFromBundle && (l.group === 'internet' || l.group === 'television')));
                 onNext(selectedPlan, [...nonPhoneLines, ...summaryLines]);
               }}
               disabled={!selectedPlan || (loaRequested && !loaDiscussed)}
@@ -604,7 +697,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 const phoneRemovedLines = summaryLines.filter(l => l.group === 'phone-removed');
                 const phoneChangedLines = summaryLines.filter(l => l.group === 'phone-changed');
 
-                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(goingStandalone && (l.group === 'internet' || l.group === 'television')));
+                const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(movingAwayFromBundle && (l.group === 'internet' || l.group === 'television')));
                 const allDisplayLines = mainPhoneLine ? [...nonPhoneLines, mainPhoneLine] : nonPhoneLines;
                 const total = allDisplayLines.reduce((s, l) => s + l.price, 0) + phoneChangedLines.reduce((s, l) => s + l.price, 0);
 
