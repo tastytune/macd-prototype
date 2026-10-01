@@ -436,7 +436,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                           <>
                             <Info size={14} className="flex-shrink-0" />
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs normal-case font-normal leading-snug text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
-                              Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television.
+                              Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television services.
                               <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                             </span>
                           </>
