@@ -146,6 +146,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const movingAwayFromBundle = !isLegacyFlow && actualCurrentPlanId === 'phone-bundle' && selectedPlan !== 'phone-bundle';
   const movingToBundle       = !isLegacyFlow && actualCurrentPlanId !== 'phone-bundle' && selectedPlan === 'phone-bundle';
 
+  // Phone Bundle requires an active Internet line on the account — without one, the Bundle
+  // card is shown but disabled, with its button explaining why.
+  const hasInternet = previousLines.some(l => l.group === 'internet');
+
   const defaultAttributeValuesFor = (planId: string | null): Record<string, string> => {
     if (planId === 'phone-standalone') {
       return {
@@ -257,13 +261,16 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     const isSelected = selectedPlan === plan.id;
     const isActualCurrent = plan.id === actualCurrentPlanId;
     const cardFeatures = buildFeatureList(plan.id === 'phone-standalone');
+    const isDisabled = plan.id === 'phone-bundle' && !isSelected && !hasInternet;
 
     return (
       <div
         key={plan.id}
-        onClick={() => handlePlanClick(plan)}
-        className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col cursor-pointer
-          ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}
+        onClick={() => { if (!isDisabled) handlePlanClick(plan); }}
+        className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
+          ${isDisabled
+            ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-70'
+            : `cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}`}
       >
         <div className={`text-2xl font-black mb-3 ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
           {plan.id === 'phone-standalone' ? 'Phone Standalone' : plan.title}
@@ -351,9 +358,11 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         </div>
 
         <div className="mt-auto pt-6 flex justify-center">
-          <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
-            ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-            {isSelected ? 'Selected' : 'Select'}
+          <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
+            ${isDisabled
+              ? 'cursor-not-allowed bg-gray-200 text-gray-500 normal-case tracking-normal font-semibold px-6'
+              : `cursor-pointer ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}`}>
+            {isDisabled ? 'Select Internet to enable Phone Bundle' : isSelected ? 'Selected' : 'Select'}
           </div>
         </div>
       </div>
