@@ -258,6 +258,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
             const renderCard = (plan: typeof PLANS[0]) => {
               const isCurrent = plan.id === currentPlanId;
               const isSelected = selectedPlan === plan.id;
+              // Phone Bundle already active on this SA (outside Move2) — deselecting it
+              // converts the line to Phone Standalone, so it gets its own Active/Deselect treatment.
+              const isActiveBundle = !isMove2 && !isPhoneStandalone && plan.id === 'phone-bundle' && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
               const displayPrice = plan.id === 'phone-bundle' ? phoneBundleEffectivePrice : plan.price;
 
               return (
@@ -278,7 +281,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     {plan.id === 'phone-bundle' && isPhoneStandalone ? 'Phone Standalone' : (plan.subtitle || plan.title)}
                   </div>
 
-                  {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle')) && (
+                  {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle') || isActiveBundle) && (
                     isPhoneStandalone ? (
                       // Phone Standalone has no other plan to switch to — always plain Active
                       <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
@@ -292,6 +295,16 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       ) : (
                         <span className="self-center text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5 mb-2">
                           Move
+                        </span>
+                      )
+                    ) : isActiveBundle ? (
+                      isSelected ? (
+                        <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
+                          Active
                         </span>
                       )
                     ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
@@ -415,11 +428,16 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                       )}
                     </div>
                   ) : (
-                    <div className="mt-auto pt-6 flex justify-center">
+                    <div className="mt-auto pt-6 flex flex-col items-center gap-2.5">
                       <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
                         ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                        {isSelected ? 'Selected' : 'Select'}
+                        {isSelected ? (isActiveBundle ? 'Deselect' : 'Selected') : 'Select'}
                       </div>
+                      {isActiveBundle && (
+                        <p className="text-xs text-amber-600 max-w-xs leading-snug">
+                          Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television.
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
