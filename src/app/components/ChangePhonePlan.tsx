@@ -358,11 +358,17 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         </div>
 
         <div className="mt-auto pt-6 flex justify-center">
-          <div className={`px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
+          <div className={`relative group/bundlebtn px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
             ${isDisabled
-              ? 'cursor-not-allowed bg-gray-200 text-gray-500 normal-case tracking-normal font-semibold px-6'
+              ? 'cursor-not-allowed bg-gray-300 text-gray-500'
               : `cursor-pointer ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}`}>
-            {isDisabled ? 'Select Internet to enable Phone Bundle' : isSelected ? 'Selected' : 'Select'}
+            {isSelected ? 'Selected' : 'Select'}
+            {isDisabled && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
+                Select Internet to enable Phone Bundle.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+              </div>
+            )}
           </div>
         </div>
       </div>
