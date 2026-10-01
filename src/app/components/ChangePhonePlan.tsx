@@ -278,7 +278,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     }`}
                 >
                   <div className={`text-3xl font-black mb-3 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                    {plan.id === 'phone-bundle' && isPhoneStandalone ? 'Phone Standalone' : (plan.subtitle || plan.title)}
+                    {plan.id === 'phone-bundle' && (isPhoneStandalone || (isActiveBundle && !isSelected)) ? 'Phone Standalone' : (plan.subtitle || plan.title)}
                   </div>
 
                   {(isCurrent || (isPhoneStandalone && plan.id === 'phone-bundle') || isActiveBundle) && (
@@ -436,7 +436,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                           <>
                             <Info size={14} className="flex-shrink-0" />
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs normal-case font-normal leading-snug text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
-                              Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television services.
+                              {isSelected
+                                ? 'Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television services.'
+                                : 'Switching from Phone Standalone to Phone Bundle requires active Internet service.'}
                               <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                             </span>
                           </>
