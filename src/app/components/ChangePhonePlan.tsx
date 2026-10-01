@@ -127,6 +127,13 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // and must confirm they discussed the implications with the customer before submitting.
   const [loaRequested, setLoaRequested] = useState(false);
   const [loaDiscussed, setLoaDiscussed] = useState(false);
+  // This SA already has Phone Bundle active and the user has deselected it on this screen —
+  // it now reads as Phone Standalone (drops Internet/Television, and gets the Interlata/
+  // Intralata Carrier fields every Phone Standalone card shows).
+  const isActiveBundleSA = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
+  const goingStandalone  = isActiveBundleSA && selectedPlan !== 'phone-bundle';
+  const showsAsStandalone = isPhoneStandalone || goingStandalone;
+
   const [attributeValues, setAttributeValues] = useState<Record<string, string>>({
     'directory-listing': 'Published',
     'long-distance': isPhoneStandalone ? 'Simplicity' : 'Unlimited',
@@ -139,9 +146,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     if (f.id === 'call-waiting' && isPhoneStandalone) feature = CALL_WAITING_STANDALONE;
     if (f.id === 'caller-id' && isPhoneStandalone) feature = CALLER_ID_STANDALONE;
     if (f.id === 'voicemail' && isPhoneStandalone) feature = VOICEMAIL_STANDALONE;
-    // Interlata / Intralata Carrier — Change action, Phone Standalone only (not shown for Move2) —
-    // placed right after Directory Listing
-    if (f.id === 'directory-listing' && isPhoneStandalone && !isMove2) {
+    // Interlata / Intralata Carrier — shown on every Phone Standalone card (Change action,
+    // not Move2), including a Phone Bundle deselected down to Standalone — placed right
+    // after Directory Listing
+    if (f.id === 'directory-listing' && showsAsStandalone && !isMove2) {
       return [feature, INTERLATA_CARRIER_STANDALONE, INTRALATA_CARRIER_STANDALONE];
     }
     return [feature];
@@ -150,10 +158,6 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
   const isBundle      = selectedPlan === 'phone-bundle';
-  // This SA already has Phone Bundle active and the user has deselected it on this screen —
-  // that drops Internet (and anything that rides on it, like Television) from the cart.
-  const isActiveBundleSA = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
-  const goingStandalone  = isActiveBundleSA && selectedPlan !== 'phone-bundle';
 
   const attrPriceAdj = features
     .filter(f => f.manageable === 'attribute')
