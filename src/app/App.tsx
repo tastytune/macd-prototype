@@ -671,6 +671,7 @@ function App() {
               selectedSA={selectedSA}
               isMove2={selectedAction === 'move2'}
               isAddLocation={selectedAction === 'addLocation'}
+              isFollowOnOrder={selectedAction === 'followOnOrder'}
               onBack={() => setCurrentStep(
                 (selectedAction === 'move2' || selectedAction === 'addLocation') ? 'move-services'
                 : selectedAction === 'followOnOrder' ? 'followon-requester-type'

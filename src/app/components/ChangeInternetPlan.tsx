@@ -52,7 +52,7 @@ const SA_TECH_HOME: Record<string, string | null> = {
 };
 
 const ADD_ONS = [
-  { id: 'whole-home-wifi',   label: 'Elite Wi-Fi',  price: 5.95,  group: null },
+  { id: 'whole-home-wifi',   label: 'Elite Wi-Fi',  price: 12,  group: null },
   { id: 'service-assurance', label: 'Service Assurance', price: 3.49,  group: null },
   { id: 'tech-home-protect', label: 'Tech Home Protect', price: 5.99,  group: 'tech-home' },
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, group: 'tech-home' },
@@ -110,7 +110,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
   // Baseline SA lines used when no previousLines exist yet (first visit)
   const syntheticCurrentLines = [
     ...(currentPlan ? [{ label: `Internet ${currentPlan.speed} ${currentPlan.unit}`, price: currentPlan.price, group: 'internet' as const }] : []),
-    { label: 'Elite Wi-Fi', price: 5.95, group: 'internet' as const },
+    { label: 'Elite Wi-Fi', price: 12, group: 'internet' as const },
     ...(currentTechHome ? (() => { const a = ADD_ONS.find(x => x.id === currentTechHome)!; return [{ label: a.label, price: a.price, group: 'internet' as const }]; })() : []),
   ];
   const effectivePreviousLines = previousLines.length > 0 ? previousLines : syntheticCurrentLines;

@@ -7,6 +7,7 @@ interface ChangeServiceTypeProps {
   selectedSA?: Service | null;
   isMove2?: boolean;
   isAddLocation?: boolean;
+  isFollowOnOrder?: boolean;
   onBack: () => void;
   onNext: (serviceType: string) => void;
 }
@@ -66,7 +67,7 @@ const SERVICE_TYPES = [
   },
 ];
 
-export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation = false, onBack, onNext }: ChangeServiceTypeProps) {
+export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, onBack, onNext }: ChangeServiceTypeProps) {
   const isPhoneStandalone = selectedSA?.id === 'sa-02031';
   const [selected, setSelected] = useState<string | null>(isPhoneStandalone ? 'phone' : null);
 
@@ -96,7 +97,7 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation =
         {SERVICE_TYPES.map((svc, i) => {
           const Icon = svc.icon;
           const isSelected = selected === svc.id;
-          const isDisabled = isAddLocation && svc.id === 'television';
+          const isDisabled = (isAddLocation && svc.id === 'television') || (isFollowOnOrder && svc.id === 'phone');
           const pills = SA_SERVICE_PILLS[selectedSA?.id ?? '']?.[svc.id] ?? [];
           return (
             <button
@@ -119,7 +120,9 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation =
                 <p className="text-xl font-semibold text-gray-900 mb-2">{svc.label}</p>
                 <p className="text-sm text-gray-500 leading-relaxed mb-3">{svc.description}</p>
                 {isDisabled ? (
-                  <span className="text-xs text-gray-400 italic">Requires internet service first</span>
+                  <span className="text-xs text-gray-400 italic">
+                    {isFollowOnOrder && svc.id === 'phone' ? 'Not an approved on-site upsell category' : 'Requires internet service first'}
+                  </span>
                 ) : pills.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
                     {pills.map(pill => (

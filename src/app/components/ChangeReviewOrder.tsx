@@ -40,7 +40,7 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
   'sa-00912': {
     internet: [
       { description: 'Internet 200 Mbps',  monthlyCharge: 55.95  },
-      { description: 'Elite Wi-Fi',        monthlyCharge: 5.95   },
+      { description: 'Elite Wi-Fi',        monthlyCharge: 12   },
       { description: 'Tech Home Support',  monthlyCharge: 14.99  },
     ],
     television: [
@@ -52,7 +52,7 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
   'sa-01047': {
     internet: [
       { description: 'Internet 200 Mbps', monthlyCharge: 55.95 },
-      { description: 'Elite Wi-Fi',       monthlyCharge: 5.95  },
+      { description: 'Elite Wi-Fi',       monthlyCharge: 12  },
       { description: 'Tech Home Protect', monthlyCharge: 5.99  },
     ],
     phone: [
@@ -69,7 +69,7 @@ const SA_CURRENT_PLANS: Record<string, Partial<Record<GroupKey, { description: s
 const DEFAULT_CURRENT_PLANS: Partial<Record<GroupKey, { description: string; monthlyCharge: number }[]>> = {
   internet: [
     { description: 'Internet 200 Mbps', monthlyCharge: 55.95 },
-    { description: 'Elite Wi-Fi',  monthlyCharge: 5.95  },
+    { description: 'Elite Wi-Fi',  monthlyCharge: 12  },
   ],
   television: [
     { description: 'iTV Essentials',  monthlyCharge: 49.95 },
