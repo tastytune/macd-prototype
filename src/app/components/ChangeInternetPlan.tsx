@@ -300,14 +300,12 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       </>
                     )}
                     {!isCurrent && workOrder && plan.id === workOrder.upsellPlanId && (
-                      <>
-                        <span className="inline-block text-xs font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5">
-                          Installing
-                        </span>
-                        <span className="inline-block text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-0.5">
-                          {workOrder.id}
-                        </span>
-                      </>
+                      <span
+                        title={`Work order: ${workOrder.id}`}
+                        className="inline-block text-xs font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2.5 py-0.5 cursor-help"
+                      >
+                        Installing
+                      </span>
                     )}
                     {isSelected && showPromos && (
                       <>
