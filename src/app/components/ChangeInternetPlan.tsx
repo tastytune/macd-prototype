@@ -300,7 +300,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                       </>
                     )}
                     {!isCurrent && workOrder && plan.id === workOrder.upsellPlanId && (
-                      selectedPlan ? (
+                      selectedPlan && selectedPlan !== plan.id ? (
                         <span
                           title={`Work order: ${workOrder.id}`}
                           className="inline-block text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 line-through cursor-help"
