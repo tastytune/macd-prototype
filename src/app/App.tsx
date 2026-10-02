@@ -20,7 +20,6 @@ import { ChangeTelevisionPlan } from './components/ChangeTelevisionPlan';
 import { ChangePhonePlan } from './components/ChangePhonePlan';
 import { ChangeInstallationDate } from './components/ChangeInstallationDate';
 import { ChangeReviewOrder } from './components/ChangeReviewOrder';
-import { FollowOnWorkOrder } from './components/FollowOnWorkOrder';
 import type { WorkOrderResult } from './components/FollowOnWorkOrder';
 import { FollowOnRequesterType } from './components/FollowOnRequesterType';
 import type { FollowOnRequesterType as FollowOnRequesterTypeValue } from './components/FollowOnRequesterType';
@@ -118,7 +117,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'followon-workorder' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -244,12 +243,8 @@ function App() {
     setCurrentStep(action === 'followOnOrder' ? 'followon-requester-type' : 'dispatcher-step2');
   };
 
-  const handleFollowOnRequesterType = (requesterType: FollowOnRequesterTypeValue) => {
+  const handleFollowOnRequesterContinue = (requesterType: FollowOnRequesterTypeValue, workOrder: WorkOrderResult) => {
     setFollowOnRequesterType(requesterType);
-    setCurrentStep('followon-workorder');
-  };
-
-  const handleFollowOnContinue = (workOrder: WorkOrderResult) => {
     setFollowOnWorkOrder(workOrder);
     const saId = workOrder.saId.toLowerCase();
     const saService: Service = {
@@ -433,25 +428,7 @@ function App() {
           >
             <FollowOnRequesterType
               onBack={() => setCurrentStep('dispatcher-step1')}
-              onContinue={handleFollowOnRequesterType}
-            />
-          </motion.div>
-        )}
-
-        {/* ── Follow On Order: Work Order lookup ── */}
-        {currentStep === 'followon-workorder' && (
-          <motion.div
-            key="followon-workorder"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.3 }}
-          >
-            <FollowOnWorkOrder
-              onBack={() => setCurrentStep('followon-requester-type')}
-              onContinue={handleFollowOnContinue}
-              requesterType={followOnRequesterType}
+              onContinue={handleFollowOnRequesterContinue}
             />
           </motion.div>
         )}
@@ -696,7 +673,7 @@ function App() {
               isAddLocation={selectedAction === 'addLocation'}
               onBack={() => setCurrentStep(
                 (selectedAction === 'move2' || selectedAction === 'addLocation') ? 'move-services'
-                : selectedAction === 'followOnOrder' ? 'followon-workorder'
+                : selectedAction === 'followOnOrder' ? 'followon-requester-type'
                 : 'dispatcher-step2'
               )}
               onNext={(serviceType) => {
