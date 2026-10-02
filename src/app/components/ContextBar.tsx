@@ -16,7 +16,7 @@ const actionLabel: Record<MACDAction, string> = {
   deactivate: 'Temporary Disconnect',
   reactivate: 'Reconnect',
   disconnect: 'Disconnect',
-  change: 'Change',
+  change: 'Change and Add New Service',
   move: 'Move',
   move2: 'Move',
   followOnOrder: 'Follow On Order',

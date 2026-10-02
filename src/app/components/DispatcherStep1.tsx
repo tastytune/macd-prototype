@@ -81,7 +81,7 @@ const actions: {
   },
   {
     id: 'change',
-    label: 'Change',
+    label: 'Change and Add New Service',
     description: 'Modify an existing service or add a new service to an existing customer. Update plan, features, or configuration without interrupting service.',
     icon: RefreshCw,
     iconColor: 'text-blue-600',
