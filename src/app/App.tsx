@@ -566,6 +566,11 @@ function App() {
                 setMoveDestinationAddress(address);
                 setMoveMailingAddress(mailingAddress ?? '');
                 setMoveScenario(scenario || 'M01');
+                if (selectedAction === 'addLocation') {
+                  // Surface the chosen destination address on the new service account
+                  // so the breadcrumb (ContextBar) can show it instead of a placeholder.
+                  setSelectedSA(prev => prev ? { ...prev, address } : prev);
+                }
                 setCurrentStep((selectedAction === 'move2' || selectedAction === 'addLocation') ? 'change-service-type' : 'move-service-type');
               }}
             />

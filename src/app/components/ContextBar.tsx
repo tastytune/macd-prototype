@@ -44,7 +44,9 @@ export function ContextBar({ action, selectedSA }: ContextBarProps) {
           {selectedSA.address && (
             <>
               <span className="text-gray-400 flex-shrink-0">·</span>
-              <span className="text-gray-500 truncate min-w-0">{selectedSA.address}</span>
+              <span className={`truncate min-w-0 ${action === 'addLocation' ? 'font-semibold text-green-700' : 'text-gray-500'}`}>
+                {selectedSA.address}
+              </span>
             </>
           )}
         </>
