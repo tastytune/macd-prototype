@@ -368,7 +368,7 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
         >
-          Next
+          {isAddLocation ? 'Create New Service Account' : 'Next'}
         </button>
       </div>
     </div>
