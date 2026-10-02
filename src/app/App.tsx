@@ -765,6 +765,7 @@ function App() {
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
               onBack={() => setCurrentStep('change-television-plan')}
+              onGoToInternet={() => setCurrentStep('change-internet-plan')}
               onSkip={() => {
                 // Follow-On Order: the technician is already on site, so there is no
                 // Installation Date step for this action only — skip straight to review.

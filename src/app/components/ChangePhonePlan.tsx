@@ -19,6 +19,7 @@ interface ChangePhonePlanProps {
   onBack: () => void;
   onSkip: () => void;
   onNext: (planId: string, lines: CartLine[]) => void;
+  onGoToInternet?: () => void;
 }
 
 const PLANS = [
@@ -117,7 +118,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
 // pre-selected (editable) on this screen instead of requiring a click on SELECT.
 const SA_HAS_PHONE_BUNDLE = new Set(['sa-00912', 'sa-01047']);
 
-export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext, onGoToInternet }: ChangePhonePlanProps) {
   const isLegacyFlow = isMove2 || isAddLocation;
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
@@ -150,6 +151,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // Phone Bundle requires an active Internet line on the account — without one, the Bundle
   // card is shown but disabled, with its button explaining why.
   const hasInternet = previousLines.some(l => l.group === 'internet');
+  // The disabled Phone Bundle button only becomes clickable (to jump to Internet)
+  // after its tooltip has actually been shown via hover — never on a blind first click.
+  const [bundleTooltipSeen, setBundleTooltipSeen] = useState(false);
 
   const defaultAttributeValuesFor = (planId: string | null): Record<string, string> => {
     if (planId === 'phone-standalone') {
@@ -268,7 +272,15 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     return (
       <div
         key={plan.id}
-        onClick={() => { if (!isDisabled) handlePlanClick(plan); }}
+        onClick={() => {
+          if (!isDisabled) {
+            handlePlanClick(plan);
+          } else if (plan.id === 'phone-bundle' && bundleTooltipSeen) {
+            // Only navigate to Internet once the user has actually seen the
+            // explanatory tooltip via hover — never on a blind first click.
+            onGoToInternet?.();
+          }
+        }}
         className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
           ${isDisabled
             ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-70'
@@ -360,14 +372,18 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         </div>
 
         <div className="mt-auto pt-6 flex justify-center">
-          <div className={`relative group/bundlebtn px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
+          <div
+            onMouseEnter={() => { if (isDisabled && plan.id === 'phone-bundle') setBundleTooltipSeen(true); }}
+            className={`relative group/bundlebtn px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
             ${isDisabled
-              ? 'cursor-not-allowed bg-gray-300 text-gray-500'
+              ? `${plan.id === 'phone-bundle' && bundleTooltipSeen ? 'cursor-pointer' : 'cursor-not-allowed'} bg-gray-300 text-gray-500`
               : `cursor-pointer ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}`}>
             {isSelected ? 'Selected' : 'Select'}
             {isDisabled && (
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
-                Select Internet to enable Phone Bundle.
+                {plan.id === 'phone-bundle'
+                  ? 'Select Internet to enable Phone Bundle. Click to go to Internet.'
+                  : 'Select Internet to enable Phone Bundle.'}
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
               </div>
             )}
