@@ -19,7 +19,7 @@ const actionLabel: Record<MACDAction, string> = {
   change: 'Change and Add New Service',
   move: 'Move',
   move2: 'Move',
-  followOnOrder: 'Follow On Order',
+  followOnOrder: 'On-Site Upsell',
   addLocation: 'Add On New Location',
 };
 
