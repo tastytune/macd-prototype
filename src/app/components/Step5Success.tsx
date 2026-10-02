@@ -200,14 +200,14 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <div>
                   <h4 className="text-sm font-medium text-amber-900 mb-2">Hardware Return Required</h4>
                   <p className="text-sm text-amber-800 mb-3">
-                    Your Internet service disconnection includes equipment that must be returned within 5 days to avoid additional charges.
+                    Your internet disconnection includes equipment that must be returned within 5 business days to avoid additional charges.
                   </p>
                   <div className="text-sm text-amber-900">
                     <p className="font-medium mb-2">Return Options:</p>
                     <ul className="space-y-2 ml-4">
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 mt-0.5">•</span>
-                        <span><strong>Drop-off locations:</strong> Visit any authorized retail store location during business hours (Mon-Sat: 9AM-7PM, Sun: 10AM-6PM)</span>
+                        <span><strong>Drop-off Locations:</strong> Refer to knowledge base</span>
                       </li>
                   
                       <li className="flex items-start gap-2">
