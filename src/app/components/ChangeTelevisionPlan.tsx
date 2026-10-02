@@ -207,53 +207,53 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
         currentIndex={(isMove2 || isAddLocation) ? 3 : 2}
       />
 
-      {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
-      {isFollowOnOrder && (
-        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <button
-            onClick={() => setEquipmentExpanded(prev => !prev)}
-            className="w-full flex items-start gap-3 text-left"
-          >
-            <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
-            <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
-          </button>
-          {equipmentExpanded && (
-            <div className="pl-8">
-              <p className="text-sm text-blue-800 mt-2 mb-3">
-                Confirm you have the following on hand before offering a Television upgrade:
-              </p>
-              <ul className="text-sm text-blue-900 space-y-1.5 ml-4">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Set-top box / iTV receiver</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>HDMI cable</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Remote control and batteries</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Coax or Ethernet cable for streaming connectivity</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Power adapter</span>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="flex gap-8 items-start">
 
         {/* ── Left: plan selection + options + add-ons ── */}
         <div className="flex-1 min-w-0">
+
+          {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
+          {isFollowOnOrder && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <button
+                onClick={() => setEquipmentExpanded(prev => !prev)}
+                className="w-full flex items-start gap-3 text-left"
+              >
+                <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
+                <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
+              </button>
+              {equipmentExpanded && (
+                <div className="pl-8">
+                  <p className="text-sm text-blue-800 mt-2 mb-3">
+                    Confirm you have the following on hand before offering a Television upgrade:
+                  </p>
+                  <ul className="text-sm text-blue-900 space-y-1.5 ml-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Set-top box / iTV receiver</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>HDMI cable</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Remote control and batteries</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Coax or Ethernet cable for streaming connectivity</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Power adapter</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Skip TV */}
           <div className="flex justify-end mb-4">

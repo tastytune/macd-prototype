@@ -147,53 +147,53 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
         currentIndex={(isMove2 || isAddLocation) ? 3 : 2}
       />
 
-      {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
-      {isFollowOnOrder && (
-        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <button
-            onClick={() => setEquipmentExpanded(prev => !prev)}
-            className="w-full flex items-start gap-3 text-left"
-          >
-            <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
-            <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
-          </button>
-          {equipmentExpanded && (
-            <div className="pl-8">
-              <p className="text-sm text-blue-800 mt-2 mb-3">
-                Confirm you have the following on hand before offering an Internet upgrade:
-              </p>
-              <ul className="text-sm text-blue-900 space-y-1.5 ml-4">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Fiber ONT (Optical Network Terminal)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Wi-Fi gateway / router</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Power adapter and battery backup unit</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Ethernet cables (Cat6)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-0.5">•</span>
-                  <span>Mounting bracket and fiber drop connectors</span>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="flex gap-8 items-start">
 
         {/* ── Left: plan selection + add-ons ── */}
         <div className="flex-1 min-w-0">
+          {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
+          {isFollowOnOrder && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <button
+                onClick={() => setEquipmentExpanded(prev => !prev)}
+                className="w-full flex items-start gap-3 text-left"
+              >
+                <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
+                <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
+              </button>
+              {equipmentExpanded && (
+                <div className="pl-8">
+                  <p className="text-sm text-blue-800 mt-2 mb-3">
+                    Confirm you have the following on hand before offering an Internet upgrade:
+                  </p>
+                  <ul className="text-sm text-blue-900 space-y-1.5 ml-4">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Fiber ONT (Optical Network Terminal)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Wi-Fi gateway / router</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Power adapter and battery backup unit</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Ethernet cables (Cat6)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">•</span>
+                      <span>Mounting bracket and fiber drop connectors</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Skip Internet */}
           <div className="flex justify-end mb-4">
             <button
