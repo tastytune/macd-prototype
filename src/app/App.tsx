@@ -701,6 +701,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isMove2={selectedAction === 'move2'}
               isAddLocation={selectedAction === 'addLocation'}
+              isFollowOnOrder={selectedAction === 'followOnOrder'}
               isCoaxMove={selectedAction === 'move2' && moveScenario === 'M03'}
               workOrder={selectedAction === 'followOnOrder' ? followOnWorkOrder : null}
               selectedPromos={changeSelectedPromos}
@@ -730,6 +731,7 @@ function App() {
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
               isAddLocation={selectedAction === 'addLocation'}
+              isFollowOnOrder={selectedAction === 'followOnOrder'}
               internetAvailable={!!(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
@@ -757,6 +759,7 @@ function App() {
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
               isAddLocation={selectedAction === 'addLocation'}
+              isFollowOnOrder={selectedAction === 'followOnOrder'}
               isPhoneStandalone={(PHONE_STANDALONE_SAS.has(selectedSA?.id ?? '') || selectedAction === 'addLocation') && !(SA_INET_PLAN[selectedSA?.id ?? ''] || changeInternetPlanId)}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}

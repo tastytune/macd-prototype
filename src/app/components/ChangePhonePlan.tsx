@@ -12,6 +12,7 @@ interface ChangePhonePlanProps {
   isUpgrade?: boolean;
   isMove2?: boolean;
   isAddLocation?: boolean;
+  isFollowOnOrder?: boolean;
   isPhoneStandalone?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -116,7 +117,7 @@ const SA_PHONE_PLAN: Record<string, string> = {
 // pre-selected (editable) on this screen instead of requiring a click on SELECT.
 const SA_HAS_PHONE_BUNDLE = new Set(['sa-00912', 'sa-01047']);
 
-export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
+export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, isPhoneStandalone = false, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangePhonePlanProps) {
   const isLegacyFlow = isMove2 || isAddLocation;
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
@@ -387,7 +388,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Phone Service' : 'Change Phone Service'}</h1>
-        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : isFollowOnOrder ? 'followOnOrder' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
         steps={(isMove2 || isAddLocation)

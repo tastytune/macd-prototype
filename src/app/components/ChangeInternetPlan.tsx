@@ -12,6 +12,7 @@ interface ChangeInternetPlanProps {
   isDowngrade?: boolean;
   isMove2?: boolean;
   isAddLocation?: boolean;
+  isFollowOnOrder?: boolean;
   isCoaxMove?: boolean;
   workOrder?: WorkOrderResult | null;
   selectedPromos?: Set<string>;
@@ -57,7 +58,7 @@ const ADD_ONS = [
   { id: 'tech-home-support', label: 'Tech Home Support', price: 14.99, group: 'tech-home' },
 ];
 
-export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isAddLocation = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
+export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
     if (!isMove2 || !isCoaxMove) return null;
     const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
@@ -136,7 +137,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
 
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Internet Service' : 'Change Internet Service'}</h1>
-        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : isFollowOnOrder ? 'followOnOrder' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
         steps={(isMove2 || isAddLocation)

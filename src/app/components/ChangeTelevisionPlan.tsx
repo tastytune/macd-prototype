@@ -13,6 +13,7 @@ interface ChangeTelevisionPlanProps {
   isUpgrade?: boolean;
   isMove2?: boolean;
   isAddLocation?: boolean;
+  isFollowOnOrder?: boolean;
   internetAvailable?: boolean;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -116,7 +117,7 @@ function StepperButton({ onClick, disabled, children }: {
   );
 }
 
-export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
+export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
@@ -196,7 +197,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
 
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Television Service' : 'Change Television Service'}</h1>
-        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : isFollowOnOrder ? 'followOnOrder' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
         steps={(isMove2 || isAddLocation)
