@@ -22,6 +22,8 @@ import { ChangeInstallationDate } from './components/ChangeInstallationDate';
 import { ChangeReviewOrder } from './components/ChangeReviewOrder';
 import { FollowOnWorkOrder } from './components/FollowOnWorkOrder';
 import type { WorkOrderResult } from './components/FollowOnWorkOrder';
+import { FollowOnRequesterType } from './components/FollowOnRequesterType';
+import type { FollowOnRequesterType as FollowOnRequesterTypeValue } from './components/FollowOnRequesterType';
 import { ServiceabilityCheck } from './components/ServiceabilityCheck';
 import type { MACDAction } from './components/DispatcherStep1';
 
@@ -117,7 +119,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -130,6 +132,7 @@ function App() {
   const [reactivationReason, setReactivationReason] = useState<string>('');
   const [selectedBAId, setSelectedBAId] = useState<string>('');
   const [followOnWorkOrder, setFollowOnWorkOrder] = useState<WorkOrderResult | null>(null);
+  const [followOnRequesterType, setFollowOnRequesterType] = useState<FollowOnRequesterTypeValue | null>(null);
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
   const [deactivateSelectedIds, setDeactivateSelectedIds] = useState<string[]>([]);
@@ -239,7 +242,12 @@ function App() {
 
   const handleDispatcherAction = (action: MACDAction) => {
     setSelectedAction(action);
-    setCurrentStep(action === 'followOnOrder' ? 'followon-workorder' : 'dispatcher-step2');
+    setCurrentStep(action === 'followOnOrder' ? 'followon-requester-type' : 'dispatcher-step2');
+  };
+
+  const handleFollowOnRequesterType = (requesterType: FollowOnRequesterTypeValue) => {
+    setFollowOnRequesterType(requesterType);
+    setCurrentStep('followon-workorder');
   };
 
   const handleFollowOnContinue = (workOrder: WorkOrderResult) => {
@@ -419,6 +427,23 @@ function App() {
           </motion.div>
         )}
 
+        {/* ── Follow On Order: Technician vs CRC ── */}
+        {currentStep === 'followon-requester-type' && (
+          <motion.div
+            key="followon-requester-type"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <FollowOnRequesterType
+              onBack={() => setCurrentStep('dispatcher-step1')}
+              onContinue={handleFollowOnRequesterType}
+            />
+          </motion.div>
+        )}
+
         {/* ── Follow On Order: Work Order lookup ── */}
         {currentStep === 'followon-workorder' && (
           <motion.div
@@ -430,8 +455,9 @@ function App() {
             transition={{ duration: 0.3 }}
           >
             <FollowOnWorkOrder
-              onBack={() => setCurrentStep('dispatcher-step1')}
+              onBack={() => setCurrentStep('followon-requester-type')}
               onContinue={handleFollowOnContinue}
+              requesterType={followOnRequesterType}
             />
           </motion.div>
         )}
@@ -450,6 +476,7 @@ function App() {
               workOrder={followOnWorkOrder}
               onBack={() => setCurrentStep('followon-workorder')}
               onContinue={handleFollowOnServiceabilityContinue}
+              requesterType={followOnRequesterType}
             />
           </motion.div>
         )}

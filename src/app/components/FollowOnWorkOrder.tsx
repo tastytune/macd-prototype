@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
+import type { FollowOnRequesterType } from './FollowOnRequesterType';
 
 interface FollowOnWorkOrderProps {
   onBack: () => void;
   onContinue: (workOrder: WorkOrderResult) => void;
+  requesterType?: FollowOnRequesterType | null;
 }
 
 export interface WorkOrderResult {
@@ -37,7 +39,7 @@ export const MOCK_WORK_ORDERS: WorkOrderResult[] = [
 
 type SearchState = 'idle' | 'searching' | 'results';
 
-export function FollowOnWorkOrder({ onBack, onContinue }: FollowOnWorkOrderProps) {
+export function FollowOnWorkOrder({ onBack, onContinue, requesterType }: FollowOnWorkOrderProps) {
   const [workOrderId, setWorkOrderId] = useState('');
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [results, setResults] = useState<WorkOrderResult[]>([]);
@@ -59,7 +61,7 @@ export function FollowOnWorkOrder({ onBack, onContinue }: FollowOnWorkOrderProps
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       <Breadcrumb
-        steps={['Technician', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
+        steps={[requesterType === 'crc' ? 'CRC' : 'Technician', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
         currentIndex={0}
         variant="plain"
       />

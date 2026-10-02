@@ -1,11 +1,13 @@
 import { MapPin, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
 import type { WorkOrderResult } from './FollowOnWorkOrder';
+import type { FollowOnRequesterType } from './FollowOnRequesterType';
 
 interface ServiceabilityCheckProps {
   workOrder: WorkOrderResult;
   onBack: () => void;
   onContinue: () => void;
+  requesterType?: FollowOnRequesterType | null;
 }
 
 const SERVICE_PILLS = ['Internet 200Mbps', 'iTV Preferred', 'Cinemax', 'FANatic'];
@@ -14,13 +16,13 @@ const SPECIAL_PILLS: { label: string; style: string }[] = [
   { label: 'Promo', style: 'bg-pink-100 text-pink-700' },
 ];
 
-export function ServiceabilityCheck({ workOrder, onBack, onContinue }: ServiceabilityCheckProps) {
+export function ServiceabilityCheck({ workOrder, onBack, onContinue, requesterType }: ServiceabilityCheckProps) {
   const { customerName, saId, saLabel, address, id: workOrderId } = workOrder;
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       <Breadcrumb
-        steps={['Technician', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
+        steps={[requesterType === 'crc' ? 'CRC' : 'Technician', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
         currentIndex={1}
         variant="plain"
       />
