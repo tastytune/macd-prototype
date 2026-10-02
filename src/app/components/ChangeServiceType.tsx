@@ -83,6 +83,12 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation =
           Account: <span className="font-medium text-gray-700">Robert Johnson · ACC-004821</span>
           <span className="mx-2 text-gray-300">·</span>
           Service account: <span className="font-medium text-gray-700">{saName}</span>
+          {isAddLocation && selectedSA?.address && (
+            <>
+              <span className="mx-2 text-gray-300">·</span>
+              <span className="font-semibold text-green-700">{selectedSA.address}</span>
+            </>
+          )}
         </p>
       </div>
       <Breadcrumb
