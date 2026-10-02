@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, AlertTriangle, Package, Info } from 'lucide-react';
+import { MapPin, AlertTriangle, Package, Info, ChevronDown } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
@@ -118,6 +118,7 @@ function StepperButton({ onClick, disabled, children }: {
 }
 
 export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previousLines, isDowngrade, isUpgrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, internetAvailable = true, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeTelevisionPlanProps) {
+  const [equipmentExpanded, setEquipmentExpanded] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const saId = selectedSA?.id ?? '';
   const activeAddOnIds = SA_TV_ACTIVE_ADDONS[saId] ?? [];
@@ -209,11 +210,17 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
       {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
       {isFollowOnOrder && (
         <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
+          <button
+            onClick={() => setEquipmentExpanded(prev => !prev)}
+            className="w-full flex items-start gap-3 text-left"
+          >
             <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Required Installation Equipment</h4>
-              <p className="text-sm text-blue-800 mb-3">
+            <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
+            <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
+          </button>
+          {equipmentExpanded && (
+            <div className="pl-8">
+              <p className="text-sm text-blue-800 mt-2 mb-3">
                 Confirm you have the following on hand before offering a Television upgrade:
               </p>
               <ul className="text-sm text-blue-900 space-y-1.5 ml-4">
@@ -239,7 +246,7 @@ export function ChangeTelevisionPlan({ selectedSA, selectedInternetPlanId, previ
                 </li>
               </ul>
             </div>
-          </div>
+          )}
         </div>
       )}
 
