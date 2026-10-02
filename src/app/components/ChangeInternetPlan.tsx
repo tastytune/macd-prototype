@@ -59,7 +59,7 @@ const ADD_ONS = [
 ];
 
 export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade, isMove2 = false, isAddLocation = false, isFollowOnOrder = false, isCoaxMove = false, workOrder = null, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInternetPlanProps) {
-  const [equipmentExpanded, setEquipmentExpanded] = useState(true);
+  const [equipmentExpanded, setEquipmentExpanded] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(() => {
     if (!isMove2 || !isCoaxMove) return null;
     const planId = SA_INTERNET_PLAN[selectedSA?.id ?? ''] ?? '2gig';
@@ -152,17 +152,36 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
         {/* ── Left: plan selection + add-ons ── */}
         <div className="flex-1 min-w-0">
           {/* On-Site Upsell: lets the technician confirm they have what this install needs */}
-          {isFollowOnOrder && (
-            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          {isFollowOnOrder ? (
+            <div className="flex items-center justify-between gap-4 mb-4">
               <button
                 onClick={() => setEquipmentExpanded(prev => !prev)}
-                className="w-full flex items-start gap-3 text-left"
+                className="flex items-center gap-2 text-left px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors"
               >
-                <Package className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <h4 className="text-sm font-medium text-blue-900 flex-1">Required Installation Equipment</h4>
-                <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
+                <Package className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-sm font-medium text-blue-900">Required Installation Equipment</span>
+                <ChevronDown className={`w-4 h-4 text-blue-500 flex-shrink-0 transition-transform ${equipmentExpanded ? 'rotate-180' : ''}`} />
               </button>
-              {equipmentExpanded && (
+              <button
+                onClick={onSkip}
+                className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors flex-shrink-0"
+              >
+                Skip Internet
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onSkip}
+                className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
+              >
+                Skip Internet
+              </button>
+            </div>
+          )}
+
+          {isFollowOnOrder && equipmentExpanded && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="pl-8">
                   <p className="text-sm text-blue-800 mt-2 mb-3">
                     Confirm you have the following on hand before offering an Internet upgrade:
@@ -190,19 +209,8 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                     </li>
                   </ul>
                 </div>
-              )}
             </div>
           )}
-
-          {/* Skip Internet */}
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={onSkip}
-              className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
-            >
-              Skip Internet
-            </button>
-          </div>
 
 
           {/* Plan cards */}
