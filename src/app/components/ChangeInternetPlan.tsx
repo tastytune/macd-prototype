@@ -316,7 +316,7 @@ export function ChangeInternetPlan({ selectedSA, previousLines = [], isDowngrade
                         </span>
                       )
                     )}
-                    {isSelected && showPromos && (
+                    {isSelected && showPromos && !(workOrder && plan.id === workOrder.upsellPlanId) && (
                       <>
                         {(effectiveIsUpgrade || (effectiveIsDowngrade && selectedPromos.has('price-lock'))) && (
                           <span className="inline-block text-xs font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded-full px-2.5 py-0.5">
