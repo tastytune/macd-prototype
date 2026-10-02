@@ -35,7 +35,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       <Breadcrumb
-        steps={['Follow On Order', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
+        steps={['Follow On Order', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
         currentIndex={0}
         variant="plain"
       />

@@ -61,7 +61,7 @@ export function FollowOnWorkOrder({ onBack, onContinue, requesterType }: FollowO
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       <Breadcrumb
-        steps={[requesterType === 'crc' ? 'CRC' : 'Technician', 'Serviceability', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
+        steps={[requesterType === 'crc' ? 'CRC' : 'Technician', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
         currentIndex={0}
         variant="plain"
       />

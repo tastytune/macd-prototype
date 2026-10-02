@@ -24,7 +24,6 @@ import { FollowOnWorkOrder } from './components/FollowOnWorkOrder';
 import type { WorkOrderResult } from './components/FollowOnWorkOrder';
 import { FollowOnRequesterType } from './components/FollowOnRequesterType';
 import type { FollowOnRequesterType as FollowOnRequesterTypeValue } from './components/FollowOnRequesterType';
-import { ServiceabilityCheck } from './components/ServiceabilityCheck';
 import type { MACDAction } from './components/DispatcherStep1';
 
 export interface Service {
@@ -119,7 +118,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'followon-workorder' | 'followon-serviceability' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'followon-workorder' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -252,17 +251,12 @@ function App() {
 
   const handleFollowOnContinue = (workOrder: WorkOrderResult) => {
     setFollowOnWorkOrder(workOrder);
-    setCurrentStep('followon-serviceability');
-  };
-
-  const handleFollowOnServiceabilityContinue = () => {
-    if (!followOnWorkOrder) return;
-    const saId = followOnWorkOrder.saId.toLowerCase();
+    const saId = workOrder.saId.toLowerCase();
     const saService: Service = {
       id: saId,
-      name: `${followOnWorkOrder.saId} · ${followOnWorkOrder.saLabel}`,
+      name: `${workOrder.saId} · ${workOrder.saLabel}`,
       status: 'Active',
-      address: followOnWorkOrder.address,
+      address: workOrder.address,
     };
     setSelectedSA(saService);
     setSelectedService(saService);
@@ -457,25 +451,6 @@ function App() {
             <FollowOnWorkOrder
               onBack={() => setCurrentStep('followon-requester-type')}
               onContinue={handleFollowOnContinue}
-              requesterType={followOnRequesterType}
-            />
-          </motion.div>
-        )}
-
-        {/* ── Follow On Order: Serviceability Check ── */}
-        {currentStep === 'followon-serviceability' && followOnWorkOrder && (
-          <motion.div
-            key="followon-serviceability"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.3 }}
-          >
-            <ServiceabilityCheck
-              workOrder={followOnWorkOrder}
-              onBack={() => setCurrentStep('followon-workorder')}
-              onContinue={handleFollowOnServiceabilityContinue}
               requesterType={followOnRequesterType}
             />
           </motion.div>
@@ -721,7 +696,7 @@ function App() {
               isAddLocation={selectedAction === 'addLocation'}
               onBack={() => setCurrentStep(
                 (selectedAction === 'move2' || selectedAction === 'addLocation') ? 'move-services'
-                : selectedAction === 'followOnOrder' ? 'followon-serviceability'
+                : selectedAction === 'followOnOrder' ? 'followon-workorder'
                 : 'dispatcher-step2'
               )}
               onNext={(serviceType) => {
