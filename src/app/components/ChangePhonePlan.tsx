@@ -229,7 +229,13 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     if (selectedPlan === plan.id) return;
     setSelectedPlan(plan.id);
     setRemovedFeatures(new Set());
-    setAttributeValues(defaultAttributeValuesFor(plan.id));
+    // Retain the customer's existing Directory Listing choice across the switch — per
+    // RFBP1-1419 AC-6, Residential Phone Bundle must retain the Directory Listing
+    // configuration from the existing Standalone Phone Service, not reset to a default.
+    setAttributeValues(prev => ({
+      ...defaultAttributeValuesFor(plan.id),
+      ...(prev['directory-listing'] ? { 'directory-listing': prev['directory-listing'] } : {}),
+    }));
   };
 
   const saAddress = selectedSA?.address ?? '412 Oak Ave, Lincoln, NE 68501';
