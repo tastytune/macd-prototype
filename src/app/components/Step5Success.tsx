@@ -207,7 +207,17 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                     <ul className="space-y-2 ml-4">
                       <li className="flex items-start gap-2">
                         <span className="text-amber-600 mt-0.5">•</span>
-                        <span><strong>Drop-off Locations:</strong> Refer to knowledge base</span>
+                        <span>
+                <strong>Drop-off Locations:</strong>{' '}
+                <a
+                  href="https://www.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Refer to knowledge base
+                </a>
+              </span>
                       </li>
                   
                       <li className="flex items-start gap-2">
