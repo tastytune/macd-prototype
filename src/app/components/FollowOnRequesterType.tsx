@@ -89,7 +89,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
       <Breadcrumb
-        steps={['On-Site Upsell', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
+        steps={['Process MACD Follow-On Order', 'Service Type', 'Plan', 'Review Order', 'Confirmation']}
         currentIndex={0}
         variant="plain"
       />
@@ -99,7 +99,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
         <h1 className="text-4xl font-extrabold text-gray-900 mb-3">Follow On Order</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 whitespace-nowrap">
-            On-Site Upsell
+            Process MACD Follow-On Order
           </span>
           {selected === 'technician' && selectedWorkOrder && (
             <span
