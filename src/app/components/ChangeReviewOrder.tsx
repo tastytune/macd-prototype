@@ -577,10 +577,14 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
               ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
               : isMove2
                 ? 'border-[#d9a0d9] bg-[#f3e8f3] text-[#800080] hover:bg-[#ede0ed]'
-                : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                : action === 'followOnOrder'
+                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                  : action === 'addLocation'
+                    ? 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                    : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
             }`}
         >
-          {isMove2 ? 'Confirm Move' : 'Confirm Change'}
+          {isMove2 ? 'Confirm Move' : action === 'followOnOrder' ? 'Confirm Upsell' : 'Confirm Change'}
         </button>
       </div>
     </div>
