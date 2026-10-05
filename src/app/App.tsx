@@ -131,6 +131,7 @@ function App() {
   const [reactivationReason, setReactivationReason] = useState<string>('');
   const [selectedBAId, setSelectedBAId] = useState<string>('');
   const [followOnWorkOrder, setFollowOnWorkOrder] = useState<WorkOrderResult | null>(null);
+  const [followOnAddToExisting, setFollowOnAddToExisting] = useState(false);
   const [followOnRequesterType, setFollowOnRequesterType] = useState<FollowOnRequesterTypeValue | null>(null);
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
@@ -244,9 +245,10 @@ function App() {
     setCurrentStep(action === 'followOnOrder' ? 'followon-requester-type' : 'dispatcher-step2');
   };
 
-  const handleFollowOnRequesterContinue = (requesterType: FollowOnRequesterTypeValue, workOrder: WorkOrderResult) => {
+  const handleFollowOnRequesterContinue = (requesterType: FollowOnRequesterTypeValue, workOrder: WorkOrderResult, addToExistingFollowOn: boolean) => {
     setFollowOnRequesterType(requesterType);
     setFollowOnWorkOrder(workOrder);
+    setFollowOnAddToExisting(addToExistingFollowOn);
     const saId = workOrder.saId.toLowerCase();
     const saService: Service = {
       id: saId,
@@ -378,7 +380,7 @@ function App() {
   };
 
   return (
-    <FollowOnOriginalOrderContext.Provider value={selectedAction === 'followOnOrder' ? (followOnWorkOrder?.id ?? null) : null}>
+    <FollowOnOriginalOrderContext.Provider value={selectedAction === 'followOnOrder' ? (followOnWorkOrder?.orderNumber ?? null) : null}>
     <div className="min-h-screen bg-gray-50">
       <AnimatePresence mode="wait">
 
@@ -921,6 +923,7 @@ function App() {
               destinationAddress={(selectedAction === 'move' || selectedAction === 'move2') ? moveDestinationAddress : undefined}
               mailingAddress={(selectedAction === 'move' || selectedAction === 'move2') ? (moveMailingAddress || undefined) : undefined}
               workOrderId={selectedAction === 'followOnOrder' ? followOnWorkOrder?.id : undefined}
+              addedToFollowOnId={selectedAction === 'followOnOrder' && followOnAddToExisting ? followOnWorkOrder?.openFollowOn?.id : undefined}
             />
           </motion.div>
         )}

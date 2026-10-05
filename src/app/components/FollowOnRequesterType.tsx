@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { HardHat, Headset, CheckCircle2 } from 'lucide-react';
+import { HardHat, Headset, CheckCircle2, AlertTriangle, Info, ListPlus } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
-import { MOCK_WORK_ORDERS } from './FollowOnWorkOrder';
+import { MOCK_WORK_ORDERS, searchWorkOrders } from './FollowOnWorkOrder';
 import type { WorkOrderResult } from './FollowOnWorkOrder';
 
 export type FollowOnRequesterType = 'technician' | 'crc';
 
 interface FollowOnRequesterTypeProps {
   onBack: () => void;
-  onContinue: (requesterType: FollowOnRequesterType, workOrder: WorkOrderResult) => void;
+  onContinue: (requesterType: FollowOnRequesterType, workOrder: WorkOrderResult, addToExistingFollowOn: boolean) => void;
 }
 
 const OPTIONS: {
@@ -41,16 +41,23 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [results, setResults] = useState<WorkOrderResult[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // RFBP1-1542: the technician chose to add to the already-open follow-on instead of creating another.
+  const [addToExisting, setAddToExisting] = useState(false);
 
   const isValid = workOrderId.trim().length > 0;
   const selectedWorkOrder = results.find(wo => wo.id === selectedId) ?? null;
 
+  // RFBP1-1534: a follow-on can only hang off an original order that is still in progress.
+  const orderNotInProgress = !!selectedWorkOrder && selectedWorkOrder.orderStatus !== 'In Progress';
+  const openFollowOn = selectedWorkOrder?.openFollowOn ?? null;
+
   const handleValidate = () => {
     if (!isValid || searchState === 'searching') return;
     setSelectedId(null);
+    setAddToExisting(false);
     setSearchState('searching');
     setTimeout(() => {
-      setResults(MOCK_WORK_ORDERS);
+      setResults(searchWorkOrders(workOrderId));
       setSearchState('results');
     }, 500);
   };
@@ -63,16 +70,19 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
       setSearchState('idle');
       setResults([]);
       setSelectedId(null);
+      setAddToExisting(false);
     }
   };
 
-  const canContinue = selected === 'crc' || (selected === 'technician' && !!selectedWorkOrder);
+  const canContinue =
+    selected === 'crc' ||
+    (selected === 'technician' && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting));
 
   const handleContinue = () => {
     if (selected === 'crc') {
-      onContinue('crc', MOCK_WORK_ORDERS[0]);
-    } else if (selected === 'technician' && selectedWorkOrder) {
-      onContinue('technician', selectedWorkOrder);
+      onContinue('crc', MOCK_WORK_ORDERS[0], false);
+    } else if (selected === 'technician' && selectedWorkOrder && !orderNotInProgress) {
+      onContinue('technician', selectedWorkOrder, !!openFollowOn && addToExisting);
     }
   };
 
@@ -93,10 +103,10 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
           </span>
           {selected === 'technician' && selectedWorkOrder && (
             <span
-              title="Original work order — read-only context"
+              title="Original order — read-only context"
               className="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap cursor-default"
             >
-              Original order · {selectedWorkOrder.id}
+              Original order · {selectedWorkOrder.orderNumber}
             </span>
           )}
         </div>
@@ -171,6 +181,10 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
               </button>
             </div>
 
+            <p className="mt-2 text-xs text-gray-400">
+              Prototype demo: WO-10432 (in progress) · WO-10388 (order completed) · WO-10455 (open follow-on)
+            </p>
+
             {/* Search results */}
             {searchState === 'results' && (
               <div className="mt-6 space-y-3">
@@ -179,7 +193,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
                   return (
                     <button
                       key={wo.id}
-                      onClick={() => setSelectedId(wo.id)}
+                      onClick={() => { setSelectedId(wo.id); setAddToExisting(false); }}
                       className={`w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl border text-left transition-all
                         ${isSelectedWo
                           ? 'border-blue-500 bg-blue-50 ring-1 ring-inset ring-blue-500'
@@ -222,6 +236,90 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
                   <p className="text-xs text-gray-500 mt-0.5">
                     {selectedWorkOrder.customerName} · {selectedWorkOrder.saId} · {selectedWorkOrder.saLabel} · {selectedWorkOrder.address}
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Order in progress — read-only context (RFBP1-1534) */}
+            {selectedWorkOrder && (
+              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      {orderNotInProgress ? 'Original order' : 'Order in progress'}
+                    </p>
+                    <p className="text-base font-bold text-gray-900 mt-0.5">{selectedWorkOrder.orderNumber}</p>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap border
+                      ${orderNotInProgress
+                        ? 'bg-gray-100 text-gray-600 border-gray-200'
+                        : 'bg-amber-100 text-amber-700 border-amber-200'}`}
+                  >
+                    {selectedWorkOrder.orderStatus} / {selectedWorkOrder.orderSubStatus}
+                  </span>
+                </div>
+
+                <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                  <div>
+                    <dt className="text-xs text-gray-400">Products on this order</dt>
+                    <dd className="text-gray-800 font-medium mt-0.5">{selectedWorkOrder.products.join(', ')}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-gray-400">Service account</dt>
+                    <dd className="text-gray-800 font-medium mt-0.5">
+                      {selectedWorkOrder.saId} · {selectedWorkOrder.saLabel}
+                    </dd>
+                    <dd className="text-xs text-gray-500 mt-0.5">{selectedWorkOrder.address}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
+                  <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-px" />
+                  <span>A separate order will be created. This order is not modified.</span>
+                </div>
+              </div>
+            )}
+
+            {/* Blocked: original order no longer in progress (RFBP1-1534) */}
+            {orderNotInProgress && selectedWorkOrder && (
+              <div className="mt-4 flex items-start gap-3 px-5 py-4 rounded-xl border border-red-200 bg-red-50">
+                <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-red-800">Can’t continue — the original order is no longer in progress</p>
+                  <p className="text-xs text-red-700 mt-0.5">
+                    {selectedWorkOrder.orderNumber} is {selectedWorkOrder.orderStatus.toLowerCase()}. A follow-on order can only be
+                    created while the original installation order is in progress.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Existing open follow-on, not started → offer to add instead of creating another (RFBP1-1542) */}
+            {!orderNotInProgress && openFollowOn && (
+              <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-4">
+                <div className="flex items-start gap-3">
+                  <ListPlus className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-gray-900">
+                      A follow-on order is already open: {openFollowOn.id}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {openFollowOn.status} · {openFollowOn.products.join(', ')}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add the new upsell to this order instead of creating another follow-on.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setAddToExisting(true)}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors flex-shrink-0
+                      ${addToExisting
+                        ? 'bg-green-600 text-white cursor-default'
+                        : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                  >
+                    {addToExisting ? 'Adding to this order' : 'Add to this order'}
+                  </button>
                 </div>
               </div>
             )}

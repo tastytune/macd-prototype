@@ -25,6 +25,7 @@ interface Step5Props {
   destinationAddress?: string;
   mailingAddress?: string;
   workOrderId?: string;
+  addedToFollowOnId?: string;
 }
 
 const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: string; bodyFull?: string; servicesList: string }> = {
@@ -73,7 +74,7 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress, mailingAddress, workOrderId }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress, mailingAddress, workOrderId, addedToFollowOnId }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -123,6 +124,17 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 <a href="https://salesforce.com/order/SF-2024-001234" target="_blank" rel="noopener noreferrer" className="block text-center text-blue-600 hover:text-blue-800 underline font-extralight text-xl pt-5">SF-2024-001234</a>
           </div>
         </div>
+
+        {/* Added to an already-open follow-on (RFBP1-1542) */}
+        {isFollowOnOrder && addedToFollowOnId && (
+          <div className="mb-6 pb-6 border-b border-gray-200">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+              <p className="text-sm text-indigo-900 text-center">
+                This upsell was added to the open follow-on order <strong>{addedToFollowOnId}</strong>. No new follow-on order was created.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Work Order reference — shown for Follow On Order only */}
         {isFollowOnOrder && workOrderId && (
