@@ -107,7 +107,7 @@ const actions: {
   },
   {
     id: 'followOnOrder',
-    label: 'Process MACD Follow-On Order',
+    label: 'Follow-On Order',
     description: 'Create a new order linked to this account that will be executed after the current one.',
     icon: ClipboardList,
     iconColor: 'text-indigo-600',
