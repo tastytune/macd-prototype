@@ -78,7 +78,7 @@ export function ChangeServiceType({ selectedSA, isMove2 = false, isAddLocation =
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">What would you like to change?</h1>
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'What would you like to add to this new location?' : 'What would you like to change?'}</h1>
         <p className="text-gray-500 text-sm">
           Account: <span className="font-medium text-gray-700">Robert Johnson · ACC-004821</span>
           <span className="mx-2 text-gray-300">·</span>
