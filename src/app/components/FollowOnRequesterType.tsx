@@ -87,9 +87,19 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-3">Follow On Order</h1>
-        <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 whitespace-nowrap">
-          On-Site Upsell
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 whitespace-nowrap">
+            On-Site Upsell
+          </span>
+          {selected === 'technician' && selectedWorkOrder && (
+            <span
+              title="Original work order — read-only context"
+              className="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap cursor-default"
+            >
+              Original order · {selectedWorkOrder.id}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Requester type + (Technician only) Work Order lookup */}

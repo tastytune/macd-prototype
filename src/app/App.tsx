@@ -24,6 +24,7 @@ import type { WorkOrderResult } from './components/FollowOnWorkOrder';
 import { FollowOnRequesterType } from './components/FollowOnRequesterType';
 import type { FollowOnRequesterType as FollowOnRequesterTypeValue } from './components/FollowOnRequesterType';
 import type { MACDAction } from './components/DispatcherStep1';
+import { FollowOnOriginalOrderContext } from './components/ContextBar';
 
 export interface Service {
   id: string;
@@ -377,6 +378,7 @@ function App() {
   };
 
   return (
+    <FollowOnOriginalOrderContext.Provider value={selectedAction === 'followOnOrder' ? (followOnWorkOrder?.id ?? null) : null}>
     <div className="min-h-screen bg-gray-50">
       <AnimatePresence mode="wait">
 
@@ -925,6 +927,7 @@ function App() {
 
       </AnimatePresence>
     </div>
+    </FollowOnOriginalOrderContext.Provider>
   );
 }
 
