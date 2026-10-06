@@ -12,6 +12,7 @@ interface ChangeInstallationDateProps {
   isDowngrade?: boolean;
   isUpgrade?: boolean;
   isMove2?: boolean;
+  action?: string;
   scenario?: string;
   selectedPromos?: Set<string>;
   onPromoToggle?: (id: string) => void;
@@ -20,8 +21,10 @@ interface ChangeInstallationDateProps {
   onNext: (date: string, slot: string, originDate?: string, originSlot?: string) => void;
 }
 
-export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, scenario, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
-  const isDualSchedule = isMove2 && ['M01', 'M02', 'M03', 'M04'].includes(scenario ?? '');
+export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, action, scenario, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
+  // Two appointments (disconnect + install) whenever existing service is replaced: Change and Move.
+  // Add On New Location and Follow-On Order don't disconnect anything, so they keep a single install panel.
+  const isDualSchedule = action !== 'addLocation' && action !== 'followOnOrder';
   // Install appointment (all actions)
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -76,7 +79,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
               <AppointmentPanel
                 tone="orange"
                 title="Preferred Disconnect Date"
-                hint="Disconnection at origin address"
+                hint={isMove2 ? 'Disconnection at origin address' : 'Disconnection of the current service'}
                 date={originDate}
                 slotId={originSlotId}
                 onChange={(d, sl) => { setOriginDate(d); setOriginSlotId(sl); }}
@@ -84,7 +87,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
               <AppointmentPanel
                 tone="blue"
                 title="Preferred Installation Date"
-                hint="New service install at destination."
+                hint={isMove2 ? 'New service install at destination.' : 'Installation of the new service'}
                 date={selectedDate}
                 slotId={selectedSlotId}
                 onChange={(d, sl) => { setSelectedDate(d); setSelectedSlotId(sl); }}

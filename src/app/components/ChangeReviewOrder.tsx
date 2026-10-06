@@ -556,7 +556,12 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
           ) : isMove2 ? (
             <p>The user is about to move services to the new address{installationDate ? <> with installation on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action cannot be undone.</p>
           ) : (
-            <p>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action cannot be undone.</p>
+            <>
+              <p>The user is about to change products and its related features{installationDate ? <> on <strong>{formatDate(installationDate)}{installationSlot && TIME_SLOT_LABELS[installationSlot] ? `, ${TIME_SLOT_LABELS[installationSlot]}` : ''}</strong></> : ''}. This action cannot be undone.</p>
+              {originInstallationDate && (
+                <p>Disconnection of current service: <strong>{formatDate(originInstallationDate)}{originInstallationSlot && TIME_SLOT_LABELS[originInstallationSlot] ? `, ${TIME_SLOT_LABELS[originInstallationSlot]}` : ''}</strong>.</p>
+              )}
+            </>
           )}
         </div>
       </div>

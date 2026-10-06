@@ -816,6 +816,7 @@ function App() {
               isDowngrade={changeIsDowngrade}
               isUpgrade={changeIsUpgrade}
               isMove2={selectedAction === 'move2'}
+              action={selectedAction}
               scenario={moveScenario}
               selectedPromos={changeSelectedPromos}
               onPromoToggle={toggleChangePromo}
