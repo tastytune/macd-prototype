@@ -152,10 +152,10 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
         <ContextBar action={action} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || action === 'addLocation')
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 5 : 4}
+        currentIndex={(isMove2 || action === 'addLocation') ? 5 : 4}
       />
 
       <div className="flex gap-6 items-start">

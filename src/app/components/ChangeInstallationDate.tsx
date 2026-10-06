@@ -22,9 +22,10 @@ interface ChangeInstallationDateProps {
 }
 
 export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, action, scenario, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
-  // Two appointments (disconnect + install) whenever existing service is replaced: Change and Move.
-  // Add On New Location and Follow-On Order don't disconnect anything, so they keep a single install panel.
-  const isDualSchedule = action !== 'addLocation' && action !== 'followOnOrder';
+  // Two appointments (disconnect + install) for Change, Move and Add On New Location; Follow-On Order keeps a single install panel.
+    const isAddLocation = action === 'addLocation';
+  const isFollowOn = action === 'followOnOrder';
+  const isDualSchedule = !isFollowOn;
   // Install appointment (all actions)
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -41,14 +42,14 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
     <div className="max-w-6xl mx-auto px-8 py-12">
 
       <div className="mb-8">
-        <h1 className="text-3xl text-gray-900 mb-2">{isMove2 ? 'Move Service' : 'Change Service'}</h1>
-        <ContextBar action={isMove2 ? 'move2' : 'change'} selectedSA={selectedSA} />
+        <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Service' : isFollowOn ? 'Follow-On Order' : 'Change Service'}</h1>
+        <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : isFollowOn ? 'followOnOrder' : 'change'} selectedSA={selectedSA} />
       </div>
       <Breadcrumb
-        steps={isMove2
+        steps={(isMove2 || isAddLocation)
           ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
           : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={isMove2 ? 4 : 3}
+        currentIndex={(isMove2 || isAddLocation) ? 4 : 3}
       />
 
       <div className="flex gap-8 items-start">
@@ -79,7 +80,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
               <AppointmentPanel
                 tone="orange"
                 title="Preferred Disconnect Date"
-                hint={isMove2 ? 'Disconnection at origin address' : 'Disconnection of the current service'}
+                hint={isMove2 ? 'Disconnection at origin address' : isAddLocation ? 'Disconnection of any service being replaced at this location' : 'Disconnection of the current service'}
                 date={originDate}
                 slotId={originSlotId}
                 onChange={(d, sl) => { setOriginDate(d); setOriginSlotId(sl); }}
@@ -87,7 +88,7 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
               <AppointmentPanel
                 tone="blue"
                 title="Preferred Installation Date"
-                hint={isMove2 ? 'New service install at destination.' : 'Installation of the new service'}
+                hint={isMove2 ? 'New service install at destination.' : isAddLocation ? 'Installation of the new service at the new location' : 'Installation of the new service'}
                 date={selectedDate}
                 slotId={selectedSlotId}
                 onChange={(d, sl) => { setSelectedDate(d); setSelectedSlotId(sl); }}
