@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import type React from 'react';
 import type { MACDAction } from './DispatcherStep1';
 import type { Service } from '../App';
 import { ContextBar } from './ContextBar';
+import { SA_00912, SA_01047, SA_02031, SA_03055, isServiceAccountBlocked, blockedReason, type GatedService } from '../serviceAccounts';
 
 interface DispatcherStep2Props {
   action: MACDAction;
@@ -10,36 +12,18 @@ interface DispatcherStep2Props {
   onBack: () => void;
 }
 
-// Service Accounts (shared across all actions)
-const serviceAccounts: Service[] = [
-  {
-    id: 'sa-00912',
-    name: 'SA-00912 · Primary',
-    status: 'Active',
-    address: '412 Oak Ave, Lincoln, NE 68501',
-  },
-  {
-    id: 'sa-01047',
-    name: 'SA-01047 · Secondary',
-    status: 'Active',
-    address: '88 Maple St, Omaha, NE 68102',
-  },
-];
-
-const changeServiceAccounts: Service[] = [
-  ...serviceAccounts,
-  {
-    id: 'sa-02031',
-    name: 'SA-02031 · Tertiary',
-    status: 'Active',
-    address: '214 Birch Rd, Lincoln, NE 68502',
-  },
-];
+// Service Accounts (shared across all actions) — mock data lives in ../serviceAccounts.
+// SA-03055 has an order in progress, so it's gated by isServiceAccountBlocked() (RFBP1-3571 AC10–13).
+const serviceAccounts: GatedService[] = [SA_00912, SA_01047, SA_03055];
+const changeServiceAccounts: GatedService[] = [SA_00912, SA_01047, SA_02031, SA_03055];
+// Add On New Location: out of scope for gating (depends on the Billing Account, AC14–16) — unchanged list.
+const addLocationServiceAccounts: GatedService[] = [SA_00912, SA_01047, SA_02031];
 
 const changeTags: Record<string, string[]> = {
   'sa-00912': ['Internet 200Mbps', 'iTV Preferred', 'Cinemax', 'FANatic'],
   'sa-01047': ['Internet 200M', 'Phone Bundle'],
   'sa-02031': ['Phone Standalone'],
+  'sa-03055': ['Internet 500M', 'iTV Basic'],
 };
 
 const changePromoPills: Record<string, { label: string; style: string }[]> = {
@@ -61,6 +45,7 @@ const baTags: Record<string, string[]> = {
   'ba-00391': ['Internet 2Gbps', 'iTV Preferred', 'Cinemax', 'FANatic'],
   'ba-00412': ['Equipment Lease'],
   'ba-00558': ['Internet 200M', 'Phone Bundle'],
+  'ba-00720': ['Internet 500M', 'iTV Basic'],
 };
 
 const baPromoPills: Record<string, { label: string; style: string }[]> = {
@@ -78,6 +63,7 @@ interface BillingAccount {
   id: string;
   label: string;
   linkedSA: string;
+  linkedSAId: string;
   detail: string;
   amount: string;
   status: 'Current' | 'Past due';
@@ -89,6 +75,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00391',
     label: 'BA-00391',
+    linkedSAId: 'sa-00912',
     linkedSA: 'SA-00912 · Primary',
     detail: 'Primary billing · Monthly',
     amount: '$189.00/mo',
@@ -99,6 +86,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00412',
     label: 'BA-00412',
+    linkedSAId: 'sa-00912',
     linkedSA: 'SA-00912 · Primary',
     detail: 'Equipment lease · Monthly',
     amount: '$14.99/mo',
@@ -109,6 +97,7 @@ const billingAccounts: BillingAccount[] = [
   {
     id: 'ba-00558',
     label: 'BA-00558',
+    linkedSAId: 'sa-01047',
     linkedSA: 'SA-01047 · Secondary',
     detail: 'Primary billing · Monthly',
     amount: '$79.00/mo',
@@ -116,7 +105,27 @@ const billingAccounts: BillingAccount[] = [
     deactivateDisabled: false,
     reactivateDisabled: false, // deactivated → selectable
   },
+  {
+    id: 'ba-00720',
+    label: 'BA-00720',
+    linkedSAId: 'sa-03055',
+    linkedSA: 'SA-03055 · Quaternary',
+    detail: 'Primary billing · Monthly',
+    amount: '$74.00/mo',
+    status: 'Current',
+    deactivateDisabled: false,
+    reactivateDisabled: false,
+  },
 ];
+
+// Temporary Disconnect / Reconnect still act on the Billing Account today. We apply the same
+// Service Account gating here anyway (a BA is blocked when its linked SA has an order in progress).
+// TODO(story pending): move Temporary Disconnect / Reconnect to Service Accounts, then drop this lookup.
+const allServiceAccounts: GatedService[] = [SA_00912, SA_01047, SA_02031, SA_03055];
+const blockedSAForBA = (ba: BillingAccount): GatedService | undefined => {
+  const sa = allServiceAccounts.find(x => x.id === ba.linkedSAId);
+  return sa && isServiceAccountBlocked(sa) ? sa : undefined;
+};
 
 const actionBadgeStyle: Record<MACDAction, string> = {
   deactivate: 'bg-amber-50 text-amber-800',
@@ -143,7 +152,9 @@ const actionLabel: Record<MACDAction, string> = {
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {
   const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change' || action === 'addLocation';
   const isAddLocation = action === 'addLocation';
-  const activeServiceAccounts = (action === 'change' || action === 'addLocation') ? changeServiceAccounts : serviceAccounts;
+  const activeServiceAccounts = action === 'addLocation' ? addLocationServiceAccounts : action === 'change' ? changeServiceAccounts : serviceAccounts;
+  const anySABlocked = !isAddLocation && activeServiceAccounts.some(isServiceAccountBlocked);
+  const anyBABlocked = billingAccounts.some(ba => !!blockedSAForBA(ba));
 
   // SA radio selection (Disconnect / Move)
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);
@@ -172,6 +183,21 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
       }, 1800);
     } else {
       setSelectedSA(saId);
+    }
+  };
+
+  // Arrow-key navigation across enabled (non-blocked) accounts only
+  const handleSAKeyDown = (e: React.KeyboardEvent, saId: string) => {
+    if (isAddLocation || serviceabilityLoading) return;
+    const dir = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : (e.key === 'ArrowUp' || e.key === 'ArrowLeft') ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const enabled = activeServiceAccounts.filter(a => !isServiceAccountBlocked(a));
+    const i = enabled.findIndex(a => a.id === saId);
+    const next = enabled[(i + dir + enabled.length) % enabled.length];
+    if (next && next.id !== saId) {
+      handleSAClick(next.id);
+      document.getElementById(`sa-row-${next.id}`)?.focus();
     }
   };
 
@@ -207,14 +233,62 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
             {isAddLocation ? 'Existing service accounts (creating a new one instead)' : 'Service accounts'}
           </p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" role="radiogroup" aria-label="Service accounts">
             {activeServiceAccounts.map(sa => {
+              if (!isAddLocation && isServiceAccountBlocked(sa)) {
+                const tipId = `sa-blocked-tip-${sa.id}`;
+                return (
+                  <div
+                    key={sa.id}
+                    id={`sa-row-${sa.id}`}
+                    role="radio"
+                    aria-checked={false}
+                    aria-disabled="true"
+                    tabIndex={0}
+                    aria-describedby={tipId}
+                    className="group flex items-start gap-4 p-4 rounded-xl border-2 border-gray-200 bg-white text-left cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                  >
+                    <div className="flex items-start gap-4 flex-1 min-w-0 opacity-[0.55]">
+                      <div className="mt-0.5 flex-shrink-0 rounded-full border-2 border-gray-300 bg-gray-100" style={{ width: 18, height: 18 }} aria-hidden="true" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 mb-1">{sa.name}</p>
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <svg className="w-3 h-3 inline-block flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c-4.418-4.418-7-8.015-7-11A7 7 0 0 1 12 3a7 7 0 0 1 7 7c0 2.985-2.582 6.582-7 11z"/><circle cx="12" cy="10" r="2"/></svg>
+                          {sa.address}
+                        </p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {(changeTags[sa.id] ?? []).map(tag => (
+                            <span key={tag} className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${changeTagStyle[tag] ?? defaultTagStyle}`}>{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Badge sits outside the dimmed wrapper so it keeps AA contrast */}
+                    <span className="relative flex-shrink-0">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                        Order in progress
+                      </span>
+                      <span
+                        id={tipId}
+                        role="tooltip"
+                        className="absolute right-0 top-full mt-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal rounded-lg shadow-lg opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity pointer-events-none z-20"
+                      >
+                        {blockedReason(sa)}
+                      </span>
+                    </span>
+                  </div>
+                );
+              }
               const isSelected = !isAddLocation && selectedSA === sa.id;
               const isLoading = serviceabilityLoading === sa.id;
               const isFiber = fiberEligible.has(sa.id);
               return (
                 <button
                   key={sa.id}
+                  id={`sa-row-${sa.id}`}
+                  role="radio"
+                  aria-checked={isSelected}
+                  onKeyDown={e => handleSAKeyDown(e, sa.id)}
                   onClick={() => !isAddLocation && handleSAClick(sa.id)}
                   disabled={isAddLocation || !!serviceabilityLoading}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all
@@ -270,16 +344,61 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
               );
             })}
           </div>
+          {anySABlocked && (
+            <p className="mt-3 text-xs text-gray-500">Some service accounts are unavailable because of open orders.</p>
+          )}
         </div>
       ) : (
         /* ── Deactivate / Reactivate: Billing Accounts ── */
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Billing accounts</p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" role="radiogroup" aria-label="Billing accounts">
             {billingAccounts.map(ba => {
               const isSelected = selectedBA === ba.id;
               const isReactivate = action === 'reactivate';
               const isDeactivate = action === 'deactivate';
+              const blockedSA = blockedSAForBA(ba);
+              if (blockedSA) {
+                const tipId = `ba-blocked-tip-${ba.id}`;
+                return (
+                  <div
+                    key={ba.id}
+                    role="radio"
+                    aria-checked={false}
+                    aria-disabled="true"
+                    tabIndex={0}
+                    aria-describedby={tipId}
+                    className="group flex items-start gap-4 p-4 rounded-xl border-2 border-gray-200 bg-white text-left cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                  >
+                    <div className="flex items-start gap-4 flex-1 min-w-0 opacity-[0.55]">
+                      <div className="mt-0.5 flex-shrink-0 rounded-full border-2 border-gray-300 bg-gray-100" style={{ width: 17, height: 17 }} aria-hidden="true" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900">{ba.label}</p>
+                        <p className="text-xs text-blue-600 font-medium mt-0.5">{ba.linkedSA}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{ba.detail}</p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          {(baTags[ba.id] ?? []).map(tag => (
+                            <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-blue-400 text-white font-medium">{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900 flex-shrink-0">{ba.amount}</span>
+                    </div>
+                    <span className="relative flex-shrink-0 self-start">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                        Order in progress
+                      </span>
+                      <span
+                        id={tipId}
+                        role="tooltip"
+                        className="absolute right-0 top-full mt-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal rounded-lg shadow-lg opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity pointer-events-none z-20"
+                      >
+                        {blockedReason(blockedSA)}
+                      </span>
+                    </span>
+                  </div>
+                );
+              }
               const isDisabled = (isReactivate && ba.reactivateDisabled) || (isDeactivate && ba.deactivateDisabled);
               return (
                 <button
@@ -348,6 +467,9 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
               );
             })}
           </div>
+          {anyBABlocked && (
+            <p className="mt-3 text-xs text-gray-500">Some service accounts are unavailable because of open orders.</p>
+          )}
         </div>
       )}
 
