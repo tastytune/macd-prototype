@@ -153,8 +153,6 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
   const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change' || action === 'addLocation';
   const isAddLocation = action === 'addLocation';
   const activeServiceAccounts = action === 'addLocation' ? addLocationServiceAccounts : action === 'change' ? changeServiceAccounts : serviceAccounts;
-  const anySABlocked = !isAddLocation && activeServiceAccounts.some(isServiceAccountBlocked);
-  const anyBABlocked = billingAccounts.some(ba => !!blockedSAForBA(ba));
 
   // SA radio selection (Disconnect / Move)
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);
@@ -344,9 +342,6 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
               );
             })}
           </div>
-          {anySABlocked && (
-            <p className="mt-3 text-xs text-gray-500">Some service accounts are unavailable because of open orders.</p>
-          )}
         </div>
       ) : (
         /* ── Deactivate / Reactivate: Billing Accounts ── */
@@ -467,9 +462,6 @@ export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: D
               );
             })}
           </div>
-          {anyBABlocked && (
-            <p className="mt-3 text-xs text-gray-500">Some service accounts are unavailable because of open orders.</p>
-          )}
         </div>
       )}
 
