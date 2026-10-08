@@ -919,6 +919,8 @@ function App() {
               selectedSA={selectedSA}
               installationDate={(selectedAction === 'move' || selectedAction === 'move2') ? (moveInstallationDate || changeInstallationDate) : changeInstallationDate}
               installationSlot={changeInstallationSlot}
+              originInstallationDate={selectedAction === 'move' ? moveOriginInstallDate : changeOriginInstallDate}
+              originInstallationSlot={selectedAction === 'move' ? moveOriginSlot : changeOriginInstallSlot}
               billingEndDate={moveBillingEndDate}
               timeSlot={moveTimeSlot}
               destinationAddress={(selectedAction === 'move' || selectedAction === 'move2') ? moveDestinationAddress : undefined}

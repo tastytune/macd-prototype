@@ -32,6 +32,11 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   'morning-2':   '10:00 AM – 12:00 PM',
   'afternoon-1': '1:00 PM – 3:00 PM',
   'afternoon-2': '3:00 PM – 5:00 PM',
+  // Pages pass the slot as the already-formatted label, so accept labels too
+  '8:00 AM – 10:00 AM':  '8:00 AM – 10:00 AM',
+  '10:00 AM – 12:00 PM': '10:00 AM – 12:00 PM',
+  '1:00 PM – 3:00 PM':   '1:00 PM – 3:00 PM',
+  '3:00 PM – 5:00 PM':   '3:00 PM – 5:00 PM',
 };
 
 type GroupKey = 'internet' | 'television' | 'phone';

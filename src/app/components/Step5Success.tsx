@@ -9,6 +9,11 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   'morning-2':   '10:00 AM – 12:00 PM',
   'afternoon-1': '1:00 PM – 3:00 PM',
   'afternoon-2': '3:00 PM – 5:00 PM',
+  // Pages pass the slot as the already-formatted label, so accept labels too
+  '8:00 AM – 10:00 AM':  '8:00 AM – 10:00 AM',
+  '10:00 AM – 12:00 PM': '10:00 AM – 12:00 PM',
+  '1:00 PM – 3:00 PM':   '1:00 PM – 3:00 PM',
+  '3:00 PM – 5:00 PM':   '3:00 PM – 5:00 PM',
 };
 
 interface Step5Props {
@@ -20,6 +25,8 @@ interface Step5Props {
   selectedSA?: Service | null;
   installationDate?: string;
   installationSlot?: string;
+  originInstallationDate?: string;
+  originInstallationSlot?: string;
   billingEndDate?: string;
   timeSlot?: string;
   destinationAddress?: string;
@@ -74,7 +81,7 @@ const actionCopy: Record<string, { title: string; boldWord: string; bodyRest: st
   },
 };
 
-export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, billingEndDate, timeSlot, destinationAddress, mailingAddress, workOrderId, addedToFollowOnId }: Step5Props) {
+export function Step5Success({ service, orderReference, orderItems, onReturn, action, selectedSA, installationDate, installationSlot, originInstallationDate, originInstallationSlot, billingEndDate, timeSlot, destinationAddress, mailingAddress, workOrderId, addedToFollowOnId }: Step5Props) {
   const [expandedServices, setExpandedServices] = useState<Set<string>>(new Set());
 
   const groupedItems = orderItems.reduce((acc, item) => {
@@ -98,6 +105,17 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
     new Date(ds + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
   const isMove = action === 'move' || action === 'move2';
+  const isAddLocation = action === 'addLocation';
+
+  // "Tuesday, October 13, 2026 - 8:00 AM – 10:00 AM"
+  const whenText = (date: string, slot?: string) => {
+    const label = slot ? (TIME_SLOT_LABELS[slot] ?? slot) : '';
+    return `${formatDateWithDay(date)}${label ? ` - ${label}` : ''}`;
+  };
+  const originAddress = selectedSA?.address;
+  const installAddress = isMove ? destinationAddress : selectedSA?.address;
+  const showSchedule = (isMove || isChange || isAddLocation)
+    && !!(installationDate || originInstallationDate || (isMove && (billingEndDate || mailingAddress)));
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -153,25 +171,30 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
           </div>
         )}
 
-        {/* Key Dates — shown for Move */}
-        {isMove && (installationDate || billingEndDate) && (
+        {/* Scheduled appointments — Change / Move / Add On New Location */}
+        {showSchedule && (
           <div className="mb-6 pb-6 border-b border-gray-200 space-y-3">
-            {installationDate && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <CalendarClock className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                <p className="text-sm text-blue-800">
-                  Installation scheduled for{' '}
-                  <strong>
-                    {formatDateWithDay(installationDate)}
-                    {(timeSlot || (installationSlot && TIME_SLOT_LABELS[installationSlot]))
-                      ? `, ${timeSlot || TIME_SLOT_LABELS[installationSlot]}`
-                      : ''}
-                  </strong>
-                  {destinationAddress ? <> at <strong>{destinationAddress}</strong></> : ''}.
+            {originInstallationDate && (
+              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">
+                  Disconnection / uninstall scheduled for{' '}
+                  <strong>{whenText(originInstallationDate, originInstallationSlot)}</strong>
+                  {originAddress ? <> at <strong>{originAddress}</strong></> : ''}.
                 </p>
               </div>
             )}
-            {billingEndDate && (
+            {installationDate && (
+              <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <CalendarClock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800">
+                  Installation scheduled for{' '}
+                  <strong>{whenText(installationDate, timeSlot || installationSlot)}</strong>
+                  {installAddress ? <> at <strong>{installAddress}</strong></> : ''}.
+                </p>
+              </div>
+            )}
+            {isMove && billingEndDate && (
               <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <CalendarClock className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <p className="text-sm text-amber-800">
@@ -179,7 +202,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 </p>
               </div>
             )}
-            {mailingAddress && (
+            {isMove && mailingAddress && (
               <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <p className="text-sm text-gray-700">
@@ -187,19 +210,6 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
                 </p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Installation date — shown for Change when a date was selected */}
-        {isChange && installationDate && (
-          <div className="mb-6 pb-6 border-b border-gray-200">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                Installation scheduled for <strong>{formatDate(installationDate)}</strong>
-                {installationSlot && TIME_SLOT_LABELS[installationSlot] ? <>, <strong>{TIME_SLOT_LABELS[installationSlot]}</strong></> : ''}
-                {selectedSA?.address ? <> at <strong>{selectedSA.address}</strong></> : ''}.
-              </p>
-            </div>
           </div>
         )}
 
