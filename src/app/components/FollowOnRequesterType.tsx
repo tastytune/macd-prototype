@@ -92,6 +92,9 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   // RFBP1-1542: the technician chose to add to the already-open follow-on instead of creating another.
   const [addToExisting, setAddToExisting] = useState(false);
 
+  // Identity confirmation (moved here from Review Order) — required before continuing.
+  const [identityConfirmed, setIdentityConfirmed] = useState(false);
+
   // CRC: pick the service account that has the order in progress (mock: the demo account).
   const crcAccount = MOCK_WORK_ORDERS[0];
   const [crcAccountSelected, setCrcAccountSelected] = useState(false);
@@ -127,9 +130,9 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
     }
   };
 
-  const canContinue =
+  const canContinue = identityConfirmed && (
     (selected === 'crc' && crcAccountSelected) ||
-    (selected === 'technician' && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting));
+    (selected === 'technician' && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting)));
 
   const handleContinue = () => {
     if (selected === 'crc' && crcAccountSelected) {
@@ -381,6 +384,26 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
           </div>
         )}
       </div>
+
+      {/* Identity confirmation */}
+      <button
+        role="checkbox"
+        aria-checked={identityConfirmed}
+        onClick={() => setIdentityConfirmed(v => !v)}
+        className="w-full flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 mb-6 text-left hover:bg-gray-100 transition-colors"
+      >
+        <div className={`w-4 h-4 mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
+          ${identityConfirmed ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
+          {identityConfirmed && (
+            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+        <span className="text-sm text-gray-700 leading-snug">
+          I confirm the customer's identity matches the account on file and they are authorized to request changes to this service.
+        </span>
+      </button>
 
       {/* Footer */}
       <div className="flex justify-end gap-3">

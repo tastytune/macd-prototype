@@ -106,9 +106,8 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
       });
   const [collapsed, setCollapsed] = useState<Set<GroupKey>>(new Set());
   const [billingPref, setBillingPref] = useState<'electronic' | 'paper'>('electronic');
-  const [identityConfirmed, setIdentityConfirmed] = useState(false);
   const [moveFeeApplied, setMoveFeeApplied] = useState(true);
-  const canConfirm = activeGroups.length > 0 && (action !== 'followOnOrder' || identityConfirmed);
+  const canConfirm = activeGroups.length > 0;
 
   const toggle = (g: GroupKey) => {
     setCollapsed(prev => {
@@ -313,26 +312,6 @@ export function ChangeReviewOrder({ action, selectedSA, installationDate, instal
               </div>
             </div>
           </div>
-
-          {/* Identity confirmation — Follow On Order only */}
-          {action === 'followOnOrder' && (
-            <button
-              onClick={() => setIdentityConfirmed(v => !v)}
-              className="w-full flex items-start gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 mt-4 text-left hover:bg-gray-100 transition-colors"
-            >
-              <div className={`w-4 h-4 mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors
-                ${identityConfirmed ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'}`}>
-                {identityConfirmed && (
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span className="text-sm text-gray-700 leading-snug">
-                I confirm the customer's identity matches the account on file and they are authorized to request changes to this service.
-              </span>
-            </button>
-          )}
         </div>
 
         {/* ── Right: Order Summary ── */}
