@@ -22,10 +22,10 @@ interface ChangeInstallationDateProps {
 }
 
 export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isUpgrade, isMove2 = false, action, scenario, selectedPromos = new Set(), onPromoToggle, onBack, onSkip, onNext }: ChangeInstallationDateProps) {
-  // Two appointments (disconnect + install) for Change, Move and Add On New Location; Follow-On Order keeps a single install panel.
-    const isAddLocation = action === 'addLocation';
+  // Every action schedules two appointments: disconnect + install.
+  const isAddLocation = action === 'addLocation';
   const isFollowOn = action === 'followOnOrder';
-  const isDualSchedule = !isFollowOn;
+  const isDualSchedule = true;
   // Install appointment (all actions)
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -45,12 +45,20 @@ export function ChangeInstallationDate({ selectedSA, cartLines, isDowngrade, isU
         <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Service' : isFollowOn ? 'Follow-On Order' : 'Change Service'}</h1>
         <ContextBar action={isAddLocation ? 'addLocation' : isMove2 ? 'move2' : isFollowOn ? 'followOnOrder' : 'change'} selectedSA={selectedSA} />
       </div>
-      <Breadcrumb
-        steps={(isMove2 || isAddLocation)
-          ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
-          : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
-        currentIndex={(isMove2 || isAddLocation) ? 4 : 3}
-      />
+      {isFollowOn ? (
+        <Breadcrumb
+          steps={['Follow-On Order', 'Service Type', 'Plan', 'Installation', 'Review Order', 'Confirmation']}
+          currentIndex={3}
+          variant="plain"
+        />
+      ) : (
+        <Breadcrumb
+          steps={(isMove2 || isAddLocation)
+            ? ['Select account', 'Destination', 'Service type', 'Plan', 'Installation', 'Review order']
+            : ['Select account', 'Service type', 'Plan', 'Installation', 'Review order']}
+          currentIndex={(isMove2 || isAddLocation) ? 4 : 3}
+        />
+      )}
 
       <div className="flex gap-8 items-start">
 

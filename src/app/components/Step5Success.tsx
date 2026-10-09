@@ -114,7 +114,7 @@ export function Step5Success({ service, orderReference, orderItems, onReturn, ac
   };
   const originAddress = selectedSA?.address;
   const installAddress = isMove ? destinationAddress : selectedSA?.address;
-  const showSchedule = (isMove || isChange || isAddLocation)
+  const showSchedule = (isMove || isChange || isAddLocation || isFollowOnOrder)
     && !!(installationDate || originInstallationDate || (isMove && (billingEndDate || mailingAddress)));
 
   return (
