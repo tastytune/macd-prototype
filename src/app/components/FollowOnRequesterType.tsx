@@ -33,6 +33,54 @@ const OPTIONS: {
 
 type SearchState = 'idle' | 'searching' | 'results';
 
+/** Read-only "Order in progress" context card shared by the Technician and CRC paths (RFBP1-1534). */
+function OrderInProgressCard({ wo, notInProgress = false }: { wo: WorkOrderResult; notInProgress?: boolean }) {
+  return (
+    <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            {notInProgress ? 'Original order' : 'Order in progress'}
+          </p>
+          <a
+            href={`https://salesforce.com/order/${wo.orderNumber}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base font-bold text-blue-600 hover:text-blue-800 underline mt-0.5 inline-block"
+          >
+            {wo.orderNumber}
+          </a>
+        </div>
+        <span
+          className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap border
+            ${notInProgress
+              ? 'bg-gray-100 text-gray-600 border-gray-200'
+              : 'bg-amber-100 text-amber-700 border-amber-200'}`}
+        >
+          {wo.orderStatus} / {wo.orderSubStatus}
+        </span>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        <div>
+          <dt className="text-xs text-gray-400">Products on this order</dt>
+          <dd className="text-gray-800 font-medium mt-0.5">{wo.products.join(', ')}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-gray-400">Service account</dt>
+          <dd className="text-gray-800 font-medium mt-0.5">{wo.saId} · {wo.saLabel}</dd>
+          <dd className="text-xs text-gray-500 mt-0.5">{wo.address}</dd>
+        </div>
+      </dl>
+
+      <div className="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
+        <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-px" />
+        <span>A separate order will be created. This order is not modified.</span>
+      </div>
+    </div>
+  );
+}
+
 export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterTypeProps) {
   const [selected, setSelected] = useState<FollowOnRequesterType | null>(null);
 
@@ -43,6 +91,10 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // RFBP1-1542: the technician chose to add to the already-open follow-on instead of creating another.
   const [addToExisting, setAddToExisting] = useState(false);
+
+  // CRC: pick the service account that has the order in progress (mock: the demo account).
+  const crcAccount = MOCK_WORK_ORDERS[0];
+  const [crcAccountSelected, setCrcAccountSelected] = useState(false);
 
   const isValid = workOrderId.trim().length > 0;
   const selectedWorkOrder = results.find(wo => wo.id === selectedId) ?? null;
@@ -65,6 +117,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   const handleSelectOption = (optionId: FollowOnRequesterType) => {
     setSelected(optionId);
     if (optionId === 'crc') {
+      setCrcAccountSelected(true);
       // CRC never looks up a work order — clear any in-progress Technician lookup state.
       setWorkOrderId('');
       setSearchState('idle');
@@ -75,12 +128,12 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   };
 
   const canContinue =
-    selected === 'crc' ||
+    (selected === 'crc' && crcAccountSelected) ||
     (selected === 'technician' && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting));
 
   const handleContinue = () => {
-    if (selected === 'crc') {
-      onContinue('crc', MOCK_WORK_ORDERS[0], false);
+    if (selected === 'crc' && crcAccountSelected) {
+      onContinue('crc', crcAccount, false);
     } else if (selected === 'technician' && selectedWorkOrder && !orderNotInProgress) {
       onContinue('technician', selectedWorkOrder, !!openFollowOn && addToExisting);
     }
@@ -147,6 +200,44 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
             );
           })}
         </div>
+
+        {/* CRC-only: service account + its order in progress */}
+        {selected === 'crc' && (
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Select the service account</h2>
+
+            <button
+              role="radio"
+              aria-checked={crcAccountSelected}
+              onClick={() => setCrcAccountSelected(true)}
+              className={`w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl border-2 text-left transition-all
+                ${crcAccountSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900">{crcAccount.saId} - {crcAccount.orderNumber}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{crcAccount.address}</p>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {crcAccount.products.map(product => (
+                    <span key={product} className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-white border border-gray-200 text-gray-700">
+                      {product}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-700 whitespace-nowrap">
+                  {crcAccount.orderStatus}
+                </span>
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center
+                  ${crcAccountSelected ? 'border-blue-600' : 'border-gray-300'}`}>
+                  {crcAccountSelected && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                </div>
+              </div>
+            </button>
+
+            {crcAccountSelected && <OrderInProgressCard wo={crcAccount} />}
+          </div>
+        )}
 
         {/* Technician-only: Work Order lookup, shown inline once selected */}
         {selected === 'technician' && (
@@ -242,43 +333,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
             {/* Order in progress — read-only context (RFBP1-1534) */}
             {selectedWorkOrder && (
-              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                      {orderNotInProgress ? 'Original order' : 'Order in progress'}
-                    </p>
-                    <p className="text-base font-bold text-gray-900 mt-0.5">{selectedWorkOrder.orderNumber}</p>
-                  </div>
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap border
-                      ${orderNotInProgress
-                        ? 'bg-gray-100 text-gray-600 border-gray-200'
-                        : 'bg-amber-100 text-amber-700 border-amber-200'}`}
-                  >
-                    {selectedWorkOrder.orderStatus} / {selectedWorkOrder.orderSubStatus}
-                  </span>
-                </div>
-
-                <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                  <div>
-                    <dt className="text-xs text-gray-400">Products on this order</dt>
-                    <dd className="text-gray-800 font-medium mt-0.5">{selectedWorkOrder.products.join(', ')}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs text-gray-400">Service account</dt>
-                    <dd className="text-gray-800 font-medium mt-0.5">
-                      {selectedWorkOrder.saId} · {selectedWorkOrder.saLabel}
-                    </dd>
-                    <dd className="text-xs text-gray-500 mt-0.5">{selectedWorkOrder.address}</dd>
-                  </div>
-                </dl>
-
-                <div className="mt-4 flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600">
-                  <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-px" />
-                  <span>A separate order will be created. This order is not modified.</span>
-                </div>
-              </div>
+              <OrderInProgressCard wo={selectedWorkOrder} notInProgress={orderNotInProgress} />
             )}
 
             {/* Blocked: original order no longer in progress (RFBP1-1534) */}
