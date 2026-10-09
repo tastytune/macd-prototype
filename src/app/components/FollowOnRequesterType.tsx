@@ -92,7 +92,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   // RFBP1-1542: the technician chose to add to the already-open follow-on instead of creating another.
   const [addToExisting, setAddToExisting] = useState(false);
 
-  // Identity confirmation (moved here from Review Order) — required before continuing.
+  // Identity confirmation (moved here from Review Order) — Technician path only, required before continuing.
   const [identityConfirmed, setIdentityConfirmed] = useState(false);
 
   // CRC: pick the service account that has the order in progress (mock: the demo account).
@@ -119,6 +119,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
   const handleSelectOption = (optionId: FollowOnRequesterType) => {
     setSelected(optionId);
+    if (optionId !== 'technician') setIdentityConfirmed(false);
     if (optionId === 'crc') {
       setCrcAccountSelected(true);
       // CRC never looks up a work order — clear any in-progress Technician lookup state.
@@ -130,9 +131,9 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
     }
   };
 
-  const canContinue = identityConfirmed && (
+  const canContinue =
     (selected === 'crc' && crcAccountSelected) ||
-    (selected === 'technician' && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting)));
+    (selected === 'technician' && identityConfirmed && !!selectedWorkOrder && !orderNotInProgress && (!openFollowOn || addToExisting));
 
   const handleContinue = () => {
     if (selected === 'crc' && crcAccountSelected) {
@@ -385,7 +386,8 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
         )}
       </div>
 
-      {/* Identity confirmation */}
+      {/* Identity confirmation — Technician only */}
+      {selected === 'technician' && (
       <button
         role="checkbox"
         aria-checked={identityConfirmed}
@@ -404,6 +406,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
           I confirm the customer's identity matches the account on file and they are authorized to request changes to this service.
         </span>
       </button>
+      )}
 
       {/* Footer */}
       <div className="flex justify-end gap-3">
