@@ -86,6 +86,9 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
   // Technician-only: Work Order lookup
   const [workOrderId, setWorkOrderId] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState('');
+  const [serviceAppointmentId, setServiceAppointmentId] = useState('');
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [results, setResults] = useState<WorkOrderResult[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   const crcAccount = MOCK_WORK_ORDERS[0];
   const [crcAccountSelected, setCrcAccountSelected] = useState(false);
 
-  const isValid = workOrderId.trim().length > 0;
+  const isValid = [workOrderId, customerName, address, serviceAppointmentId].some(v => v.trim().length > 0);
   const selectedWorkOrder = results.find(wo => wo.id === selectedId) ?? null;
 
   // RFBP1-1534: a follow-on can only hang off an original order that is still in progress.
@@ -112,7 +115,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
     setAddToExisting(false);
     setSearchState('searching');
     setTimeout(() => {
-      setResults(searchWorkOrders(workOrderId));
+      setResults(searchWorkOrders({ workOrderId, customerName, address, serviceAppointmentId }));
       setSearchState('results');
     }, 500);
   };
@@ -248,21 +251,33 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
           <div className="mt-6 pt-6 border-t border-gray-100">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Look up work orders</h2>
 
-            <label className="block text-sm font-bold text-gray-800 mb-2">Work order ID</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={workOrderId}
-                onChange={(e) => {
-                  setWorkOrderId(e.target.value);
-                  setSearchState('idle');
-                  setResults([]);
-                  setSelectedId(null);
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
-                placeholder="e.g. WO-1234"
-                className="flex-1 px-4 py-3.5 rounded-lg border border-gray-300 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            <p className="text-sm text-gray-500 mb-4">Search by any of the fields below.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {([
+                ['Work order ID', workOrderId, setWorkOrderId, 'e.g. WO-10432'],
+                ['Customer name', customerName, setCustomerName, 'e.g. Robert Johnson'],
+                ['Location address', address, setAddress, 'e.g. 412 Oak Ave'],
+                ['Service appointment', serviceAppointmentId, setServiceAppointmentId, 'e.g. SAP-00871'],
+              ] as [string, string, (v: string) => void, string][]).map(([label, value, setter, ph]) => (
+                <div key={label}>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => {
+                      setter(e.target.value);
+                      setSearchState('idle');
+                      setResults([]);
+                      setSelectedId(null);
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
+                    placeholder={ph}
+                    className="w-full px-4 py-3.5 rounded-lg border border-gray-300 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
               <button
                 onClick={handleValidate}
                 disabled={!isValid || searchState === 'searching'}
@@ -277,7 +292,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
             </div>
 
             <p className="mt-2 text-xs text-gray-400">
-              Prototype demo: WO-10432 (in progress) · WO-10388 (order completed) · WO-10455 (open follow-on)
+              Prototype demo: WO-10432 / SAP-00871 (in progress) · WO-10388 / SAP-00850 (order completed) · WO-10455 / SAP-00890 (open follow-on) · or search “Robert Johnson” / “412 Oak Ave”
             </p>
 
             {/* Search results */}

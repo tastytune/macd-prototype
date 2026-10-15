@@ -10,6 +10,7 @@ export interface OpenFollowOn {
 
 export interface WorkOrderResult {
   id: string;                // Work Order id (WO-…)
+  serviceAppointmentId: string; // Service Appointment id (SAP-…)
   customerName: string;
   saId: string;
   saLabel: string;
@@ -32,6 +33,7 @@ export interface WorkOrderResult {
 export const MOCK_WORK_ORDERS: WorkOrderResult[] = [
   {
     id: 'WO-10432',
+    serviceAppointmentId: 'SAP-00871',
     customerName: 'Robert Johnson',
     saId: 'SA-00912',
     saLabel: 'Primary',
@@ -49,6 +51,7 @@ export const MOCK_WORK_ORDERS: WorkOrderResult[] = [
   // Demo: the original order is no longer in progress → Continue is blocked.
   {
     id: 'WO-10388',
+    serviceAppointmentId: 'SAP-00850',
     customerName: 'Robert Johnson',
     saId: 'SA-00912',
     saLabel: 'Primary',
@@ -66,6 +69,7 @@ export const MOCK_WORK_ORDERS: WorkOrderResult[] = [
   // Demo: an open follow-on that has not started yet → offer "Add to this order".
   {
     id: 'WO-10455',
+    serviceAppointmentId: 'SAP-00890',
     customerName: 'Robert Johnson',
     saId: 'SA-00912',
     saLabel: 'Primary',
@@ -82,10 +86,22 @@ export const MOCK_WORK_ORDERS: WorkOrderResult[] = [
   },
 ];
 
-// Prototype lookup: an exact Work Order id returns that order; anything else falls back to
-// the default happy-path order so the flow stays easy to demo.
-export function searchWorkOrders(query: string): WorkOrderResult[] {
-  const q = query.trim().toUpperCase();
-  const exact = MOCK_WORK_ORDERS.filter(wo => wo.id.toUpperCase() === q);
-  return exact.length ? exact : [MOCK_WORK_ORDERS[0]];
+export interface WorkOrderSearchCriteria {
+  workOrderId?: string;
+  customerName?: string;
+  address?: string;
+  serviceAppointmentId?: string;
+}
+
+// Prototype lookup: the agent can search by Work Order id, customer name, location address or
+// Service Appointment id. Every criterion provided must match (case-insensitive, partial match).
+// If nothing matches, fall back to the default happy-path order so the flow stays easy to demo.
+export function searchWorkOrders(c: WorkOrderSearchCriteria): WorkOrderResult[] {
+  const norm = (v?: string) => (v ?? '').trim().toLowerCase();
+  const has = (field: string, q: string) => !q || field.toLowerCase().includes(q);
+  const id = norm(c.workOrderId), name = norm(c.customerName),
+        addr = norm(c.address), sap = norm(c.serviceAppointmentId);
+  const hits = MOCK_WORK_ORDERS.filter(wo =>
+    has(wo.id, id) && has(wo.customerName, name) && has(wo.address, addr) && has(wo.serviceAppointmentId, sap));
+  return hits.length ? hits : [MOCK_WORK_ORDERS[0]];
 }
