@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AddressLookupInput } from './AddressLookupInput';
 import { HardHat, Headset, CheckCircle2, AlertTriangle, Info, ListPlus } from 'lucide-react';
 import { Breadcrumb } from './Breadcrumb';
 import { MOCK_WORK_ORDERS, searchWorkOrders } from './FollowOnWorkOrder';
@@ -261,19 +262,33 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
               ] as [string, string, (v: string) => void, string][]).map(([label, value, setter, ph]) => (
                 <div key={label}>
                   <label className="block text-sm font-bold text-gray-800 mb-2">{label}</label>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => {
-                      setter(e.target.value);
+                  {(() => {
+                    const inputCls = 'w-full px-4 py-3.5 rounded-lg border border-gray-300 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+                    const change = (v: string) => {
+                      setter(v);
                       setSearchState('idle');
                       setResults([]);
                       setSelectedId(null);
-                    }}
-                    onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
-                    placeholder={ph}
-                    className="w-full px-4 py-3.5 rounded-lg border border-gray-300 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                    };
+                    return label === 'Location address' ? (
+                      <AddressLookupInput
+                        value={value}
+                        onChange={change}
+                        onEnter={handleValidate}
+                        placeholder={ph}
+                        inputClassName={inputCls}
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => change(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleValidate()}
+                        placeholder={ph}
+                        className={inputCls}
+                      />
+                    );
+                  })()}
                 </div>
               ))}
             </div>
