@@ -20,14 +20,14 @@ const OPTIONS: {
 }[] = [
   {
     id: 'technician',
-    label: 'Technician',
-    description: 'An on-site technician is creating this follow-on order from an active work order.',
+    label: 'Technician request',
+    description: 'A technician on site asked for this follow-on from an active work order. You\'re creating it on their behalf.',
     icon: HardHat,
   },
   {
     id: 'crc',
-    label: 'CRC',
-    description: 'A Customer Response Center agent is creating this follow-on order on behalf of the customer.',
+    label: 'CRC request',
+    description: 'A Customer Response Center agent asked for this follow-on for the customer. You\'re creating it on their behalf.',
     icon: Headset,
   },
 ];
@@ -159,7 +159,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-3">Follow On Order</h1>
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-3">Follow-On Order</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 whitespace-nowrap">
             Follow-On Order
@@ -177,7 +177,8 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
       {/* Requester type + (Technician only) Work Order lookup */}
       <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Who is creating this order?</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Who requested this order?</h2>
+        <p className="text-sm text-gray-500 mb-4">You create the order. Select who asked for it.</p>
 
         <div className="grid grid-cols-2 gap-3">
           {OPTIONS.map((option) => {
@@ -252,7 +253,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
         {/* Technician-only: Work Order lookup, shown inline once selected */}
         {selected === 'technician' && (
           <div className="mt-6 pt-6 border-t border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Look up work orders</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Find the technician's work order</h2>
 
             <p className="text-sm text-gray-500 mb-4">Search by one field at a time.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
