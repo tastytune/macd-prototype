@@ -120,8 +120,8 @@ const actions: {
   },
   {
     id: 'addLocation',
-    label: 'Add On New Location',
-    description: 'Add a new service location under this customer, alongside their existing accounts.',
+    label: 'Add additional location',
+    description: 'Add new service location and create new service account for the customer.',
     icon: MapPinPlus,
     iconColor: 'text-teal-600',
     iconBg: 'bg-teal-50',
