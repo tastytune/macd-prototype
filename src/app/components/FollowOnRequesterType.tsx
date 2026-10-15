@@ -27,7 +27,7 @@ const OPTIONS: {
   {
     id: 'crc',
     label: 'CRC request',
-    description: 'The customer asked the Customer Response Center for this follow-on. You\'re creating it for them.',
+    description: 'The customer asked the Customer Resolution Center for this follow-on.',
     icon: Headset,
   },
 ];
