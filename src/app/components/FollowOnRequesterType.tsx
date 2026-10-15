@@ -103,7 +103,9 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
   const crcAccount = MOCK_WORK_ORDERS[0];
   const [crcAccountSelected, setCrcAccountSelected] = useState(false);
 
-  const isValid = [workOrderId, customerName, address, serviceAppointmentId].some(v => v.trim().length > 0);
+  // The agent searches by ONE criterion at a time: exactly one field filled enables the search.
+  const filledCount = [workOrderId, customerName, address, serviceAppointmentId].filter(v => v.trim().length > 0).length;
+  const isValid = filledCount === 1;
   const selectedWorkOrder = results.find(wo => wo.id === selectedId) ?? null;
 
   // RFBP1-1534: a follow-on can only hang off an original order that is still in progress.
@@ -252,7 +254,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
           <div className="mt-6 pt-6 border-t border-gray-100">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Look up work orders</h2>
 
-            <p className="text-sm text-gray-500 mb-4">Search by any of the fields below.</p>
+            <p className="text-sm text-gray-500 mb-4">Search by one field at a time.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {([
                 ['Work order ID', workOrderId, setWorkOrderId, 'e.g. WO-10432'],
@@ -292,7 +294,12 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex items-center justify-end gap-4">
+              {filledCount > 1 && (
+                <p className="text-xs text-amber-700" role="status">
+                  Use only one search field. Clear the others to search.
+                </p>
+              )}
               <button
                 onClick={handleValidate}
                 disabled={!isValid || searchState === 'searching'}
