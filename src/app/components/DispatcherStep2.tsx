@@ -146,7 +146,7 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
   move2: 'Move 2',
   followOnOrder: 'Follow-On Order',
-  addLocation: 'Add On New Location',
+  addLocation: 'Add additional location',
 };
 
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {

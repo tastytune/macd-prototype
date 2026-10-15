@@ -21,7 +21,7 @@ const actionLabel: Record<MACDAction, string> = {
   move: 'Move',
   move2: 'Move',
   followOnOrder: 'Follow-On Order',
-  addLocation: 'Add On New Location',
+  addLocation: 'Add additional location',
 };
 
 // Original Work Order (read-only context) for the On-Site Upsell / Follow On Order flow.
