@@ -177,8 +177,7 @@ export function FollowOnRequesterType({ onBack, onContinue }: FollowOnRequesterT
 
       {/* Requester type + (Technician only) Work Order lookup */}
       <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Who requested this order?</h2>
-        <p className="text-sm text-gray-500 mb-4">You create the order. Select who asked for it.</p>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Who requested this order?</h2>
 
         <div className="grid grid-cols-2 gap-3">
           {OPTIONS.map((option) => {
