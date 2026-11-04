@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 
 // Interlata (PIC) / Intralata (LPIC) carrier field — RFBP1-3679 (Change) and RFBP1-3681 (Net-New).
@@ -65,10 +65,14 @@ export function CarrierCombobox({ label, value, onChange, favorites, onToggleFav
   const [active, setActive] = useState(0);
 
   const q = query.trim().toLowerCase();
-  const options = useMemo(
-    () => CARRIERS.filter(c => !q || c.name.toLowerCase().includes(q) || c.code.includes(q)),
-    [q],
-  );
+  // Favorites float to the top (under a "Favorites" heading); the rest keep the spec order
+  // (Rightfiber first, then A–Z). A carrier is never listed twice.
+  const options = useMemo(() => {
+    const matches = CARRIERS.filter(c => !q || c.name.toLowerCase().includes(q) || c.code.includes(q));
+    const favs = matches.filter(c => favorites?.has(c.code));
+    return [...favs, ...matches.filter(c => !favorites?.has(c.code))];
+  }, [q, favorites]);
+  const favCount = options.filter(c => favorites?.has(c.code)).length;
 
   const onList = CARRIERS.some(c => c.code === value);
   const blank = value === '';
@@ -160,8 +164,13 @@ export function CarrierCombobox({ label, value, onChange, favorites, onToggleFav
         >
           <ul id={listId} role="listbox" aria-label={`${label} options`} className="m-0 p-1.5 list-none max-h-52 overflow-y-auto">
             {options.map((c, i) => (
+              <Fragment key={c.code}>
+              {favCount > 0 && (i === 0 || i === favCount) && (
+                <li role="presentation" className="px-2 pt-1.5 pb-1 text-[11px] font-bold tracking-widest uppercase" style={{ color: '#475569' }}>
+                  {i === 0 ? 'Favorites' : 'All carriers'}
+                </li>
+              )}
               <li
-                key={c.code}
                 id={`${uid}-opt-${i}`}
                 role="option"
                 aria-selected={c.code === value}
@@ -200,6 +209,7 @@ export function CarrierCombobox({ label, value, onChange, favorites, onToggleFav
                   );
                 })()}
               </li>
+              </Fragment>
             ))}
           </ul>
           {options.length === 0 && (

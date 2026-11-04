@@ -209,6 +209,22 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // after its tooltip has actually been shown via hover — never on a blind first click.
   const [bundleTooltipSeen, setBundleTooltipSeen] = useState(false);
 
+  // Favorite carriers — shared by the Interlata and Intralata fields and remembered in this browser.
+  const [favoriteCarriers, setFavoriteCarriers] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('macd.favoriteCarriers');
+      return new Set<string>(raw ? JSON.parse(raw) : []);
+    } catch { return new Set<string>(); }
+  });
+  const toggleFavoriteCarrier = (code: string) => {
+    setFavoriteCarriers(prev => {
+      const next = new Set(prev);
+      next.has(code) ? next.delete(code) : next.add(code);
+      try { localStorage.setItem('macd.favoriteCarriers', JSON.stringify([...next])); } catch { /* storage unavailable */ }
+      return next;
+    });
+  };
+
   // Bundle → Standalone confirmation (Internet and TV get disconnected) — shown before the switch is applied.
   const [confirmSwitchPlan, setConfirmSwitchPlan] = useState<typeof PLANS[0] | null>(null);
   useEffect(() => {
@@ -379,6 +395,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     label={f.name}
                     value={attrVal ?? ''}
                     onChange={code => setAttributeValues(prev => ({ ...prev, [f.id]: code }))}
+                    favorites={favoriteCarriers}
+                    onToggleFavorite={toggleFavoriteCarrier}
                   />
                 </div>
               ) : editable && f.manageable === 'attribute' ? (
