@@ -372,6 +372,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
             <div key={f.id} className={`flex justify-between gap-4 ${isCarrierFeature(f.id) ? 'items-start' : 'items-center'}`}>
               <span className={`text-sm flex items-center gap-1.5 ${isCarrierFeature(f.id) ? 'pt-3' : ''} ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                 {f.name}
+                {isCarrierFeature(f.id) && <span className="text-red-600 font-bold" aria-hidden="true">*</span>}
                 {f.id === 'long-distance' && standalone && <LongDistanceHelp />}
               </span>
 

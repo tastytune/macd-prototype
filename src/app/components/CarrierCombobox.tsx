@@ -104,7 +104,6 @@ export function CarrierCombobox({ label, value, onChange, favorites, onToggleFav
 
   const border = open ? '#2563EB' : blank ? '#DC2626' : notOnList ? '#B45309' : '#CBD5E1';
   const hint = open ? null
-    : blank ? { text: `${label} is required. Select a carrier to continue.`, color: '#B91C1C' }
     : notOnList ? { text: 'Not on the approved list. Choose a carrier to replace it.', color: '#92400E' }
     : null;
 
@@ -128,6 +127,7 @@ export function CarrierCombobox({ label, value, onChange, favorites, onToggleFav
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={open && options[active] ? `${uid}-opt-${active}` : undefined}
+          aria-required={true}
           aria-invalid={blank || undefined}
           autoComplete="off"
           title={carrierLabel(value) || undefined}
