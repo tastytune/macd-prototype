@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Star } from 'lucide-react';
 
 // Interlata (PIC) / Intralata (LPIC) carrier field — RFBP1-3679 (Change) and RFBP1-3681 (Net-New).
 // Searchable combobox over an approved list (no free text). Spec: "3 · Field states and rules".
@@ -48,9 +49,13 @@ interface Props {
   label: string;               // e.g. "Interlata Carrier"
   value: string;               // carrier code, '' (blank) or a legacy value not on the list
   onChange: (code: string) => void;
+  // Favorites (list not built yet): codes marked as favorite and the toggle handler. Until they are
+  // passed, the star on each row is a visible, inert placeholder.
+  favorites?: Set<string>;
+  onToggleFavorite?: (code: string) => void;
 }
 
-export function CarrierCombobox({ label, value, onChange }: Props) {
+export function CarrierCombobox({ label, value, onChange, favorites, onToggleFavorite }: Props) {
   const uid = useId();
   const listId = `${uid}-list`;
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -171,6 +176,29 @@ export function CarrierCombobox({ label, value, onChange }: Props) {
                 {c.rf && (
                   <span className="flex-none text-[10px] font-semibold tracking-wide rounded-full px-[7px] py-0.5" style={{ color: '#1E40AF', background: '#E0EAFF' }}>RIGHTFIBER</span>
                 )}
+                {(() => {
+                  const isFav = !!favorites?.has(c.code);
+                  return (
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      aria-label={isFav ? `Remove ${c.name} from favorites` : `Add ${c.name} to favorites`}
+                      aria-pressed={isFav}
+                      title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                      // Never pick the option when the star is pressed.
+                      onMouseDown={e => { e.preventDefault(); e.stopPropagation(); }}
+                      onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFavorite?.(c.code); }}
+                      className="flex-none p-1 -mr-1 rounded-md hover:bg-slate-200/70"
+                    >
+                      <Star
+                        className="w-4 h-4"
+                        style={{ color: isFav ? '#D97706' : '#94A3B8' }}
+                        fill={isFav ? '#FBBF24' : 'none'}
+                        strokeWidth={1.8}
+                      />
+                    </button>
+                  );
+                })()}
               </li>
             ))}
           </ul>
