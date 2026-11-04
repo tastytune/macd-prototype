@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapPin, AlertTriangle, Info } from 'lucide-react';
 import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
@@ -216,6 +216,15 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // The disabled Phone Bundle button only becomes clickable (to jump to Internet)
   // after its tooltip has actually been shown via hover — never on a blind first click.
   const [bundleTooltipSeen, setBundleTooltipSeen] = useState(false);
+
+  // Bundle → Standalone confirmation (Internet and TV get disconnected) — shown before the switch is applied.
+  const [confirmSwitchPlan, setConfirmSwitchPlan] = useState<typeof PLANS[0] | null>(null);
+  useEffect(() => {
+    if (!confirmSwitchPlan) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setConfirmSwitchPlan(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [confirmSwitchPlan]);
 
   const defaultAttributeValuesFor = (planId: string | null): Record<string, string> => {
     if (planId === 'phone-standalone') {
@@ -455,7 +464,13 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
         mutedPrice={isSelected && isActualCurrent}
         onClick={() => {
           if (!isDisabled) {
-            handlePlanClick(plan);
+            // Switching away from the Bundle disconnects Internet/TV — ask the agent to confirm first.
+            if (warnsOnSelect && !isLegacyFlow && actualCurrentPlanId === 'phone-bundle'
+                && previousLines.some(l => l.group === 'internet' || l.group === 'television')) {
+              setConfirmSwitchPlan(plan);
+            } else {
+              handlePlanClick(plan);
+            }
           } else if (isBundle && bundleTooltipSeen) {
             // Only navigate to Internet once the user has actually seen the
             // explanatory tooltip via hover — never on a blind first click.
@@ -469,6 +484,70 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-12">
+
+      {/* ── Confirm: switching Bundle → Standalone disconnects Internet and TV ── */}
+      {confirmSwitchPlan && (() => {
+        const lines = previousLines.filter(l => l.group === 'internet' || l.group === 'television');
+        const hasTv = lines.some(l => l.group === 'television');
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4"
+            onClick={() => setConfirmSwitchPlan(null)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="confirm-switch-title"
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden"
+            >
+              <div className="flex items-center gap-4 px-6 py-5 bg-amber-50/60 border-b border-gray-200">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
+                  <AlertTriangle className="h-6 w-6 text-amber-700" />
+                </div>
+                <div>
+                  <h2 id="confirm-switch-title" className="text-xl font-bold text-gray-900">
+                    {hasTv ? 'Internet and TV will be disconnected' : 'Internet will be disconnected'}
+                  </h2>
+                  <p className="text-sm text-gray-600">Standalone Phone cannot be held alongside internet.</p>
+                </div>
+              </div>
+
+              <div className="px-6 py-5">
+                <p className="text-xs font-bold tracking-wide uppercase text-gray-500 mb-2">Switching disconnects</p>
+                <ul className="rounded-xl border border-gray-200 divide-y divide-gray-200">
+                  {lines.map((l, i) => (
+                    <li key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-900">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 font-bold leading-none">−</span>
+                      {l.label}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-700">
+                  Any bundle discount on these services ends with them.
+                </p>
+                <p className="mt-4 text-sm font-semibold text-gray-700">Confirm the customer wants to continue.</p>
+              </div>
+
+              <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <button
+                  autoFocus
+                  onClick={() => setConfirmSwitchPlan(null)}
+                  className="px-6 py-2.5 rounded-xl border border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { handlePlanClick(confirmSwitchPlan); setConfirmSwitchPlan(null); }}
+                  className="px-6 py-2.5 rounded-xl bg-red-600 text-sm font-bold text-white hover:bg-red-700 transition-colors"
+                >
+                  Disconnect and switch
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="mb-8">
         <h1 className="text-3xl text-gray-900 mb-2">{isAddLocation ? 'Add On New Location' : isMove2 ? 'Move Phone Service' : 'Change Phone Service'}</h1>
