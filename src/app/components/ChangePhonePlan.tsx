@@ -333,7 +333,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const renderFeatureRows = (editable: boolean, standalone: boolean) => {
     const list = buildFeatureList(standalone);
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         {list.map(f => {
           const isRemoved = editable && removedFeatures.has(f.id);
           const attrVal   = f.manageable === 'attribute' ? (editable ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : (f.defaultAttribute ?? '')) : null;
@@ -342,7 +342,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
           return (
             <div key={f.id} className="flex items-center justify-between gap-4">
-              <span className={`text-lg flex items-center gap-1.5 ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+              <span className={`text-sm flex items-center gap-1.5 ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                 {f.name}
                 {f.id === 'long-distance' && standalone && <LongDistanceHelp />}
               </span>
@@ -365,7 +365,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 <select
                   value={attributeValues[f.id] ?? f.defaultAttribute}
                   onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                  className="flex-1 max-w-[17rem] min-w-0 text-base border border-gray-300 rounded-xl px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate"
+                  className="flex-1 max-w-[17rem] min-w-0 text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate"
                 >
                   {f.attributeOptions?.map(opt => (
                     <option key={opt} value={opt}>
@@ -376,7 +376,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                   ))}
                 </select>
               ) : (
-                <span className="text-base text-gray-800 flex-shrink-0">
+                <span className="text-sm text-gray-800 flex-shrink-0">
                   {f.manageable === 'attribute' ? attrVal : rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
                 </span>
               )}
@@ -391,10 +391,10 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   const renderFeaturesPanel = () => (
     <div className="grid grid-cols-2 gap-4 mb-8">
       <div>
-        <p className="text-base font-bold tracking-wide uppercase text-gray-500 mb-3">
+        <p className="text-xs font-bold tracking-wide uppercase text-gray-500 mb-2">
           {standaloneActive ? 'Included with your standalone phone' : 'Included with your bundle'}
         </p>
-        <div className="rounded-2xl border border-gray-200 bg-white p-8">
+        <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4">
           {renderFeatureRows(!!selectedPlan, standaloneActive)}
         </div>
       </div>
