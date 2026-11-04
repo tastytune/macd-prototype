@@ -146,7 +146,7 @@ function PlanCard({ title, price, note, pill, selected, disabled, mutedPrice, on
   return (
     <div
       onClick={onClick}
-      className={`relative w-full h-full rounded-2xl border p-8 flex flex-col transition-all
+      className={`relative w-full h-full rounded-2xl border p-6 flex flex-col transition-all
         ${disabled
           ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-70'
           : selected
@@ -160,17 +160,17 @@ function PlanCard({ title, price, note, pill, selected, disabled, mutedPrice, on
         </span>
       )}
       <h3 className="text-3xl font-extrabold text-gray-900 text-center mt-2">{title}</h3>
-      <p className="mt-8 text-center">
-        <span className={`text-4xl font-bold ${mutedPrice ? 'text-gray-400' : 'text-gray-900'}`}>${price.toFixed(2)}</span>
-        <span className="text-lg text-gray-500">/month</span>
+      <p className="mt-4 text-center">
+        <span className={`text-2xl font-bold ${mutedPrice ? 'text-gray-400' : 'text-gray-900'}`}>${price.toFixed(2)}</span>
+        <span className="text-base text-gray-500">/month</span>
       </p>
-      <p className="mt-6 text-center text-base text-gray-500 min-h-[1.5rem]">{note}</p>
-      {action && <div className="mt-auto pt-6">{action}</div>}
+      <p className="mt-2 text-center text-sm text-gray-500 min-h-[1.25rem]">{note}</p>
+      {action && <div className="mt-auto pt-4">{action}</div>}
     </div>
   );
 }
 
-const PLAN_BTN = 'relative group/planbtn w-full py-4 rounded-xl text-center text-lg font-bold uppercase tracking-wide transition-colors';
+const PLAN_BTN = 'relative group/planbtn w-full py-3 rounded-xl text-center text-base font-bold uppercase tracking-wide transition-colors';
 
 const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
