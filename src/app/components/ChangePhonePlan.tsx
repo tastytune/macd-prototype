@@ -154,7 +154,7 @@ function PlanCard({ title, price, note, pill, selected, disabled, mutedPrice, on
             : 'cursor-pointer border-gray-200 bg-white hover:border-blue-300'}`}
     >
       {pill && (
-        <span className={`self-start text-sm font-semibold rounded-full px-3 py-1 mb-4
+        <span className={`self-center text-sm font-semibold rounded-full px-3 py-1 mb-2
           ${pill.struck ? 'text-red-500 bg-red-50 line-through' : 'text-green-700 bg-green-100'}`}>
           {pill.label}
         </span>
