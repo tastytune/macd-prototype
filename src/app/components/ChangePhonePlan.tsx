@@ -110,6 +110,68 @@ const PHONE_BUNDLE_FEATURES: PhoneBundleFeature[] = [
 
 const PHONE_BUNDLE_BASE = 17.50;
 
+// ── Production-style plan card + feature panel pieces (shared by every Phone action) ──
+function LongDistanceHelp() {
+  return (
+    <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
+      <Info className="w-4 h-4 text-blue-400 cursor-pointer hover:text-blue-600" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
+        <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
+        <div className="space-y-1">
+          <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
+          <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
+          <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
+          <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
+        </div>
+        <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+      </div>
+    </span>
+  );
+}
+
+interface PlanCardProps {
+  title: string;
+  price: number;
+  note?: string;
+  pill?: { label: string; struck?: boolean };
+  selected: boolean;
+  disabled?: boolean;
+  mutedPrice?: boolean;
+  onClick?: () => void;
+  action?: React.ReactNode;
+}
+
+function PlanCard({ title, price, note, pill, selected, disabled, mutedPrice, onClick, action }: PlanCardProps) {
+  return (
+    <div
+      onClick={onClick}
+      className={`relative w-full h-full rounded-2xl border p-8 flex flex-col transition-all
+        ${disabled
+          ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-70'
+          : selected
+            ? 'cursor-pointer border-blue-500 bg-slate-50 ring-2 ring-blue-100'
+            : 'cursor-pointer border-gray-200 bg-white hover:border-blue-300'}`}
+    >
+      {pill && (
+        <span className={`self-start text-sm font-semibold rounded-full px-3 py-1 mb-4
+          ${pill.struck ? 'text-red-500 bg-red-50 line-through' : 'text-green-700 bg-green-100'}`}>
+          {pill.label}
+        </span>
+      )}
+      <h3 className="text-3xl font-extrabold text-gray-900 text-center mt-2">{title}</h3>
+      <p className="mt-8 text-center">
+        <span className={`text-4xl font-bold ${mutedPrice ? 'text-gray-400' : 'text-gray-900'}`}>${price.toFixed(2)}</span>
+        <span className="text-lg text-gray-500">/month</span>
+      </p>
+      <p className="mt-6 text-center text-base text-gray-500 min-h-[1.5rem]">{note}</p>
+      {action && <div className="mt-auto pt-6">{action}</div>}
+    </div>
+  );
+}
+
+const PLAN_BTN = 'relative group/planbtn w-full py-4 rounded-xl text-center text-lg font-bold uppercase tracking-wide transition-colors';
+
 const SA_PHONE_PLAN: Record<string, string> = {
   'sa-01047': 'local',
 };
@@ -267,141 +329,141 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     return [main, ...mods];
   };
 
+  /* ── Feature rows for the "Included with…" panel (production style) ── */
+  const renderFeatureRows = (editable: boolean, standalone: boolean) => {
+    const list = buildFeatureList(standalone);
+    return (
+      <div className="space-y-6">
+        {list.map(f => {
+          const isRemoved = editable && removedFeatures.has(f.id);
+          const attrVal   = f.manageable === 'attribute' ? (editable ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : (f.defaultAttribute ?? '')) : null;
+          const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
+          const rowPrice  = f.basePrice + attrAdj;
+
+          return (
+            <div key={f.id} className="flex items-center justify-between gap-4">
+              <span className={`text-lg flex items-center gap-1.5 ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                {f.name}
+                {f.id === 'long-distance' && standalone && <LongDistanceHelp />}
+              </span>
+
+              {editable && f.manageable === 'removable' ? (
+                <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                  {f.basePrice > 0 && (
+                    <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                      +${f.basePrice.toFixed(2)}
+                    </span>
+                  )}
+                  <input
+                    type="checkbox"
+                    checked={!isRemoved}
+                    onChange={() => toggleRemoveFeature(f.id)}
+                    className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
+                  />
+                </label>
+              ) : editable && f.manageable === 'attribute' ? (
+                <select
+                  value={attributeValues[f.id] ?? f.defaultAttribute}
+                  onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
+                  className="flex-1 max-w-[17rem] min-w-0 text-base border border-gray-300 rounded-xl px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate"
+                >
+                  {f.attributeOptions?.map(opt => (
+                    <option key={opt} value={opt}>
+                      {opt}{f.attributeDisplayPrices?.[opt]
+                        ? `  ${f.attributeDisplayPrices[opt]}`
+                        : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-base text-gray-800 flex-shrink-0">
+                  {f.manageable === 'attribute' ? attrVal : rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  /* ── "Included with your bundle / standalone phone" panel — sits under the plan cards ── */
+  const renderFeaturesPanel = () => (
+    <div className="grid grid-cols-2 gap-4 mb-8">
+      <div>
+        <p className="text-base font-bold tracking-wide uppercase text-gray-500 mb-3">
+          {standaloneActive ? 'Included with your standalone phone' : 'Included with your bundle'}
+        </p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-8">
+          {renderFeatureRows(!!selectedPlan, standaloneActive)}
+        </div>
+      </div>
+    </div>
+  );
+
   /* ── Change-flow card: Phone Bundle / Standalone Phone ── */
   const renderPhoneOption = (plan: typeof PLANS[0]) => {
+    const isBundle = plan.id === 'phone-bundle';
     const isSelected = selectedPlan === plan.id;
     const isActualCurrent = plan.id === actualCurrentPlanId;
-    const cardFeatures = buildFeatureList(plan.id === 'phone-standalone');
-    const isDisabled = plan.id === 'phone-bundle' && !isSelected && !hasInternet;
-    const warnsOnSelect = plan.id === 'phone-standalone' && !isSelected && hasInternet;
+    const isDisabled = isBundle && !isSelected && !hasInternet;
+    const warnsOnSelect = !isBundle && !isSelected && hasInternet;
+
+    const note = isBundle
+      ? (isActualCurrent ? 'Click below to disconnect this service' : 'Switching requires active Internet service')
+      : (hasInternet && !isActualCurrent ? 'Switching disconnects Internet and Television' : undefined);
+
+    const tooltipCls = 'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/planbtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed';
+
+    const action = (
+      <div
+        onMouseEnter={() => { if (isDisabled && isBundle) setBundleTooltipSeen(true); }}
+        className={`${PLAN_BTN}
+          ${isDisabled
+            ? `${bundleTooltipSeen ? 'cursor-pointer' : 'cursor-not-allowed'} bg-gray-300 text-gray-500`
+            : isSelected && isActualCurrent
+              ? 'bg-gray-100 text-gray-600 cursor-default'
+              : isSelected
+                ? 'bg-blue-700 text-white'
+                : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+      >
+        {isSelected ? (isActualCurrent ? 'Your Current Plan' : 'Selected') : 'Switch'}
+        {isDisabled && (
+          <div className={tooltipCls}>
+            Select Internet to enable Phone Bundle. Click to go to Internet.
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+          </div>
+        )}
+        {warnsOnSelect && (
+          <div className={tooltipCls}>
+            Selecting Standalone Phone disconnects Internet and Television services.
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+          </div>
+        )}
+      </div>
+    );
 
     return (
-      <div
+      <PlanCard
         key={plan.id}
+        title={isBundle ? 'Phone Bundle' : 'Standalone Phone'}
+        price={PHONE_BUNDLE_BASE}
+        note={note}
+        pill={isActualCurrent ? { label: 'Active', struck: !isSelected } : undefined}
+        selected={isSelected}
+        disabled={isDisabled}
+        mutedPrice={isSelected && isActualCurrent}
         onClick={() => {
           if (!isDisabled) {
             handlePlanClick(plan);
-          } else if (plan.id === 'phone-bundle' && bundleTooltipSeen) {
+          } else if (isBundle && bundleTooltipSeen) {
             // Only navigate to Internet once the user has actually seen the
             // explanatory tooltip via hover — never on a blind first click.
             onGoToInternet?.();
           }
         }}
-        className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
-          ${isDisabled
-            ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-70'
-            : `cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'}`}`}
-      >
-        <div className={`text-2xl font-black mb-3 ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-          {plan.id === 'phone-standalone' ? 'Phone Standalone' : plan.title}
-        </div>
-
-        {isActualCurrent && (
-          isSelected ? (
-            <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
-              Active
-            </span>
-          ) : (
-            <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
-              Active
-            </span>
-          )
-        )}
-
-        <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
-            <div className="space-y-3">
-              {cardFeatures.map(f => {
-                const isRemoved = isSelected && removedFeatures.has(f.id);
-                const attrVal   = f.manageable === 'attribute' ? (isSelected ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : (f.defaultAttribute ?? '')) : null;
-                const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
-                const rowPrice  = f.basePrice + attrAdj;
-
-                return (
-                  <div key={f.id} className="flex justify-between items-center gap-2">
-                    <span className={`text-sm flex-1 flex items-center gap-1 ${isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                      {f.name}
-                      {f.id === 'long-distance' && plan.id === 'phone-standalone' && (
-                        <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
-                          <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
-                            <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
-                            <div className="space-y-1">
-                              <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
-                              <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
-                              <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
-                              <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
-                            </div>
-                            <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                          </div>
-                        </span>
-                      )}
-                    </span>
-
-                    {isSelected && f.manageable === 'removable' ? (
-                      <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
-                        {f.basePrice > 0 && (
-                          <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
-                            +${f.basePrice.toFixed(2)}
-                          </span>
-                        )}
-                        <input
-                          type="checkbox"
-                          checked={!isRemoved}
-                          onChange={() => toggleRemoveFeature(f.id)}
-                          className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
-                        />
-                      </label>
-                    ) : isSelected && f.manageable === 'attribute' ? (
-                      <select
-                        value={attributeValues[f.id] ?? f.defaultAttribute}
-                        onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                        className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
-                      >
-                        {f.attributeOptions?.map(opt => (
-                          <option key={opt} value={opt}>
-                            {opt}{f.attributeDisplayPrices?.[opt]
-                              ? `  ${f.attributeDisplayPrices[opt]}`
-                              : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className={`text-sm flex-shrink-0 ${isSelected ? 'text-blue-800' : 'text-gray-700'}`}>
-                        {rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-        </div>
-
-        <div className="mt-auto pt-6 flex justify-center">
-          <div
-            onMouseEnter={() => { if (isDisabled && plan.id === 'phone-bundle') setBundleTooltipSeen(true); }}
-            className={`relative group/bundlebtn px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors
-            ${isDisabled
-              ? `${plan.id === 'phone-bundle' && bundleTooltipSeen ? 'cursor-pointer' : 'cursor-not-allowed'} bg-gray-300 text-gray-500`
-              : `cursor-pointer ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}`}>
-            {isSelected ? 'Selected' : 'Select'}
-            {isDisabled && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
-                {plan.id === 'phone-bundle'
-                  ? 'Select Internet to enable Phone Bundle. Click to go to Internet.'
-                  : 'Select Internet to enable Phone Bundle.'}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-              </div>
-            )}
-            {warnsOnSelect && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 bg-gray-900 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover/bundlebtn:opacity-100 transition-opacity pointer-events-none z-50 leading-relaxed">
-                Selecting Phone Standalone disconnects Internet and Television services.
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+        action={action}
+      />
     );
   };
 
@@ -426,205 +488,65 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
 
           {(() => {
             if (isLegacyFlow) {
-              // ── Move2 / Add On New Location: unchanged single Phone Bundle card (or, when
-              // isPhoneStandalone is forced true, its Standalone-styled read-only look) ──
+              // ── Move2 / Add On New Location: single Phone Bundle card (or, when
+              // isPhoneStandalone is forced true, its read-only Standalone look) ──
               const legacyPlan = PLANS.find(p => p.id === 'phone-bundle')!;
-              const isCurrent = legacyPlan.id === currentPlanId;
               const isSelected = selectedPlan === legacyPlan.id;
               const isActiveBundle = !isMove2 && !isPhoneStandalone && SA_HAS_PHONE_BUNDLE.has(selectedSA?.id ?? '');
 
-              const legacyCard = (
-                <div
-                  key={legacyPlan.id}
-                  onClick={() => handlePlanClick(legacyPlan)}
-                  className={`relative w-full h-full rounded-[10px] border-2 p-8 text-center transition-all flex flex-col
-                    ${isCurrent
-                      ? 'border-gray-200 bg-gray-50 cursor-default'
-                      : isPhoneStandalone
-                        ? 'border-blue-500 bg-blue-50 cursor-default'
-                      : isSelected
-                        ? 'border-blue-500 bg-blue-50 cursor-pointer'
-                        : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40 cursor-pointer'
-                    }`}
-                >
-                  <div className={`text-3xl font-black mb-3 ${isCurrent ? 'text-gray-300' : isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                    {isPhoneStandalone ? 'Phone Standalone' : (legacyPlan.subtitle || legacyPlan.title)}
-                  </div>
-
-                  {(isCurrent || isPhoneStandalone || isActiveBundle) && (
-                    isPhoneStandalone ? (
-                      <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
-                        Active
+              const legacyAction = isPhoneStandalone ? undefined : (
+                <div className={`${PLAN_BTN} flex items-center justify-center gap-2 ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                  {isSelected ? (isActiveBundle ? 'Deselect' : 'Selected') : 'Select'}
+                  {isActiveBundle && (
+                    <>
+                      <Info size={16} className="flex-shrink-0" />
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs normal-case font-normal tracking-normal leading-snug text-center opacity-0 pointer-events-none group-hover/planbtn:opacity-100 transition-opacity z-10">
+                        {isSelected
+                          ? 'Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television services.'
+                          : 'Switching from Phone Standalone to Phone Bundle requires active Internet service.'}
+                        <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
                       </span>
-                    ) : isMove2 && isCurrent ? (
-                      (selectedPlan && selectedPlan !== currentPlanId) ? (
-                        <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
-                          Move
-                        </span>
-                      ) : (
-                        <span className="self-center text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 rounded-full px-2.5 py-0.5 mb-2">
-                          Move
-                        </span>
-                      )
-                    ) : isActiveBundle ? (
-                      isSelected ? (
-                        <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
-                          Active
-                        </span>
-                      )
-                    ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
-                      <span className="self-center text-xs font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 mb-2 line-through">
-                        Active
-                      </span>
-                    ) : (
-                      <span className="self-center text-xs font-semibold text-green-700 bg-green-100 border border-green-200 rounded-full px-2.5 py-0.5 mb-2">
-                        Active
-                      </span>
-                    )
+                    </>
                   )}
-
-                  <div className="mt-2 mb-4 text-left border-t border-gray-100 pt-3" onClick={e => e.stopPropagation()}>
-                    <div className="space-y-3">
-                      {features.map(f => {
-                        const isRemoved = removedFeatures.has(f.id);
-                        const attrVal   = f.manageable === 'attribute' ? (attributeValues[f.id] ?? f.defaultAttribute ?? '') : null;
-                        const attrAdj   = attrVal && f.attributePrices ? (f.attributePrices[attrVal] ?? 0) : 0;
-                        const rowPrice  = f.basePrice + attrAdj;
-
-                        return (
-                          <div key={f.id} className="flex justify-between items-center gap-2">
-                            <span className={`text-sm flex-1 flex items-center gap-1 ${isCurrent ? 'text-gray-400' : isSelected && isRemoved ? 'text-gray-400 line-through' : isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                              {f.name}
-                              {f.id === 'long-distance' && isPhoneStandalone && (
-                                <span className="relative group/ldhelp inline-flex items-center flex-shrink-0">
-                                  <Info className="w-3.5 h-3.5 text-blue-400 cursor-pointer hover:text-blue-600" />
-                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 px-3 py-2.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover/ldhelp:opacity-100 transition-opacity pointer-events-none z-50 font-normal leading-relaxed">
-                                    <p className="font-semibold mb-1.5 text-gray-200">Long Distance Plans</p>
-                                    <div className="space-y-1">
-                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity</span><span className="text-gray-100">No fee · $0.21/min</span></div>
-                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity Gold</span><span className="text-gray-100">$3.95/mo · $0.17/min</span></div>
-                                      <div className="flex justify-between"><span className="text-gray-300">Simplicity Platinum</span><span className="text-gray-100">$5.95/mo · $0.16/min</span></div>
-                                      <div className="flex justify-between"><span className="text-gray-300">Unlimited</span><span className="text-gray-100">$10.00/mo · no per-min charge</span></div>
-                                    </div>
-                                    <p className="mt-1.5 text-gray-400 text-[10px]">Required for GPCLD: $1.99/mo</p>
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                                  </div>
-                                </span>
-                              )}
-                            </span>
-
-                            {isSelected && f.manageable === 'removable' ? (
-                              <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
-                                {f.basePrice > 0 && (
-                                  <span className={`text-sm font-semibold ${isRemoved ? 'text-gray-400 line-through' : 'text-blue-800'}`}>
-                                    +${f.basePrice.toFixed(2)}
-                                  </span>
-                                )}
-                                <input
-                                  type="checkbox"
-                                  checked={!isRemoved}
-                                  onChange={() => toggleRemoveFeature(f.id)}
-                                  className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
-                                />
-                              </label>
-                            ) : isSelected && f.manageable === 'attribute' ? (
-                              <select
-                                value={attributeValues[f.id] ?? f.defaultAttribute}
-                                onChange={e => setAttributeValues(prev => ({ ...prev, [f.id]: e.target.value }))}
-                                className="text-sm border border-blue-200 rounded-md px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer flex-shrink-0 truncate w-40"
-                              >
-                                {f.attributeOptions?.map(opt => (
-                                  <option key={opt} value={opt}>
-                                    {opt}{f.attributeDisplayPrices?.[opt]
-                                      ? `  ${f.attributeDisplayPrices[opt]}`
-                                      : f.attributePrices?.[opt] ? ` +$${f.attributePrices[opt].toFixed(2)}` : ''}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <span className={`text-sm flex-shrink-0 ${isCurrent ? 'text-gray-400' : isSelected ? 'text-blue-800' : 'text-gray-700'}`}>
-                                {rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {!isPhoneStandalone && (isCurrent ? (
-                    <div className="mt-auto pt-6">
-                      <p className="text-xs text-gray-400 mb-4">Select another plan to upgrade or change</p>
-                      {isMove2 ? (
-                        (selectedPlan && selectedPlan !== currentPlanId) ? (
-                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-red-50 text-red-400 line-through border border-red-200">
-                            Moving
-                          </div>
-                        ) : (
-                          <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-purple-100 text-purple-600">
-                            Moving
-                          </div>
-                        )
-                      ) : (selectedPlan && selectedPlan !== currentPlanId) ? (
-                        <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-red-50 text-red-400 line-through border border-red-200">
-                          Your Current Plan
-                        </div>
-                      ) : (
-                        <div className="w-full py-1.5 rounded-[10px] text-sm font-semibold uppercase tracking-wide cursor-default bg-gray-100 text-gray-400">
-                          Your Current Plan
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mt-auto pt-6 flex justify-center">
-                      <div className={`relative group flex items-center gap-1.5 px-10 py-1.5 rounded-[10px] text-sm font-bold uppercase tracking-wide transition-colors cursor-pointer
-                        ${isSelected ? 'bg-blue-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
-                        {isSelected ? (isActiveBundle ? 'Deselect' : 'Selected') : 'Select'}
-                        {isActiveBundle && (
-                          <>
-                            <Info size={14} className="flex-shrink-0" />
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 px-3 py-2 rounded-lg bg-gray-800 text-white text-xs normal-case font-normal leading-snug text-center opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10">
-                              {isSelected
-                                ? 'Deselecting Phone Bundle converts this line to Phone Standalone and disconnects Internet and Television services.'
-                                : 'Switching from Phone Standalone to Phone Bundle requires active Internet service.'}
-                              <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               );
 
               return (
-                <div className="flex items-start gap-6 mb-10">
-                  <div style={{ flex: '0 0 65%' }}>
-                    {legacyCard}
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-6 items-stretch">
+                    <PlanCard
+                      key={legacyPlan.id}
+                      title={isPhoneStandalone ? 'Standalone Phone' : 'Phone Bundle'}
+                      price={PHONE_BUNDLE_BASE}
+                      pill={isPhoneStandalone || isActiveBundle ? { label: 'Active', struck: !isPhoneStandalone && !isSelected } : undefined}
+                      selected={isPhoneStandalone || isSelected}
+                      onClick={() => handlePlanClick(legacyPlan)}
+                      action={legacyAction}
+                    />
+                    <div className="flex justify-end items-start">
+                      <button
+                        onClick={onSkip}
+                        className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
+                      >
+                        Skip Phone
+                      </button>
+                    </div>
                   </div>
-                  <div className="ml-auto pt-0">
-                    <button
-                      onClick={onSkip}
-                      className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-600 hover:bg-gray-50 tracking-wide uppercase transition-colors"
-                    >
-                      Skip Phone
-                    </button>
-                  </div>
-                </div>
+                  {renderFeaturesPanel()}
+                </>
               );
             }
 
             // ── Change flow: Phone Bundle / Standalone Phone — pick one ──
             return (
-              <div className="grid grid-cols-2 gap-4 mb-6 items-stretch">
-                {PLANS.map(plan => (
-                  <div key={plan.id} className="flex flex-col">{renderPhoneOption(plan)}</div>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-4 mb-6 items-stretch">
+                  {PLANS.map(plan => (
+                    <div key={plan.id} className="flex flex-col">{renderPhoneOption(plan)}</div>
+                  ))}
+                </div>
+                {renderFeaturesPanel()}
+              </>
             );
           })()}
 
