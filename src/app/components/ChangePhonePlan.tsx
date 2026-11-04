@@ -4,6 +4,7 @@ import type { Service, CartLine } from '../App';
 import { PromoSection, PROMOS } from './ChangePromos';
 import { ContextBar } from './ContextBar';
 import { Breadcrumb } from './Breadcrumb';
+import { CarrierCombobox, carrierLabel } from './CarrierCombobox';
 
 interface ChangePhonePlanProps {
   selectedSA?: Service | null;
@@ -67,32 +68,17 @@ const VOICEMAIL_STANDALONE: PhoneBundleFeature = {
   id: 'voicemail', name: 'Voicemail', basePrice: 4.95, manageable: 'removable',
 };
 
-const INTEREXCHANGE_CARRIER_OPTIONS = [
-  'AT & T',
-  'CenturyLink',
-  'ComcastCommunications Corporation of Indiana',
-  'Frontier',
-  'Maplenet Wireless',
-  'Mediacom',
-  'Metronet',
-  'Other',
-  'Spectrum',
-  'Verizon',
-  'Windstream',
-];
-
 // Interexchange carrier selection is split into Interlata (between LATAs) and
-// Intralata (within the same LATA) — each needs its own selectable carrier.
+// Intralata (within the same LATA) — each needs its own selectable carrier, picked with
+// CarrierCombobox (approved list only; value = carrier code, '' = not chosen yet).
 const INTERLATA_CARRIER_STANDALONE: PhoneBundleFeature = {
   id: 'interlata-carrier', name: 'Interlata Carrier', basePrice: 0, manageable: 'attribute',
-  attributeOptions: INTEREXCHANGE_CARRIER_OPTIONS,
-  defaultAttribute: 'Other',
+  defaultAttribute: '',
 };
 
 const INTRALATA_CARRIER_STANDALONE: PhoneBundleFeature = {
   id: 'intralata-carrier', name: 'Intralata Carrier', basePrice: 0, manageable: 'attribute',
-  attributeOptions: INTEREXCHANGE_CARRIER_OPTIONS,
-  defaultAttribute: 'Other',
+  defaultAttribute: '',
 };
 
 const PHONE_BUNDLE_FEATURES: PhoneBundleFeature[] = [
@@ -204,6 +190,12 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
   // Move2 and Add On New Location keep their own pre-existing single-card model.
   const actualCurrentPlanId: string = isPhoneStandalone ? 'phone-standalone' : 'phone-bundle';
 
+  // Interlata / Intralata carriers: a customer who already has Standalone Phone arrives with a
+  // legacy "Other" value (flagged as not on the approved list); anyone switching to Standalone
+  // starts blank and must pick a carrier before continuing.
+  const carrierDefault = actualCurrentPlanId === 'phone-standalone' ? 'Other' : '';
+  const isCarrierFeature = (id: string) => id === 'interlata-carrier' || id === 'intralata-carrier';
+
   // Phone Bundle / Standalone Phone — this screen's two Change-flow options are mutually
   // exclusive: selecting one deselects the other (see handlePlanClick below).
   const standaloneActive = isLegacyFlow ? isPhoneStandalone : selectedPlan === 'phone-standalone';
@@ -231,7 +223,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
       return {
         'directory-listing': 'Published',
         'long-distance': 'Simplicity',
-        ...(isMove2 ? {} : { 'interlata-carrier': 'Other', 'intralata-carrier': 'Other' }),
+        ...(isMove2 ? {} : { 'interlata-carrier': carrierDefault, 'intralata-carrier': carrierDefault }),
       };
     }
     if (planId === 'phone-bundle') {
@@ -257,13 +249,22 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
       // Interlata / Intralata Carrier — every Standalone card (Change action, not Move2) —
       // placed right after Directory Listing
       if (f.id === 'directory-listing' && standalone && !isMove2) {
-        return [feature, INTERLATA_CARRIER_STANDALONE, INTRALATA_CARRIER_STANDALONE];
+        return [
+          feature,
+          { ...INTERLATA_CARRIER_STANDALONE, defaultAttribute: carrierDefault },
+          { ...INTRALATA_CARRIER_STANDALONE, defaultAttribute: carrierDefault },
+        ];
       }
       return [feature];
     });
   };
 
   const features = buildFeatureList(standaloneActive);
+
+  // Standalone needs both carriers chosen — Continue stays disabled until they are set.
+  const carriersMissing = !!selectedPlan && features
+    .filter(f => isCarrierFeature(f.id))
+    .some(f => !(attributeValues[f.id] ?? f.defaultAttribute ?? ''));
 
   const currentPlanId = SA_PHONE_PLAN[selectedSA?.id ?? ''] ?? null;
   const activePlan    = PLANS.find(p => p.id === selectedPlan);
@@ -326,7 +327,9 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
     features.filter(f => f.manageable === 'attribute').forEach(f => {
       const val = attributeValues[f.id] ?? f.defaultAttribute ?? '';
       const adj = f.attributePrices?.[val] ?? 0;
-      if (adj > 0) {
+      if (isCarrierFeature(f.id)) {
+        if (val && val !== f.defaultAttribute) mods.push({ label: `${f.name} → ${carrierLabel(val)}`, price: 0, group: 'phone-changed' });
+      } else if (adj > 0) {
         mods.push({ label: `${f.name} (${val})`, price: adj, group: 'phone-changed' });
       } else if (val !== f.defaultAttribute) {
         mods.push({ label: `${f.name} → ${val}`, price: 0, group: 'phone-changed' });
@@ -350,8 +353,8 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
           const rowPrice  = f.basePrice + attrAdj;
 
           return (
-            <div key={f.id} className="flex items-center justify-between gap-4">
-              <span className={`text-sm flex items-center gap-1.5 ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+            <div key={f.id} className={`flex justify-between gap-4 ${isCarrierFeature(f.id) ? 'items-start' : 'items-center'}`}>
+              <span className={`text-sm flex items-center gap-1.5 ${isCarrierFeature(f.id) ? 'pt-3' : ''} ${isRemoved ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                 {f.name}
                 {f.id === 'long-distance' && standalone && <LongDistanceHelp />}
               </span>
@@ -370,6 +373,14 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                     className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
                   />
                 </label>
+              ) : editable && isCarrierFeature(f.id) ? (
+                <div className="flex-1 max-w-[17rem] min-w-0">
+                  <CarrierCombobox
+                    label={f.name}
+                    value={attrVal ?? ''}
+                    onChange={code => setAttributeValues(prev => ({ ...prev, [f.id]: code }))}
+                  />
+                </div>
               ) : editable && f.manageable === 'attribute' ? (
                 <select
                   value={attributeValues[f.id] ?? f.defaultAttribute}
@@ -386,7 +397,7 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
                 </select>
               ) : (
                 <span className="text-sm text-gray-800 flex-shrink-0">
-                  {f.manageable === 'attribute' ? attrVal : rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
+                  {isCarrierFeature(f.id) ? (carrierLabel(attrVal ?? '') || '—') : f.manageable === 'attribute' ? attrVal : rowPrice === 0 ? 'Included' : `$${rowPrice.toFixed(2)}`}
                 </span>
               )}
             </div>
@@ -693,13 +704,14 @@ export function ChangePhonePlan({ selectedSA, previousLines, isDowngrade, isUpgr
               onClick={() => {
                 if (!selectedPlan || !activePlan) return;
                 if (loaRequested && !loaDiscussed) return;
+                if (carriersMissing) return;
                 const summaryLines = buildSummaryLines();
                 const nonPhoneLines = previousLines.filter(l => l.group !== 'phone' && l.group !== 'phone-removed' && l.group !== 'phone-changed' && !(movingAwayFromBundle && (l.group === 'internet' || l.group === 'television')));
                 onNext(selectedPlan, [...nonPhoneLines, ...summaryLines]);
               }}
-              disabled={!selectedPlan || (loaRequested && !loaDiscussed)}
+              disabled={!selectedPlan || (loaRequested && !loaDiscussed) || carriersMissing}
               className={`px-7 py-2.5 rounded-lg text-sm font-bold transition-colors
-                ${selectedPlan && !(loaRequested && !loaDiscussed) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                ${selectedPlan && !(loaRequested && !loaDiscussed) && !carriersMissing ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
             >
               Continue
             </button>
