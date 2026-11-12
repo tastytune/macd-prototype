@@ -11,6 +11,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   move2: 'bg-[#f3e8f3] text-[#800080]',
   followOnOrder: 'bg-indigo-50 text-indigo-700',
   addLocation: 'bg-teal-50 text-teal-700',
+  amendOrder: 'bg-orange-50 text-orange-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -22,11 +23,16 @@ const actionLabel: Record<MACDAction, string> = {
   move2: 'Move',
   followOnOrder: 'Follow-On Order',
   addLocation: 'Add additional location',
+  amendOrder: 'Amend In-Flight Order',
 };
 
 // Original Work Order (read-only context) for the On-Site Upsell / Follow On Order flow.
 // Provided once from App.tsx so every screen's ContextBar can show it without prop drilling.
 export const FollowOnOriginalOrderContext = createContext<string | null>(null);
+
+// Order number being amended (supplemental order). Set once from App.tsx; shown as a chip on every
+// ContextBar inside the Change journey so the rest of the flow stays untouched.
+export const AmendedOrderContext = createContext<string | null>(null);
 
 interface ContextBarProps {
   action: MACDAction | null;
@@ -35,6 +41,7 @@ interface ContextBarProps {
 
 export function ContextBar({ action, selectedSA }: ContextBarProps) {
   const originalOrderId = useContext(FollowOnOriginalOrderContext);
+  const amendedOrderId = useContext(AmendedOrderContext);
   if (!action) return null;
   return (
     <div className="mb-8 flex items-center gap-2 min-w-0 overflow-hidden text-gray-600">
@@ -47,6 +54,14 @@ export function ContextBar({ action, selectedSA }: ContextBarProps) {
           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-gray-100 text-gray-600 border border-gray-200 cursor-default"
         >
           Original order · {originalOrderId}
+        </span>
+      )}
+      {amendedOrderId && (
+        <span
+          title="Supplemental order — cloned from this order"
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-orange-50 text-orange-700 border border-orange-200 cursor-default"
+        >
+          Amending order · {amendedOrderId}
         </span>
       )}
       <span className="text-gray-400 flex-shrink-0">·</span>

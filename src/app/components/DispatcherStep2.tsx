@@ -136,6 +136,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   move2: 'bg-blue-50 text-blue-700',
   followOnOrder: 'bg-indigo-50 text-indigo-700',
   addLocation: 'bg-teal-50 text-teal-700',
+  amendOrder: 'bg-orange-50 text-orange-700',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -147,6 +148,7 @@ const actionLabel: Record<MACDAction, string> = {
   move2: 'Move 2',
   followOnOrder: 'Follow-On Order',
   addLocation: 'Add additional location',
+  amendOrder: 'Amend In-Flight Order',
 };
 
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {

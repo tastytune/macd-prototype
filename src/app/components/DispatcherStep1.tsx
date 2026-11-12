@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pause, Play, Power, RefreshCw, ClipboardList, MapPinPlus } from 'lucide-react';
+import { Pause, Play, Power, RefreshCw, ClipboardList, MapPinPlus, FilePenLine } from 'lucide-react';
 
 function MovePinsIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +18,7 @@ function MovePinsIcon({ className }: { className?: string }) {
   );
 }
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder' | 'addLocation';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder' | 'addLocation' | 'amendOrder';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
@@ -130,6 +130,20 @@ const actions: {
     radioDot: 'bg-teal-500',
     radioRing: 'border-teal-500',
     labelColor: 'text-teal-700',
+  },
+  {
+    // Supplemental order: acts on an ORDER (not an asset). Opens the order-selection screen.
+    id: 'amendOrder',
+    label: 'Amend In-Flight Order',
+    description: 'Modify an order that is still in progress.',
+    icon: FilePenLine,
+    iconColor: 'text-orange-600',
+    iconBg: 'bg-orange-50',
+    selectedBorder: 'border-orange-500',
+    selectedBg: 'bg-orange-50',
+    radioDot: 'bg-orange-500',
+    radioRing: 'border-orange-500',
+    labelColor: 'text-orange-700',
   },
 ];
 

@@ -24,7 +24,9 @@ import type { WorkOrderResult } from './components/FollowOnWorkOrder';
 import { FollowOnRequesterType } from './components/FollowOnRequesterType';
 import type { FollowOnRequesterType as FollowOnRequesterTypeValue } from './components/FollowOnRequesterType';
 import type { MACDAction } from './components/DispatcherStep1';
-import { FollowOnOriginalOrderContext } from './components/ContextBar';
+import { FollowOnOriginalOrderContext, AmendedOrderContext } from './components/ContextBar';
+import { AmendOrderSelect } from './components/AmendOrderSelect';
+import type { AmendableOrder } from './components/AmendOrderSelect';
 
 export interface Service {
   id: string;
@@ -118,7 +120,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'followon-requester-type' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'amend-order-select' | 'followon-requester-type' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -132,6 +134,8 @@ function App() {
   const [selectedBAId, setSelectedBAId] = useState<string>('');
   const [followOnWorkOrder, setFollowOnWorkOrder] = useState<WorkOrderResult | null>(null);
   const [followOnAddToExisting, setFollowOnAddToExisting] = useState(false);
+  // Supplemental order: the in-flight order being amended (cloned into the Change journey).
+  const [amendedOrder, setAmendedOrder] = useState<AmendableOrder | null>(null);
   const [followOnRequesterType, setFollowOnRequesterType] = useState<FollowOnRequesterTypeValue | null>(null);
   const [orderReference, setOrderReference] = useState<string>('');
   const [disconnectionDate, setDisconnectionDate] = useState<string>('');
@@ -242,7 +246,35 @@ function App() {
 
   const handleDispatcherAction = (action: MACDAction) => {
     setSelectedAction(action);
-    setCurrentStep(action === 'followOnOrder' ? 'followon-requester-type' : 'dispatcher-step2');
+    setAmendedOrder(null);
+    setCurrentStep(
+      action === 'followOnOrder' ? 'followon-requester-type'
+      : action === 'amendOrder' ? 'amend-order-select'
+      : 'dispatcher-step2'
+    );
+  };
+
+  // Amend In-Flight Order: a supplemental order keeps the SAME type as the amended order, so we
+  // hand off to the existing Change journey, preloaded with the selected order's service account.
+  const handleAmendOrderContinue = (order: AmendableOrder) => {
+    // TODO(Move): Move orders have two orders (move-in, move-out) and an amendment only targets the
+    // move-in order. For now EVERY order type follows the Change path (golden standard). The Move
+    // exception (move-in-only targeting, move-specific journey) goes here, branching on order.type.
+    setAmendedOrder(order);
+    setSelectedAction('change');
+    const saId = order.saId.toLowerCase();
+    const saService: Service = {
+      id: saId,
+      name: `${order.saId} · ${order.saLabel}`,
+      status: 'Active',
+      address: order.address,
+    };
+    setSelectedSA(saService);
+    setSelectedService(saService);
+    setChangeCartLines(SA_INITIAL_CART[saId] ?? []);
+    setChangeInternetPlanId('');
+    setChangeSelectedPromos(new Set(SA_ACTIVE_PROMOS[saId] ?? []));
+    setCurrentStep('change-service-type');
   };
 
   const handleFollowOnRequesterContinue = (requesterType: FollowOnRequesterTypeValue, workOrder: WorkOrderResult, addToExistingFollowOn: boolean) => {
@@ -366,6 +398,7 @@ function App() {
   const handleReturnToAccount = () => {
     setCurrentStep('dispatcher-step1');
     setSelectedAction(null);
+    setAmendedOrder(null);
     setSelectedService(null);
     setSelectedSA(null);
     setOrderItems([]);
@@ -381,6 +414,7 @@ function App() {
 
   return (
     <FollowOnOriginalOrderContext.Provider value={selectedAction === 'followOnOrder' ? (followOnWorkOrder?.orderNumber ?? null) : null}>
+    <AmendedOrderContext.Provider value={amendedOrder?.orderNumber ?? null}>
     <div className="min-h-screen bg-gray-50">
       <AnimatePresence mode="wait">
 
@@ -397,6 +431,23 @@ function App() {
             <DispatcherStep1
               onNext={handleDispatcherAction}
               onCancel={handleReturnToAccount}
+            />
+          </motion.div>
+        )}
+
+        {/* ── AMEND IN-FLIGHT ORDER: Select order ── */}
+        {currentStep === 'amend-order-select' && (
+          <motion.div
+            key="amend-order-select"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <AmendOrderSelect
+              onBack={() => setCurrentStep('dispatcher-step1')}
+              onNext={handleAmendOrderContinue}
             />
           </motion.div>
         )}
@@ -684,6 +735,7 @@ function App() {
               onBack={() => setCurrentStep(
                 (selectedAction === 'move2' || selectedAction === 'addLocation') ? 'move-services'
                 : selectedAction === 'followOnOrder' ? 'followon-requester-type'
+                : amendedOrder ? 'amend-order-select'
                 : 'dispatcher-step2'
               )}
               onNext={(serviceType) => {
@@ -917,6 +969,7 @@ function App() {
 
       </AnimatePresence>
     </div>
+    </AmendedOrderContext.Provider>
     </FollowOnOriginalOrderContext.Provider>
   );
 }
