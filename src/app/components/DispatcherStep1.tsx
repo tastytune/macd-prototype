@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pause, Play, Power, RefreshCw, ClipboardList, MapPinPlus, FilePenLine } from 'lucide-react';
+import { Pause, Play, Power, RefreshCw, ClipboardList, MapPinPlus, FilePenLine, KeyRound } from 'lucide-react';
 
 function MovePinsIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +18,7 @@ function MovePinsIcon({ className }: { className?: string }) {
   );
 }
 
-export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder' | 'addLocation' | 'amendOrder';
+export type MACDAction = 'deactivate' | 'reactivate' | 'disconnect' | 'change' | 'move' | 'move2' | 'followOnOrder' | 'addLocation' | 'amendOrder' | 'changeOwnership';
 
 interface DispatcherStep1Props {
   onNext: (action: MACDAction) => void;
@@ -104,6 +104,21 @@ const actions: {
     radioDot: 'bg-[#800080]',
     radioRing: 'border-[#800080]',
     labelColor: 'text-[#800080]',
+  },
+  {
+    // CHOWN (MACD003 / UIUX012). UR1: only offered on residential consumer accounts — this hub is
+    // always a Residential account in the prototype, so the tile is always shown.
+    id: 'changeOwnership',
+    label: 'Change of Ownership',
+    description: 'Transfer the services at an address to a new responsible customer, with no gap in service.',
+    icon: KeyRound,
+    iconColor: 'text-cyan-700',
+    iconBg: 'bg-cyan-50',
+    selectedBorder: 'border-cyan-600',
+    selectedBg: 'bg-cyan-50',
+    radioDot: 'bg-cyan-600',
+    radioRing: 'border-cyan-600',
+    labelColor: 'text-cyan-800',
   },
   {
     id: 'followOnOrder',

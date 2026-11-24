@@ -137,6 +137,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   followOnOrder: 'bg-indigo-50 text-indigo-700',
   addLocation: 'bg-teal-50 text-teal-700',
   amendOrder: 'bg-orange-50 text-orange-700',
+  changeOwnership: 'bg-cyan-50 text-cyan-800',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -149,12 +150,13 @@ const actionLabel: Record<MACDAction, string> = {
   followOnOrder: 'Follow-On Order',
   addLocation: 'Add additional location',
   amendOrder: 'Amend In-Flight Order',
+  changeOwnership: 'Change of Ownership',
 };
 
 export function DispatcherStep2({ action, initialSelectedBA, onNext, onBack }: DispatcherStep2Props) {
-  const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change' || action === 'addLocation';
+  const isServiceAccountAction = action === 'disconnect' || action === 'move' || action === 'move2' || action === 'change' || action === 'addLocation' || action === 'changeOwnership';
   const isAddLocation = action === 'addLocation';
-  const activeServiceAccounts = action === 'addLocation' ? addLocationServiceAccounts : action === 'change' ? changeServiceAccounts : serviceAccounts;
+  const activeServiceAccounts = action === 'addLocation' ? addLocationServiceAccounts : (action === 'change' || action === 'changeOwnership') ? changeServiceAccounts : serviceAccounts;
 
   // SA radio selection (Disconnect / Move)
   const [selectedSA, setSelectedSA] = useState<string>(serviceAccounts[0].id);

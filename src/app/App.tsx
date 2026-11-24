@@ -27,6 +27,7 @@ import type { MACDAction } from './components/DispatcherStep1';
 import { FollowOnOriginalOrderContext, AmendedOrderContext } from './components/ContextBar';
 import { AmendOrderSelect } from './components/AmendOrderSelect';
 import type { AmendableOrder } from './components/AmendOrderSelect';
+import { ChangeOwnershipFlow } from './components/ChangeOwnershipFlow';
 
 export interface Service {
   id: string;
@@ -120,7 +121,7 @@ const servicesData: Service[] = [
   }
 ];
 
-type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'amend-order-select' | 'followon-requester-type' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5';
+type Step = 'dispatcher-step1' | 'dispatcher-step2' | 'amend-order-select' | 'followon-requester-type' | 'viewer' | 'reactivate-services' | 'reactivate-review' | 'deactivate-services' | 'deactivate-review' | 'move-services' | 'move-service-type' | 'move-services-step3' | 'move-dates' | 'move-review' | 'change-service-type' | 'change-internet-plan' | 'change-television-plan' | 'change-phone-plan' | 'change-installation-date' | 'change-review' | 'step2' | 'step5' | 'change-ownership';
 
 function App() {
   const [currentStep, setCurrentStep] = useState<Step>('dispatcher-step1');
@@ -315,6 +316,10 @@ function App() {
       setChangeInternetPlanId('');
       setChangeSelectedPromos(new Set(SA_ACTIVE_PROMOS[services[0].id] ?? []));
       setCurrentStep('change-service-type');
+    } else if (selectedAction === 'changeOwnership') {
+      setSelectedSA(services[0]);
+      setSelectedService(services[0]);
+      setCurrentStep('change-ownership');
     } else if (selectedAction === 'disconnect') {
       setSelectedSA(services[0]);
       setCurrentStep('viewer');
@@ -467,6 +472,24 @@ function App() {
               initialSelectedBA={selectedBAId || undefined}
               onNext={handleDispatcherAccounts}
               onBack={() => setCurrentStep('dispatcher-step1')}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Change of Ownership (CHOWN): requester → new owner → path & date → documents → review → confirmation ── */}
+        {currentStep === 'change-ownership' && (
+          <motion.div
+            key={`change-ownership-${selectedSA?.id ?? ''}`}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+          >
+            <ChangeOwnershipFlow
+              selectedSA={selectedSA}
+              onBack={() => setCurrentStep('dispatcher-step2')}
+              onFinish={handleReturnToAccount}
             />
           </motion.div>
         )}

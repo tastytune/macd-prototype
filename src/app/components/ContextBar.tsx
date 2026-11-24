@@ -12,6 +12,7 @@ const actionBadgeStyle: Record<MACDAction, string> = {
   followOnOrder: 'bg-indigo-50 text-indigo-700',
   addLocation: 'bg-teal-50 text-teal-700',
   amendOrder: 'bg-orange-50 text-orange-700',
+  changeOwnership: 'bg-cyan-50 text-cyan-800',
 };
 
 const actionLabel: Record<MACDAction, string> = {
@@ -24,6 +25,7 @@ const actionLabel: Record<MACDAction, string> = {
   followOnOrder: 'Follow-On Order',
   addLocation: 'Add additional location',
   amendOrder: 'Amend In-Flight Order',
+  changeOwnership: 'Change of Ownership',
 };
 
 // Original Work Order (read-only context) for the On-Site Upsell / Follow On Order flow.
