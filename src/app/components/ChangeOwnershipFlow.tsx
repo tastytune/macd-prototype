@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import {
+  Eye, EyeOff, KeySquare,
   ShieldCheck, Info, Search, UserPlus, TriangleAlert, Phone, ArrowRight, CalendarDays,
   Upload, FileText, Lock, X, CheckCircle2, ExternalLink, Wrench, Users, Receipt,
 } from 'lucide-react';
@@ -24,10 +25,10 @@ import { AppointmentPanel, formatDateLabel, slotLabel } from './AppointmentPanel
 
 const PREVIOUS_OWNER = { name: 'Robert Johnson', account: 'ACC-004821' };
 
-/** People on the current account who may request a CHOWN (R2). */
+/** People on the current account who may request a CHOWN (R2), each with their CPNI password/PIN on file. */
 const ACCOUNT_CONTACTS = [
-  { id: 'c-robert', name: 'Robert Johnson', role: 'Primary account holder' },
-  { id: 'c-linda', name: 'Linda Johnson', role: 'Authorized user' },
+  { id: 'c-robert', name: 'Robert Johnson', role: 'Primary account holder', cpni: '4821' },
+  { id: 'c-linda', name: 'Linda Johnson', role: 'Authorized user', cpni: 'Maple77' },
 ];
 
 interface SAProfile {
@@ -174,6 +175,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
 
   // Requester (R2 / UR2)
   const [requesterId, setRequesterId] = useState<string | null>(null);
+  const [showCpni, setShowCpni] = useState(false);
   const [cpniVerified, setCpniVerified] = useState(false);
   const [reason, setReason] = useState<string>('');
 
@@ -273,12 +275,31 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
       <div className="max-w-4xl mx-auto px-8 py-12">
         {header('Verify the requester', <>Confirm who is calling before starting the change of ownership on <span className="font-semibold">{selectedSA?.name}</span>.</>)}
 
-        <SectionTitle>Who is calling?</SectionTitle>
+        <SectionTitle aside={
+          <button type="button" onClick={() => setShowCpni(v => !v)} aria-pressed={showCpni}
+            className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:underline normal-case tracking-normal">
+            {showCpni ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            {showCpni ? 'Hide CPNI' : 'Show CPNI'}
+          </button>
+        }>Who is calling?</SectionTitle>
         <div className="flex flex-col gap-3 mb-4" role="radiogroup" aria-label="Requester">
           {ACCOUNT_CONTACTS.map(c => (
             <OptionCard key={c.id} checked={requesterId === c.id} onClick={() => setRequesterId(c.id)}>
-              <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{c.role} · {PREVIOUS_OWNER.account}</p>
+              <div className="flex items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">{c.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{c.role} · {PREVIOUS_OWNER.account}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 flex items-center justify-end gap-1">
+                    <KeySquare className="w-3 h-3" /> CPNI password / PIN
+                  </p>
+                  <p className={`text-sm font-mono mt-0.5 ${showCpni ? 'text-gray-900 font-semibold' : 'text-gray-400 tracking-widest'}`}
+                    aria-label={showCpni ? `CPNI ${c.cpni}` : 'CPNI hidden'}>
+                    {showCpni ? c.cpni : '•'.repeat(c.cpni.length)}
+                  </p>
+                </div>
+              </div>
             </OptionCard>
           ))}
           <OptionCard checked={requesterNotListed} onClick={() => { setRequesterId('not-listed'); setCpniVerified(false); }}>
@@ -304,7 +325,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                 <ShieldCheck className={`w-4 h-4 ${cpniVerified ? 'text-green-600' : 'text-gray-400'}`} />
-                {requester.name} gave the correct CPNI password or PIN
+                {requester.name} gave the CPNI password or PIN on file
                 <span className="relative group">
                   <Info className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
                   <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-gray-800 text-white text-xs font-normal rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -312,7 +333,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
                   </span>
                 </span>
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">Required to continue. No fee and no supervisor approval are needed.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Ask the caller for it and compare it with the value on their card above. Required to continue. No fee and no supervisor approval are needed.</p>
             </div>
           </label>
         )}
