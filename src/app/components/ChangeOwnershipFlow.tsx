@@ -364,15 +364,18 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
         )}
 
         <SectionTitle aside={<ToConfirm id="UIUX012-Q3" />}>Reason for the change (optional)</SectionTitle>
-        <div className="flex flex-wrap gap-2">
+        {/* Same native select styling as the Temporary Disconnect reason. */}
+        <select
+          value={reason}
+          onChange={e => setReason(e.target.value)}
+          aria-label="Reason for the change (optional)"
+          className={`w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${reason ? 'text-gray-900' : 'text-gray-500'}`}
+        >
+          <option value="">Select a reason</option>
           {REASONS.map(r => (
-            <button key={r} type="button" onClick={() => setReason(reason === r ? '' : r)}
-              aria-pressed={reason === r}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${reason === r ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'}`}>
-              {r}
-            </button>
+            <option key={r} value={r} className="text-gray-900">{r}</option>
           ))}
-        </div>
+        </select>
 
         <Footer onBack={onBack} onNext={() => setStep('new-owner')} canNext={canNext} />
       </div>
