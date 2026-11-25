@@ -16,7 +16,7 @@ import { AppointmentPanel, formatDateLabel, slotLabel } from './AppointmentPanel
  * and "CHOWN MACD003 and UIUX012 – Feature Definitions v2" (18 Nov 2026).
  *
  * Owls Head proposal, to validate with the Rightfiber CRC team. Elements that depend on an open
- * question carry a <ToConfirm q="Qn" /> pill (numbering from the 23 Nov functionality definition).
+ * question carry a <ToConfirm id="…" /> pill, numbered as in the Feature Definitions v2 (see OPEN_ITEMS).
  *
  * Front-end prototype only: all data below is mock.
  */
@@ -89,13 +89,38 @@ function nextBillCycle(): Date {
   return new Date(d.getFullYear(), d.getMonth() + 1, 1);
 }
 
-function ToConfirm({ q, title }: { q: string; title?: string }) {
+/**
+ * Open items, numbered as in "CHOWN MACD003 and UIUX012 – Feature Definitions v2" (18 Nov 2026).
+ * BR9 is a business rule still marked "To confirm" there (no question number of its own).
+ */
+const OPEN_ITEMS = {
+  'MACD003-Q4': { owner: 'Product Owner / Jill', text: 'Is billing account to billing account (same customer) in scope, as well as account to account? Can the balance move in that case?' },
+  'MACD003-Q6': { owner: 'Melissa', text: 'What happens to ported-in numbers?' },
+  'MACD003-Q7': { owner: 'Jill / billing', text: 'When services move to a different customer, does the outstanding balance stay with the previous owner?' },
+  'MACD003-Q8': { owner: 'Melissa / compliance', text: 'What may the new owner see: billing history, payments made, call history (CPNI)?' },
+  'MACD003-Q9': { owner: 'Product Owner / compliance', text: 'Should the previous owner (or their estate) sign or confirm the transfer? Today no one signs.' },
+  'MACD003-BR9': { owner: 'Rightfiber', text: 'Effective date is today or the next bill cycle (rule still to confirm).' },
+  'UIUX012-Q1': { owner: 'Rightfiber CRC', text: 'Which details are required to create a new owner?' },
+  'UIUX012-Q2': { owner: 'Rightfiber CRC', text: 'Does the flow need a "waiting for new owner" state when the previous owner calls first?' },
+  'UIUX012-Q3': { owner: 'Rightfiber (Tyler)', text: 'Should the agent record a reason (death, roommate, other)?' },
+  'UIUX012-Q4': { owner: 'Joni / architecture', text: 'Should documents be uploaded in the flow or on the account afterwards?' },
+} as const;
+
+function ToConfirm({ id }: { id: keyof typeof OPEN_ITEMS }) {
+  const item = OPEN_ITEMS[id];
+  const label = id.replace('-', ' ');
   return (
-    <span
-      title={title ?? `Depends on open question ${q} — to confirm with Rightfiber`}
-      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-800 border border-amber-200 cursor-help"
-    >
-      To confirm · {q}
+    <span className="relative group inline-flex">
+      <span
+        tabIndex={0}
+        aria-label={`To confirm, ${label}: ${item.text}`}
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-800 border border-amber-200 cursor-help focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+      >
+        To confirm · {label}
+      </span>
+      <span role="tooltip" className="absolute bottom-full left-0 mb-2 w-72 px-3 py-2 bg-gray-800 text-white text-xs font-normal normal-case tracking-normal rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none z-20">
+        <span className="font-semibold">{label}</span> · {item.owner}<br />{item.text}
+      </span>
     </span>
   );
 }
@@ -314,7 +339,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
             <div>
               <p className="font-semibold">The change of ownership can't be started by this caller.</p>
               <p className="text-xs mt-0.5">Only someone on the account who gives the CPNI password or PIN can request it. The previous owner stays billed until the change takes effect.</p>
-              <p className="text-xs mt-2 flex items-center gap-2">Should the request wait until the new owner calls? <ToConfirm q="Q7" /></p>
+              <p className="text-xs mt-2 flex items-center gap-2">Should the request wait until the new owner calls? <ToConfirm id="UIUX012-Q2" /></p>
             </div>
           </div>
         )}
@@ -338,7 +363,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
           </label>
         )}
 
-        <SectionTitle aside={<ToConfirm q="Q4" />}>Reason for the change (optional)</SectionTitle>
+        <SectionTitle aside={<ToConfirm id="UIUX012-Q3" />}>Reason for the change (optional)</SectionTitle>
         <div className="flex flex-wrap gap-2">
           {REASONS.map(r => (
             <button key={r} type="button" onClick={() => setReason(reason === r ? '' : r)}
@@ -363,7 +388,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
       <div className="max-w-4xl mx-auto px-8 py-12">
         {header('New owner', 'Find the customer taking over the services at this address, or create them.')}
 
-        <SectionTitle aside={<ToConfirm q="Q1" />}>Where do the services go?</SectionTitle>
+        <SectionTitle aside={<ToConfirm id="MACD003-Q4" />}>Where do the services go?</SectionTitle>
         <div className="grid grid-cols-2 gap-3 mb-8" role="radiogroup" aria-label="Scope">
           <OptionCard checked={scope === 'differentCustomer'} onClick={() => setScope('differentCustomer')}>
             <p className="text-sm font-semibold text-gray-900">To a different customer</p>
@@ -411,7 +436,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
             <div className="flex items-center gap-2 mb-4">
               <UserPlus className="w-4 h-4 text-blue-600" />
               <p className="text-sm font-semibold text-gray-900">Create new customer</p>
-              <ToConfirm q="Q5" title="Which details are required to create a new owner — to confirm with Rightfiber CRC" />
+              <ToConfirm id="UIUX012-Q1" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               {([
@@ -529,7 +554,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
               <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-900 mb-3">
                 <TriangleAlert className="w-4 h-4 flex-shrink-0" />
                 <span className="flex-1">This number was ported in from another provider. Handling of ported-in numbers is not defined yet.</span>
-                <ToConfirm q="Q8" />
+                <ToConfirm id="MACD003-Q6" />
               </div>
             )}
           </>
@@ -542,7 +567,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
 
         {/* Effective date (R9 / UR5) */}
         <div className="mt-8">
-          <SectionTitle aside={<ToConfirm q="Q11" />}>Effective date</SectionTitle>
+          <SectionTitle aside={<ToConfirm id="MACD003-BR9" />}>Effective date</SectionTitle>
           <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Effective date">
             <OptionCard checked={effective === 'today'} onClick={() => setEffective('today')}>
               <p className="text-sm font-semibold text-gray-900">Today</p>
@@ -577,7 +602,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
               <p><span className="font-semibold">{PREVIOUS_OWNER.name} has an outstanding balance of {money(profile.outstandingBalance)}.</span></p>
               <p className="text-xs mt-0.5">It stays with the previous owner. Only the services move to {newOwnerLabel}.</p>
             </div>
-            <ToConfirm q="Q10" />
+            <ToConfirm id="MACD003-Q7" />
           </div>
         )}
 
@@ -623,7 +648,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
       <div className="max-w-4xl mx-auto px-8 py-12">
         {header('Supporting documents', 'Optional. Attach anything that supports the change, such as a death certificate or a lease.')}
 
-        <SectionTitle aside={<ToConfirm q="Q14" title="Upload during the flow, or on the account afterwards — to confirm" />}>Documents</SectionTitle>
+        <SectionTitle aside={<ToConfirm id="UIUX012-Q4" />}>Documents</SectionTitle>
         <div
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
@@ -662,7 +687,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
         )}
 
         <div className="mt-8">
-          <SectionTitle aside={<ToConfirm q="Q6" />}>Previous owner confirmation</SectionTitle>
+          <SectionTitle aside={<ToConfirm id="MACD003-Q9" />}>Previous owner confirmation</SectionTitle>
           <label className="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 bg-white cursor-pointer hover:border-gray-300">
             <input type="checkbox" checked={prevOwnerConfirmed} onChange={e => setPrevOwnerConfirmed(e.target.checked)} className="mt-0.5 w-4 h-4 accent-blue-600" />
             <div>
@@ -724,7 +749,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
           <Row label="Effective date">{longDate(effectiveDate)}{effective === 'nextCycle' ? ' (next bill cycle)' : ' (today)'}</Row>
           <Row label="Billing cutover">{PREVIOUS_OWNER.name} up to {longDate(dayBefore)} · {newOwnerLabel} from {longDate(effectiveDate)}</Row>
           {!isSameCustomer && profile.outstandingBalance > 0 && (
-            <Row label="Outstanding balance">{money(profile.outstandingBalance)} stays with {PREVIOUS_OWNER.name} <ToConfirm q="Q10" /></Row>
+            <Row label="Outstanding balance">{money(profile.outstandingBalance)} stays with {PREVIOUS_OWNER.name} <ToConfirm id="MACD003-Q7" /></Row>
           )}
           <Row label="Technician visit">
             {showAppointment && apptDate ? `${formatDateLabel(new Date(apptDate + 'T12:00:00'))} · ${slotLabel(apptSlot)}` : 'None'}
@@ -760,7 +785,7 @@ export function ChangeOwnershipFlow({ selectedSA, onBack, onFinish }: ChangeOwne
 
         <div className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs text-gray-600 mt-4">
           <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <span>The previous owner's orders, billing history, payments, call history and documents stay with them and aren't visible to the new owner. <ToConfirm q="Q13" /></span>
+          <span>The previous owner's orders, billing history, payments, call history and documents stay with them and aren't visible to the new owner. <ToConfirm id="MACD003-Q8" /></span>
         </div>
 
         <Footer onBack={() => setStep('documents')} onNext={submit} nextLabel="Submit change of ownership" />
